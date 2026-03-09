@@ -1,0 +1,9890 @@
+{
+  "spec": {
+    "num_stages": 8,
+    "machines_per_stage": 4,
+    "n_jobs": 120,
+    "buffer_caps": [
+      11,
+      10,
+      11,
+      10,
+      11,
+      11,
+      10
+    ],
+    "pt_profile": "balanced",
+    "pt_low": 1,
+    "pt_high": 10,
+    "seed": 66,
+    "os_repeat": 120
+  },
+  "buffers": {
+    "B01": {
+      "capacity": 11
+    },
+    "B12": {
+      "capacity": 10
+    },
+    "B23": {
+      "capacity": 11
+    },
+    "B34": {
+      "capacity": 10
+    },
+    "B45": {
+      "capacity": 11
+    },
+    "B56": {
+      "capacity": 11
+    },
+    "B67": {
+      "capacity": 10
+    }
+  },
+  "operations": {
+    "J1": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 10,
+          "M1c": 10,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 10,
+          "M2c": 8,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 8,
+          "M6c": 7,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J2": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 10,
+          "M1c": 10,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 10,
+          "M2c": 10,
+          "M2d": 10
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 9,
+          "M5c": 10,
+          "M5d": 11
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J3": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J4": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 9,
+          "M0c": 9,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J5": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J6": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 9,
+          "M0c": 9,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 7,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 9,
+          "M7c": 10,
+          "M7d": 11
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J7": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 9,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J8": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 8,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 9,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J9": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 11,
+          "M0c": 11,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 8,
+          "M2c": 8,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 10,
+          "M3c": 11,
+          "M3d": 10
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 11,
+          "M5c": 10,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J10": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 6,
+          "M0c": 7,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 8,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 5,
+          "M7c": 7,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J11": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 8,
+          "M0c": 9,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 10,
+          "M2c": 11,
+          "M2d": 10
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 6,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 11,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J12": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 9,
+          "M2c": 8,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 9,
+          "M7c": 9,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J13": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 6,
+          "M1c": 7,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 9,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J14": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 5,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 10,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 9,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J15": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 11,
+          "M4b": 10,
+          "M4c": 10,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J16": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 9,
+          "M1c": 8,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 8,
+          "M4c": 8,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 4,
+          "M7b": 4,
+          "M7c": 4,
+          "M7d": 4
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J17": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 11,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 6,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 7,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J18": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 7,
+          "M2c": 9,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 5,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J19": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 8,
+          "M2c": 10,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 6,
+          "M4c": 5,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J20": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 9,
+          "M0c": 11,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J21": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 8,
+          "M2c": 7,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 11,
+          "M3c": 10,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J22": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 9,
+          "M1c": 8,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 11,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 5,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J23": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 6,
+          "M1c": 7,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 9,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 8,
+          "M5c": 10,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J24": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 10,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 11,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 9,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J25": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 8,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 11,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 10
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J26": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 8,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 11,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 9,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J27": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 9,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 10,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J28": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 11,
+          "M3c": 11,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J29": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 10,
+          "M0c": 9,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 8,
+          "M4c": 8,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J30": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J31": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 9,
+          "M0c": 10,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 6,
+          "M1c": 5,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 7,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 7,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 11,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 11,
+          "M7c": 11,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J32": [
+      {
+        "machines": {
+          "M0a": 11,
+          "M0b": 10,
+          "M0c": 11,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 8,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 10,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 10,
+          "M6c": 9,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J33": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 8,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 11,
+          "M4b": 10,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 9,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 9,
+          "M6c": 10,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 7,
+          "M7c": 8,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J34": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 10,
+          "M1c": 11,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J35": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 10,
+          "M0c": 9,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 5,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 4,
+          "M7b": 4,
+          "M7c": 4,
+          "M7d": 4
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J36": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 10,
+          "M4c": 8,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 7,
+          "M5c": 6,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 9,
+          "M6c": 9,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 11,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J37": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 9,
+          "M4c": 9,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 7,
+          "M5c": 6,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J38": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 10,
+          "M0c": 9,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 9,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 7,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 11,
+          "M5b": 9,
+          "M5c": 10,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 8,
+          "M6c": 8,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J39": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 5,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 8,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 9,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 6,
+          "M6c": 7,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J40": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 9,
+          "M4c": 8,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J41": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 8,
+          "M1c": 9,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 6,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 8,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J42": [
+      {
+        "machines": {
+          "M0a": 11,
+          "M0b": 9,
+          "M0c": 10,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 8,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 11,
+          "M6c": 10,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J43": [
+      {
+        "machines": {
+          "M0a": 11,
+          "M0b": 9,
+          "M0c": 10,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 8,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 8,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J44": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 9,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J45": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 6,
+          "M3c": 5,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J46": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 9,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J47": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 10,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 6,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 8,
+          "M5c": 7,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 8,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J48": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 9,
+          "M1c": 9,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 10,
+          "M3c": 10,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J49": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 8,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 8,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J50": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 7,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J51": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 5,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 7,
+          "M6c": 6,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 9,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J52": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 10,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 8,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 8,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J53": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 8,
+          "M0c": 7,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 7,
+          "M2c": 5,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 8,
+          "M4c": 8,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 8,
+          "M6c": 9,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J54": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 11,
+          "M7b": 10,
+          "M7c": 11,
+          "M7d": 11
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J55": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 5,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J56": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 11,
+          "M0c": 11,
+          "M0d": 11
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 10,
+          "M3c": 11,
+          "M3d": 10
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 7,
+          "M6c": 6,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J57": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 11,
+          "M1c": 10,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 10,
+          "M2c": 10,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 11,
+          "M5b": 10,
+          "M5c": 9,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 9,
+          "M6c": 8,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 5,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J58": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 5,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 7,
+          "M5c": 7,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 11,
+          "M6c": 10,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J59": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 11,
+          "M2b": 9,
+          "M2c": 11,
+          "M2d": 10
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 9,
+          "M6c": 8,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J60": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 8,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 11,
+          "M5c": 11,
+          "M5d": 11
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 11,
+          "M6c": 9,
+          "M6d": 11
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 9,
+          "M7c": 10,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J61": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 8,
+          "M0c": 9,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J62": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 4,
+          "M7b": 4,
+          "M7c": 4,
+          "M7d": 4
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J63": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 5,
+          "M6c": 7,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J64": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 3,
+          "M4b": 3,
+          "M4c": 3,
+          "M4d": 3
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J65": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 9,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 10,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J66": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 7,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 7,
+          "M3c": 6,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J67": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 7,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 5,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 9,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 10,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 11,
+          "M7c": 10,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J68": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 9,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 5,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J69": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 10,
+          "M5c": 9,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J70": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 7,
+          "M0c": 6,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 7,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 10,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J71": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 3,
+          "M4b": 3,
+          "M4c": 3,
+          "M4d": 3
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J72": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 10,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 8,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 11,
+          "M5c": 9,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J73": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 10,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 8,
+          "M4c": 8,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J74": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 9,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 10,
+          "M4c": 9,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J75": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 11,
+          "M1b": 10,
+          "M1c": 10,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 11
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 8,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J76": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 7,
+          "M0c": 7,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 6,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 8,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 9,
+          "M5c": 7,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J77": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 6,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J78": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 9,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 10,
+          "M6c": 11,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J79": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 7,
+          "M2c": 8,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 7,
+          "M4b": 7,
+          "M4c": 9,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J80": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 9,
+          "M4c": 10,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 9,
+          "M7c": 7,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J81": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 11,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 11
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J82": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 11,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 6,
+          "M3b": 6,
+          "M3c": 6,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 8,
+          "M6c": 8,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J83": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 10,
+          "M0c": 9,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 8,
+          "M1c": 9,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 10,
+          "M3b": 10,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 8,
+          "M4c": 7,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 11,
+          "M6c": 10,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J84": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 7,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 9,
+          "M5c": 8,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 6,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J85": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 9,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 11,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 11
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 8,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J86": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 3,
+          "M4b": 3,
+          "M4c": 3,
+          "M4d": 3
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J87": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 1,
+          "M1b": 1,
+          "M1c": 1,
+          "M1d": 1
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J88": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 10,
+          "M2b": 9,
+          "M2c": 10,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 11,
+          "M4b": 10,
+          "M4c": 10,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 2,
+          "M6b": 2,
+          "M6c": 2,
+          "M6d": 2
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J89": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 8,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 6,
+          "M5c": 7,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 9,
+          "M7c": 9,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J90": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 8,
+          "M4c": 8,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 8,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J91": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 7,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 7,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 10,
+          "M4c": 9,
+          "M4d": 11
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 9,
+          "M6d": 11
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J92": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 9,
+          "M3b": 9,
+          "M3c": 9,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 7,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 8,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J93": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 8,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 2,
+          "M5b": 2,
+          "M5c": 2,
+          "M5d": 2
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 1,
+          "M6b": 1,
+          "M6c": 1,
+          "M6d": 1
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J94": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 9,
+          "M1c": 8,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 9,
+          "M2b": 9,
+          "M2c": 8,
+          "M2d": 10
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 3,
+          "M4b": 3,
+          "M4c": 3,
+          "M4d": 3
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 5,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J95": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 10,
+          "M0c": 10,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 8,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 10,
+          "M4b": 8,
+          "M4c": 9,
+          "M4d": 9
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 10,
+          "M5c": 10,
+          "M5d": 10
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 11,
+          "M6c": 11,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J96": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 8,
+          "M0c": 10,
+          "M0d": 9
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 8,
+          "M1c": 10,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 8,
+          "M4c": 6,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 9,
+          "M6c": 8,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 4,
+          "M7b": 4,
+          "M7c": 4,
+          "M7d": 4
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J97": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 8
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 7,
+          "M4d": 7
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 11,
+          "M6c": 10,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J98": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 6,
+          "M0c": 7,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 8,
+          "M4c": 9,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 8,
+          "M6c": 9,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 6,
+          "M7b": 6,
+          "M7c": 6,
+          "M7d": 6
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J99": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 10,
+          "M1c": 10,
+          "M1d": 10
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 7,
+          "M3c": 8,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 8,
+          "M4c": 10,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 8,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 8,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J100": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 9,
+          "M1c": 9,
+          "M1d": 8
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 7,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 10,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J101": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 6,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 8,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 7,
+          "M6c": 8,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 3,
+          "M7b": 3,
+          "M7c": 3,
+          "M7d": 3
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J102": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 4,
+          "M3b": 4,
+          "M3c": 4,
+          "M3d": 4
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 7,
+          "M5c": 7,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 10,
+          "M6c": 9,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J103": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 10,
+          "M4c": 10,
+          "M4d": 10
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J104": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 5,
+          "M4c": 5,
+          "M4d": 5
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 7,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J105": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 10,
+          "M1c": 10,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 3,
+          "M3b": 3,
+          "M3c": 3,
+          "M3d": 3
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 5,
+          "M4b": 6,
+          "M4c": 7,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 5,
+          "M5c": 5,
+          "M5d": 5
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 7
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J106": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 7,
+          "M0c": 6,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 11,
+          "M1b": 10,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 11,
+          "M6b": 10,
+          "M6c": 10,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J107": [
+      {
+        "machines": {
+          "M0a": 1,
+          "M0b": 1,
+          "M0c": 1,
+          "M0d": 1
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 5,
+          "M3b": 5,
+          "M3c": 5,
+          "M3d": 5
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 10,
+          "M5b": 9,
+          "M5c": 8,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 10,
+          "M6b": 10,
+          "M6c": 11,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 11,
+          "M7b": 10,
+          "M7c": 11,
+          "M7d": 10
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J108": [
+      {
+        "machines": {
+          "M0a": 4,
+          "M0b": 4,
+          "M0c": 4,
+          "M0d": 4
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 2,
+          "M1b": 2,
+          "M1c": 2,
+          "M1d": 2
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 8,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 3,
+          "M5b": 3,
+          "M5c": 3,
+          "M5d": 3
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 10,
+          "M7b": 10,
+          "M7c": 9,
+          "M7d": 11
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J109": [
+      {
+        "machines": {
+          "M0a": 10,
+          "M0b": 10,
+          "M0c": 11,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 3,
+          "M1b": 3,
+          "M1c": 3,
+          "M1d": 3
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 3,
+          "M2b": 3,
+          "M2c": 3,
+          "M2d": 3
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 8,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J110": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 2,
+          "M3b": 2,
+          "M3c": 2,
+          "M3d": 2
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 9,
+          "M4b": 8,
+          "M4c": 7,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 7,
+          "M5b": 6,
+          "M5c": 7,
+          "M5d": 7
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 7,
+          "M6c": 8,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J111": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 5,
+          "M1b": 5,
+          "M1c": 5,
+          "M1d": 5
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 4,
+          "M2b": 4,
+          "M2c": 4,
+          "M2d": 4
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 8,
+          "M4b": 7,
+          "M4c": 8,
+          "M4d": 8
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 8,
+          "M5b": 8,
+          "M5c": 8,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 7
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 4,
+          "M7b": 4,
+          "M7c": 4,
+          "M7d": 4
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J112": [
+      {
+        "machines": {
+          "M0a": 9,
+          "M0b": 10,
+          "M0c": 10,
+          "M0d": 10
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 8,
+          "M1b": 9,
+          "M1c": 8,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 8,
+          "M2c": 8,
+          "M2d": 9
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 1,
+          "M3b": 1,
+          "M3c": 1,
+          "M3d": 1
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 5,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 5,
+          "M5b": 6,
+          "M5c": 6,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 8,
+          "M6b": 8,
+          "M6c": 9,
+          "M6d": 8
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 7,
+          "M7b": 9,
+          "M7c": 7,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J113": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 7,
+          "M0c": 7,
+          "M0d": 8
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 4,
+          "M1b": 4,
+          "M1c": 4,
+          "M1d": 4
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 7,
+          "M2c": 8,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 8,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 6,
+          "M5b": 6,
+          "M5c": 5,
+          "M5d": 6
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 3,
+          "M6b": 3,
+          "M6c": 3,
+          "M6d": 3
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 8,
+          "M7c": 8,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J114": [
+      {
+        "machines": {
+          "M0a": 8,
+          "M0b": 7,
+          "M0c": 7,
+          "M0d": 7
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 5,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 8,
+          "M2b": 8,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 8,
+          "M3c": 8,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 6,
+          "M6c": 6,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 2,
+          "M7b": 2,
+          "M7c": 2,
+          "M7d": 2
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J115": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 6,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 7,
+          "M2b": 8,
+          "M2c": 7,
+          "M2d": 7
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 9
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 3,
+          "M4b": 3,
+          "M4c": 3,
+          "M4d": 3
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 10,
+          "M5c": 9,
+          "M5d": 9
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 6,
+          "M6b": 7,
+          "M6c": 7,
+          "M6d": 6
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 11
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J116": [
+      {
+        "machines": {
+          "M0a": 7,
+          "M0b": 8,
+          "M0c": 8,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 7,
+          "M1b": 7,
+          "M1c": 8,
+          "M1d": 7
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 7,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 4,
+          "M4b": 4,
+          "M4c": 4,
+          "M4d": 4
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 1,
+          "M5b": 1,
+          "M5c": 1,
+          "M5d": 1
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 9,
+          "M7b": 7,
+          "M7c": 7,
+          "M7d": 8
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J117": [
+      {
+        "machines": {
+          "M0a": 2,
+          "M0b": 2,
+          "M0c": 2,
+          "M0d": 2
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 9,
+          "M1b": 9,
+          "M1c": 9,
+          "M1d": 9
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 5,
+          "M2b": 5,
+          "M2c": 5,
+          "M2d": 5
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 6
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 8,
+          "M5c": 10,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 5,
+          "M6b": 5,
+          "M6c": 5,
+          "M6d": 5
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J118": [
+      {
+        "machines": {
+          "M0a": 5,
+          "M0b": 5,
+          "M0c": 5,
+          "M0d": 5
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 6,
+          "M1b": 5,
+          "M1c": 6,
+          "M1d": 6
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 2,
+          "M2b": 2,
+          "M2c": 2,
+          "M2d": 2
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 7,
+          "M3b": 7,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 2,
+          "M4b": 2,
+          "M4c": 2,
+          "M4d": 2
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 9,
+          "M5b": 9,
+          "M5c": 9,
+          "M5d": 8
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 9,
+          "M6b": 11,
+          "M6c": 9,
+          "M6d": 10
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 5,
+          "M7b": 5,
+          "M7c": 5,
+          "M7d": 5
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J119": [
+      {
+        "machines": {
+          "M0a": 6,
+          "M0b": 7,
+          "M0c": 6,
+          "M0d": 6
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 10,
+          "M1c": 9,
+          "M1d": 11
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 1,
+          "M2b": 1,
+          "M2c": 1,
+          "M2d": 1
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 8,
+          "M3c": 7,
+          "M3d": 7
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 1,
+          "M4b": 1,
+          "M4c": 1,
+          "M4d": 1
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 4,
+          "M6b": 4,
+          "M6c": 4,
+          "M6d": 4
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 8,
+          "M7b": 10,
+          "M7c": 10,
+          "M7d": 9
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ],
+    "J120": [
+      {
+        "machines": {
+          "M0a": 3,
+          "M0b": 3,
+          "M0c": 3,
+          "M0d": 3
+        },
+        "buffer_in": null,
+        "buffer_out": "B01"
+      },
+      {
+        "machines": {
+          "M1a": 10,
+          "M1b": 10,
+          "M1c": 9,
+          "M1d": 11
+        },
+        "buffer_in": "B01",
+        "buffer_out": "B12"
+      },
+      {
+        "machines": {
+          "M2a": 6,
+          "M2b": 6,
+          "M2c": 6,
+          "M2d": 6
+        },
+        "buffer_in": "B12",
+        "buffer_out": "B23"
+      },
+      {
+        "machines": {
+          "M3a": 8,
+          "M3b": 9,
+          "M3c": 8,
+          "M3d": 8
+        },
+        "buffer_in": "B23",
+        "buffer_out": "B34"
+      },
+      {
+        "machines": {
+          "M4a": 6,
+          "M4b": 6,
+          "M4c": 6,
+          "M4d": 6
+        },
+        "buffer_in": "B34",
+        "buffer_out": "B45"
+      },
+      {
+        "machines": {
+          "M5a": 4,
+          "M5b": 4,
+          "M5c": 4,
+          "M5d": 4
+        },
+        "buffer_in": "B45",
+        "buffer_out": "B56"
+      },
+      {
+        "machines": {
+          "M6a": 11,
+          "M6b": 11,
+          "M6c": 9,
+          "M6d": 9
+        },
+        "buffer_in": "B56",
+        "buffer_out": "B67"
+      },
+      {
+        "machines": {
+          "M7a": 1,
+          "M7b": 1,
+          "M7c": 1,
+          "M7d": 1
+        },
+        "buffer_in": "B67",
+        "buffer_out": null
+      }
+    ]
+  },
+  "meta": {
+    "format": "WIP-FMS-JSON",
+    "version": 1
+  }
+}
