@@ -15,9 +15,9 @@ def test_base_population_search_run():
     spec = InstanceSpec(
         num_stages=3,
         machines_per_stage=2,
-        n_jobs=6,
+        n_jobs=10,
         buffer_caps=[1, 1],   # 占位
-        pt_profile="balanced",
+        pt_profile="mid_bottleneck",
         seed=1,
         os_repeat=20,
     )
@@ -25,16 +25,19 @@ def test_base_population_search_run():
     spec, operations, buffers, _, _ = generate_fms_wip_instance_auto_caps(spec)
 
     search = BasePopulationSearch(
-        operations=operations,
-        buffers=buffers,
-        pop_size=6,
-        n_generations=5,
-        crossover_rate=0.8,
-        os_mutation_rate=0.2,
-        ms_mutation_rate=0.1,
-        tournament_size=2,
-        seed=42,
-    )
+            operations=operations,
+            buffers=buffers,
+            pop_size=6,
+            n_generations=5,
+            crossover_rate=0.8,
+            os_mutation_rate=0.2,
+            ms_mutation_rate=0.1,
+            tournament_size=2,
+            seed=42,
+            use_local_search=True,
+            elite_ls_count=2,
+            ls_max_tries=4,
+        )
 
     best = search.run(
         store_stats_init=True,

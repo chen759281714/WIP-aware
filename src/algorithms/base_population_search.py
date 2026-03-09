@@ -6,7 +6,6 @@ import random
 import os
 import sys
 
-# ===== 把项目根目录加入 sys.path，解决 ModuleNotFoundError: No module named 'src' =====
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
@@ -46,14 +45,18 @@ class BasePopulationSearch:
     """
     单种群搜索基础框架（中性基线）
 
-    这一版已包含：
+    当前版本包含：
     1. 初始化
     2. 评价
-    3. 父代选择
+    3. 选择
     4. 交叉
     5. 变异
-    6. 单代更新
-    7. run 主循环
+    6. 基于 blocking 信息的局部搜索（WIP-aware local search）
+    7. 单代更新
+    8. run 主循环
+
+    本版本相较上一版新增：
+    - blocking-based local search trigger
     """
 
     def __init__(
@@ -67,6 +70,11 @@ class BasePopulationSearch:
         ms_mutation_rate: float = 0.2,
         tournament_size: int = 2,
         seed: Optional[int] = None,
+        use_local_search: bool = False,
+        elite_ls_count: int = 2,
+        ls_max_tries: int = 4,
+        ls_blocking_threshold: int = 1,
+        ls_require_positive_blocking: bool = True,
     ):
         if pop_size <= 0:
             raise ValueError("pop_size 必须 > 0")
@@ -80,6 +88,12 @@ class BasePopulationSearch:
             raise ValueError("ms_mutation_rate 必须在 [0,1] 内")
         if tournament_size <= 0:
             raise ValueError("tournament_size 必须 > 0")
+        if elite_ls_count < 0:
+            raise ValueError("elite_ls_count 必须 >= 0")
+        if ls_max_tries <= 0:
+            raise ValueError("ls_max_tries 必须 > 0")
+        if ls_blocking_threshold < 0:
+            raise ValueError("ls_blocking_threshold 必须 >= 0")
 
         self.operations = operations
         self.buffers = buffers
@@ -91,6 +105,13 @@ class BasePopulationSearch:
         self.ms_mutation_rate = ms_mutation_rate
         self.tournament_size = tournament_size
         self.seed = seed
+
+        # 局部搜索参数
+        self.use_local_search = use_local_search
+        self.elite_ls_count = elite_ls_count
+        self.ls_max_tries = ls_max_tries
+        self.ls_blocking_threshold = ls_blocking_threshold
+        self.ls_require_positive_blocking = ls_require_positive_blocking
 
         self.rng = random.Random(seed)
 
@@ -120,6 +141,14 @@ class BasePopulationSearch:
     # =========================
 
     def evaluate_individual(self, ind: Individual, store_stats: bool = True) -> float:
+        """
+        评价单个个体：
+        OS + MS_list
+            -> build_ms_map
+            -> decode
+            -> analyze
+            -> 回填 fitness / makespan / schedule / buffer_trace / stats
+        """
         ms_map = self.encoder.build_ms_map(ind.MS)
 
         makespan, schedule, buffer_trace = self.scheduler.decode(
@@ -211,12 +240,6 @@ class BasePopulationSearch:
     def crossover_os(self, os1: List[str], os2: List[str]) -> Tuple[List[str], List[str]]:
         """
         job-based POX 交叉
-
-        步骤：
-        1. 从所有 job 中随机选一个子集 keep_jobs
-        2. child1 保留 os1 中属于 keep_jobs 的位置和值
-           其余空位按 os2 中不属于 keep_jobs 的元素顺序填补
-        3. child2 反向构造
         """
         jobs = list(self.operations.keys())
         n_jobs = len(jobs)
@@ -230,17 +253,14 @@ class BasePopulationSearch:
         child1 = [None] * len(os1)
         child2 = [None] * len(os2)
 
-        # child1: 保留 parent1 中 keep_jobs
         for i, gene in enumerate(os1):
             if gene in keep_jobs:
                 child1[i] = gene
 
-        # child2: 保留 parent2 中 keep_jobs
         for i, gene in enumerate(os2):
             if gene in keep_jobs:
                 child2[i] = gene
 
-        # 用另一个父代中“不在 keep_jobs 中”的基因顺序填补
         fill1 = [g for g in os2 if g not in keep_jobs]
         fill2 = [g for g in os1 if g not in keep_jobs]
 
@@ -277,9 +297,6 @@ class BasePopulationSearch:
         return child1, child2
 
     def crossover(self, p1: Individual, p2: Individual) -> Tuple[Individual, Individual]:
-        """
-        个体层交叉
-        """
         if self.rng.random() > self.crossover_rate:
             return p1.copy(), p2.copy()
 
@@ -328,13 +345,218 @@ class BasePopulationSearch:
         new_ind.OS = self.mutate_os(new_ind.OS)
         new_ind.MS = self.mutate_ms(new_ind.MS)
 
-        # 变异后清空旧评价结果
-        new_ind.fitness = None
-        new_ind.makespan = None
-        new_ind.schedule = None
-        new_ind.buffer_trace = None
-        new_ind.stats = None
+        self.reset_individual_evaluation(new_ind)
         return new_ind
+
+    # =========================
+    # WIP-aware 局部搜索工具函数
+    # =========================
+
+    def get_total_blocking_time(self, ind: Individual) -> int:
+        """
+        返回个体的总 blocking 时间
+        """
+        if ind.stats is None:
+            raise ValueError("ind.stats is None，无法提取 total_blocking_time")
+
+        return int(ind.stats["blocking"]["total_blocking_time"])
+
+    def should_trigger_local_search(self, ind: Individual) -> bool:
+        """
+        判断当前个体是否应触发局部搜索
+
+        触发逻辑：
+        1. 若不开启 blocking-based trigger，则恒为 True
+        2. 若要求正 blocking，则 total_blocking_time 必须 >= threshold
+        """
+        if ind.stats is None:
+            raise ValueError("ind.stats is None，无法判断是否触发局部搜索")
+
+        total_blocking = self.get_total_blocking_time(ind)
+
+        if not self.ls_require_positive_blocking:
+            return True
+
+        return total_blocking >= self.ls_blocking_threshold
+
+    def get_critical_blocking_ops(self, ind: Individual, top_k: int = 3) -> List[Dict[str, Any]]:
+        """
+        提取 blocking 最大的关键工序记录。
+        仅返回 blocking > 0 的工序。
+        """
+        if ind.stats is None:
+            raise ValueError("ind.stats is None，无法提取 blocking 工序")
+
+        op_blocking = ind.stats["blocking"]["per_op_blocking_time"]
+        op_blocking = sorted(op_blocking, key=lambda x: x["blocking"], reverse=True)
+        op_blocking = [x for x in op_blocking if x["blocking"] > 0]
+
+        return op_blocking[:top_k]
+
+    def find_os_positions_of_job(self, os_seq: List[str], job: str) -> List[int]:
+        """
+        返回某个 job 在 OS 中出现的全部位置
+        """
+        return [i for i, g in enumerate(os_seq) if g == job]
+
+    def reset_individual_evaluation(self, ind: Individual) -> None:
+        """
+        清空个体旧的评价结果
+        """
+        ind.fitness = None
+        ind.makespan = None
+        ind.schedule = None
+        ind.buffer_trace = None
+        ind.stats = None
+
+    # =========================
+    # 邻域生成
+    # =========================
+
+    def neighbor_ms_reassign(self, ind: Individual, target_job: str, target_op: int) -> List[Individual]:
+        """
+        针对关键工序 (target_job, target_op)，生成“单点改机”邻居
+        """
+        neighbors = []
+
+        target_idx = None
+        for idx, (job, op) in enumerate(self.encoder.ms_index_order):
+            if job == target_job and op == target_op:
+                target_idx = idx
+                break
+
+        if target_idx is None:
+            return neighbors
+
+        current_machine = ind.MS[target_idx]
+        legal_machines = list(self.operations[target_job][target_op]["machines"].keys())
+
+        for m in legal_machines:
+            if m == current_machine:
+                continue
+
+            nei = ind.copy()
+            nei.MS[target_idx] = m
+            self.reset_individual_evaluation(nei)
+            neighbors.append(nei)
+
+        return neighbors
+
+    def neighbor_os_swap(self, ind: Individual, target_job: str, max_neighbors: int = 3) -> List[Individual]:
+        """
+        围绕 target_job 生成若干 OS swap 邻居
+        """
+        neighbors = []
+
+        positions = self.find_os_positions_of_job(ind.OS, target_job)
+        if not positions:
+            return neighbors
+
+        tried_pairs = set()
+        max_attempt_loops = max_neighbors * 5
+        attempt = 0
+
+        while len(neighbors) < max_neighbors and attempt < max_attempt_loops:
+            attempt += 1
+
+            i = self.rng.choice(positions)
+            j = self.rng.randrange(len(ind.OS))
+
+            if i == j:
+                continue
+
+            pair = tuple(sorted((i, j)))
+            if pair in tried_pairs:
+                continue
+            tried_pairs.add(pair)
+
+            nei = ind.copy()
+            nei.OS[i], nei.OS[j] = nei.OS[j], nei.OS[i]
+            self.reset_individual_evaluation(nei)
+            neighbors.append(nei)
+
+        return neighbors
+
+    # =========================
+    # 局部搜索
+    # =========================
+
+    def local_search(self, ind: Individual) -> Individual:
+        """
+        第一版 WIP-aware 局部搜索（带 blocking trigger）：
+        1. 若个体 blocking 不显著，则直接跳过
+        2. 提取 blocking 最大的关键工序
+        3. 优先尝试 MS 单点改机
+        4. 再尝试 OS 局部 swap
+        5. 只接受严格改进解
+        """
+        current = ind.copy()
+
+        if current.fitness is None or current.stats is None:
+            self.evaluate_individual(current, store_stats=True)
+
+        # -------- blocking trigger --------
+        if not self.should_trigger_local_search(current):
+            return current
+
+        critical_ops = self.get_critical_blocking_ops(current, top_k=3)
+        if not critical_ops:
+            return current
+
+        tries = 0
+
+        for rec in critical_ops:
+            if tries >= self.ls_max_tries:
+                break
+
+            job = rec["job"]
+            op = rec["op"]
+
+            # 先尝试 MS 邻域
+            ms_neighbors = self.neighbor_ms_reassign(current, job, op)
+            for nei in ms_neighbors:
+                self.evaluate_individual(nei, store_stats=True)
+                tries += 1
+
+                if nei.fitness < current.fitness:
+                    return nei
+
+                if tries >= self.ls_max_tries:
+                    return current
+
+            # 再尝试 OS 邻域
+            os_neighbors = self.neighbor_os_swap(current, job, max_neighbors=2)
+            for nei in os_neighbors:
+                self.evaluate_individual(nei, store_stats=True)
+                tries += 1
+
+                if nei.fitness < current.fitness:
+                    return nei
+
+                if tries >= self.ls_max_tries:
+                    return current
+
+        return current
+
+    def apply_local_search_to_elites(self) -> None:
+        """
+        对当前种群中前 elite_ls_count 个精英执行局部搜索
+        """
+        if not self.use_local_search:
+            return
+
+        if not self.population:
+            return
+
+        self.population = self.sort_population(self.population)
+
+        n = min(self.elite_ls_count, len(self.population))
+        for i in range(n):
+            improved = self.local_search(self.population[i])
+            self.population[i] = improved
+
+        self.population = self.sort_population(self.population)
+        self._update_best(self.population)
 
     # =========================
     # 子代生成 / 单代更新
@@ -368,7 +590,8 @@ class BasePopulationSearch:
         2. 评价子代
         3. 父代 + 子代 合并
         4. 截断保留前 pop_size
-        5. 更新 best
+        5. 对精英做局部搜索（可选）
+        6. 更新 best
         """
         offspring = self.generate_offspring()
         self.evaluate_population(offspring, store_stats=store_stats)
@@ -377,6 +600,11 @@ class BasePopulationSearch:
         merged_sorted = self.sort_population(merged)
 
         self.population = [ind.copy() for ind in merged_sorted[:self.pop_size]]
+
+        # 对精英做局部搜索
+        self.apply_local_search_to_elites()
+
+        # 再更新一次 best
         self._update_best(self.population)
 
     # =========================
