@@ -34,9 +34,10 @@ def test_base_population_search_run():
             ms_mutation_rate=0.1,
             tournament_size=2,
             seed=42,
-            use_local_search=True,
-            elite_ls_count=2,
-            ls_max_tries=4,
+            use_local_search=False,
+            # ls_apply_mode="elite"
+            # elite_ls_count=2,
+            # ls_max_tries=4,
         )
 
     best = search.run(

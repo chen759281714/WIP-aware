@@ -7,28 +7,39 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
 from src.problem.instance_generator import load_instance_from_json
-from src.algorithms.base_population_search import BasePopulationSearch
+from src.algorithms.baseline_ga import BaselineGA
+from src.algorithms.elite_ls_ga import EliteLSGA
 
 
-def run_once(json_path, seed, use_local_search):
+def run_once(json_path, seed, algorithm_name):
     spec, operations, buffers, _ = load_instance_from_json(json_path)
 
-    search = BasePopulationSearch(
+    common_params = dict(
         operations=operations,
         buffers=buffers,
         pop_size=10,
-        n_generations=10,
+        n_generations=5,
         crossover_rate=0.8,
         os_mutation_rate=0.2,
         ms_mutation_rate=0.1,
         tournament_size=2,
         seed=seed,
-        use_local_search=use_local_search,
-        elite_ls_count=2,
-        ls_max_tries=4,
-        ls_blocking_threshold=3,
-        ls_require_positive_blocking=True,
     )
+
+    if algorithm_name == "baseline":
+        search = BaselineGA(**common_params)
+
+    elif algorithm_name == "elite_ls":
+        search = EliteLSGA(
+            **common_params,
+            elite_ls_count=2,
+            ls_max_tries=6,
+            ls_blocking_threshold=3,
+            ls_require_positive_blocking=True,
+        )
+
+    else:
+        raise ValueError(f"未知算法名称: {algorithm_name}")
 
     t0 = time.time()
     best = search.run(
@@ -71,36 +82,43 @@ def compare_on_instance(json_path, seeds):
     print("Instance:", os.path.basename(json_path))
 
     baseline_runs = []
-    ls_runs = []
+    elite_ls_runs = []
 
     for seed in seeds:
-        baseline_runs.append(run_once(json_path, seed, use_local_search=False))
-        ls_runs.append(run_once(json_path, seed, use_local_search=True))
+        baseline_runs.append(run_once(json_path, seed, algorithm_name="baseline"))
+        elite_ls_runs.append(run_once(json_path, seed, algorithm_name="elite_ls"))
 
     base_summary = summarize_results(baseline_runs)
-    ls_summary = summarize_results(ls_runs)
+    elite_summary = summarize_results(elite_ls_runs)
 
     print("\n[Baseline]")
     print(base_summary)
 
-    print("\n[LS-enhanced]")
-    print(ls_summary)
+    print("\n[Elite-LS]")
+    print(elite_summary)
 
-    print("\n[Delta: LS - Baseline]")
+    print("\n[Delta: Elite-LS - Baseline]")
     print({
-        "best_makespan_delta": ls_summary["best_makespan"] - base_summary["best_makespan"],
-        "avg_makespan_delta": ls_summary["avg_makespan"] - base_summary["avg_makespan"],
-        "avg_runtime_delta": ls_summary["avg_runtime"] - base_summary["avg_runtime"],
+        "best_makespan_delta": elite_summary["best_makespan"] - base_summary["best_makespan"],
+        "avg_makespan_delta": elite_summary["avg_makespan"] - base_summary["avg_makespan"],
+        "avg_runtime_delta": elite_summary["avg_runtime"] - base_summary["avg_runtime"],
+        "avg_blocking_delta": (
+            None if base_summary["avg_blocking"] is None or elite_summary["avg_blocking"] is None
+            else elite_summary["avg_blocking"] - base_summary["avg_blocking"]
+        ),
     })
 
 
 if __name__ == "__main__":
-    seeds = [1, 2, 3, 4, 5]
+    seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     instance_files = [
-        r"data/instances/WIP-FMS/WIP-FMS_small_S3_K2_N20_balanced_seed55.json",
-        r"data/instances/WIP-FMS/WIP-FMS_small_S3_K2_N20_mid_bottleneck_seed44.json",
-        r"data/instances/WIP-FMS/WIP-FMS_small_S3_K2_N20_downstream_bottleneck_seed22.json",
+        r"data/instances/WIP-FMS/WIP-FMS_07.json",
+        r"data/instances/WIP-FMS/WIP-FMS_10.json",
+        r"data/instances/WIP-FMS/WIP-FMS_13.json",
+        r"data/instances/WIP-FMS/WIP-FMS_14.json",
+        r"data/instances/WIP-FMS/WIP-FMS_17.json",
+        r"data/instances/WIP-FMS/WIP-FMS_20.json",
     ]
 
     for path in instance_files:

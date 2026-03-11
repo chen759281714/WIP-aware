@@ -41,24 +41,18 @@ class Individual:
         )
 
 
-class BasePopulationSearch:
+class BaselineGA:
     """
-    单种群搜索基础框架（中性基线）
+    单种群基础进化搜索（Baseline）
 
-    当前版本包含：
+    包含：
     1. 初始化
     2. 评价
-    3. 选择
-    4. 交叉
-    5. 变异
-    6. 基于 blocking 信息的局部搜索（WIP-aware local search）
-    7. 单代更新
-    8. run 主循环
-
-    局部搜索支持三种模式：
-    - ls_apply_mode = "none"
-    - ls_apply_mode = "elite"
-    - ls_apply_mode = "offspring"
+    3. 锦标赛选择
+    4. OS/MS 交叉
+    5. OS/MS 变异
+    6. 环境选择
+    7. run 主循环
     """
 
     def __init__(
@@ -66,19 +60,12 @@ class BasePopulationSearch:
         operations: Dict[str, List[Dict[str, Any]]],
         buffers: Dict[str, Dict[str, Any]],
         pop_size: int = 20,
-        n_generations: int = 30,
+        n_generations: int = 100,
         crossover_rate: float = 0.8,
         os_mutation_rate: float = 0.2,
         ms_mutation_rate: float = 0.2,
         tournament_size: int = 2,
         seed: Optional[int] = None,
-        use_local_search: bool = False,
-        elite_ls_count: int = 2,
-        offspring_ls_count: int = 2,
-        ls_max_tries: int = 4,
-        ls_blocking_threshold: int = 1,
-        ls_require_positive_blocking: bool = True,
-        ls_apply_mode: str = "elite",
     ):
         if pop_size <= 0:
             raise ValueError("pop_size 必须 > 0")
@@ -92,16 +79,6 @@ class BasePopulationSearch:
             raise ValueError("ms_mutation_rate 必须在 [0,1] 内")
         if tournament_size <= 0:
             raise ValueError("tournament_size 必须 > 0")
-        if elite_ls_count < 0:
-            raise ValueError("elite_ls_count 必须 >= 0")
-        if offspring_ls_count < 0:
-            raise ValueError("offspring_ls_count 必须 >= 0")
-        if ls_max_tries <= 0:
-            raise ValueError("ls_max_tries 必须 > 0")
-        if ls_blocking_threshold < 0:
-            raise ValueError("ls_blocking_threshold 必须 >= 0")
-        if ls_apply_mode not in {"none", "elite", "offspring"}:
-            raise ValueError("ls_apply_mode 必须是 'none' / 'elite' / 'offspring'")
 
         self.operations = operations
         self.buffers = buffers
@@ -114,17 +91,9 @@ class BasePopulationSearch:
         self.tournament_size = tournament_size
         self.seed = seed
 
-        # 局部搜索参数
-        self.use_local_search = use_local_search
-        self.elite_ls_count = elite_ls_count
-        self.offspring_ls_count = offspring_ls_count
-        self.ls_max_tries = ls_max_tries
-        self.ls_blocking_threshold = ls_blocking_threshold
-        self.ls_require_positive_blocking = ls_require_positive_blocking
-        self.ls_apply_mode = ls_apply_mode
-
         self.rng = random.Random(seed)
 
+        # 注意：Encoder 已支持 rng 传入
         self.encoder = Encoder(self.operations, rng=self.rng)
         self.scheduler = StageBufferWIPScheduler(self.operations, self.buffers)
 
@@ -133,7 +102,7 @@ class BasePopulationSearch:
         self.history_best_fitness: List[float] = []
 
     # =========================
-    # 初始化相关
+    # 初始化
     # =========================
 
     def initialize_individual(self) -> Individual:
@@ -147,7 +116,7 @@ class BasePopulationSearch:
         return population
 
     # =========================
-    # 评价相关
+    # 评价
     # =========================
 
     def evaluate_individual(self, ind: Individual, store_stats: bool = True) -> float:
@@ -237,6 +206,9 @@ class BasePopulationSearch:
     # =========================
 
     def crossover_os(self, os1: List[str], os2: List[str]) -> Tuple[List[str], List[str]]:
+        """
+        job-based POX 交叉
+        """
         jobs = list(self.operations.keys())
         n_jobs = len(jobs)
 
@@ -276,6 +248,9 @@ class BasePopulationSearch:
         return child1, child2
 
     def crossover_ms(self, ms1: List[str], ms2: List[str]) -> Tuple[List[str], List[str]]:
+        """
+        MS 均匀交叉
+        """
         child1 = []
         child2 = []
 
@@ -306,6 +281,9 @@ class BasePopulationSearch:
     # =========================
 
     def mutate_os(self, os_seq: List[str]) -> List[str]:
+        """
+        OS swap mutation
+        """
         new_os = os_seq[:]
 
         if len(new_os) < 2:
@@ -318,6 +296,9 @@ class BasePopulationSearch:
         return new_os
 
     def mutate_ms(self, ms_list: List[str]) -> List[str]:
+        """
+        MS 随机重选合法机器
+        """
         new_ms = ms_list[:]
 
         for idx, (job, op) in enumerate(self.encoder.ms_index_order):
@@ -327,47 +308,6 @@ class BasePopulationSearch:
 
         return new_ms
 
-    def mutate(self, ind: Individual) -> Individual:
-        new_ind = ind.copy()
-        new_ind.OS = self.mutate_os(new_ind.OS)
-        new_ind.MS = self.mutate_ms(new_ind.MS)
-
-        self.reset_individual_evaluation(new_ind)
-        return new_ind
-
-    # =========================
-    # WIP-aware 局部搜索工具函数
-    # =========================
-
-    def get_total_blocking_time(self, ind: Individual) -> int:
-        if ind.stats is None:
-            raise ValueError("ind.stats is None，无法提取 total_blocking_time")
-        return int(ind.stats["blocking"]["total_blocking_time"])
-
-    def should_trigger_local_search(self, ind: Individual) -> bool:
-        if ind.stats is None:
-            raise ValueError("ind.stats is None，无法判断是否触发局部搜索")
-
-        total_blocking = self.get_total_blocking_time(ind)
-
-        if not self.ls_require_positive_blocking:
-            return True
-
-        return total_blocking >= self.ls_blocking_threshold
-
-    def get_critical_blocking_ops(self, ind: Individual, top_k: int = 3) -> List[Dict[str, Any]]:
-        if ind.stats is None:
-            raise ValueError("ind.stats is None，无法提取 blocking 工序")
-
-        op_blocking = ind.stats["blocking"]["per_op_blocking_time"]
-        op_blocking = sorted(op_blocking, key=lambda x: x["blocking"], reverse=True)
-        op_blocking = [x for x in op_blocking if x["blocking"] > 0]
-
-        return op_blocking[:top_k]
-
-    def find_os_positions_of_job(self, os_seq: List[str], job: str) -> List[int]:
-        return [i for i, g in enumerate(os_seq) if g == job]
-
     def reset_individual_evaluation(self, ind: Individual) -> None:
         ind.fitness = None
         ind.makespan = None
@@ -375,164 +315,13 @@ class BasePopulationSearch:
         ind.buffer_trace = None
         ind.stats = None
 
-    # =========================
-    # 邻域生成
-    # =========================
+    def mutate(self, ind: Individual) -> Individual:
+        new_ind = ind.copy()
+        new_ind.OS = self.mutate_os(new_ind.OS)
+        new_ind.MS = self.mutate_ms(new_ind.MS)
 
-    def neighbor_ms_reassign(self, ind: Individual, target_job: str, target_op: int) -> List[Individual]:
-        neighbors = []
-
-        target_idx = None
-        for idx, (job, op) in enumerate(self.encoder.ms_index_order):
-            if job == target_job and op == target_op:
-                target_idx = idx
-                break
-
-        if target_idx is None:
-            return neighbors
-
-        current_machine = ind.MS[target_idx]
-        legal_machines = list(self.operations[target_job][target_op]["machines"].keys())
-
-        for m in legal_machines:
-            if m == current_machine:
-                continue
-
-            nei = ind.copy()
-            nei.MS[target_idx] = m
-            self.reset_individual_evaluation(nei)
-            neighbors.append(nei)
-
-        return neighbors
-
-    def neighbor_os_swap(self, ind: Individual, target_job: str, max_neighbors: int = 3) -> List[Individual]:
-        neighbors = []
-
-        positions = self.find_os_positions_of_job(ind.OS, target_job)
-        if not positions:
-            return neighbors
-
-        tried_pairs = set()
-        max_attempt_loops = max_neighbors * 5
-        attempt = 0
-
-        while len(neighbors) < max_neighbors and attempt < max_attempt_loops:
-            attempt += 1
-
-            i = self.rng.choice(positions)
-            j = self.rng.randrange(len(ind.OS))
-
-            if i == j:
-                continue
-
-            pair = tuple(sorted((i, j)))
-            if pair in tried_pairs:
-                continue
-            tried_pairs.add(pair)
-
-            nei = ind.copy()
-            nei.OS[i], nei.OS[j] = nei.OS[j], nei.OS[i]
-            self.reset_individual_evaluation(nei)
-            neighbors.append(nei)
-
-        return neighbors
-
-    # =========================
-    # 局部搜索
-    # =========================
-
-    def local_search(self, ind: Individual) -> Individual:
-        current = ind.copy()
-
-        if current.fitness is None or current.stats is None:
-            self.evaluate_individual(current, store_stats=True)
-
-        if not self.should_trigger_local_search(current):
-            return current
-
-        critical_ops = self.get_critical_blocking_ops(current, top_k=3)
-        if not critical_ops:
-            return current
-
-        tries = 0
-
-        for rec in critical_ops:
-            if tries >= self.ls_max_tries:
-                break
-
-            job = rec["job"]
-            op = rec["op"]
-
-            ms_neighbors = self.neighbor_ms_reassign(current, job, op)
-            for nei in ms_neighbors:
-                self.evaluate_individual(nei, store_stats=True)
-                tries += 1
-
-                if nei.fitness < current.fitness:
-                    return nei
-
-                if tries >= self.ls_max_tries:
-                    return current
-
-            os_neighbors = self.neighbor_os_swap(current, job, max_neighbors=2)
-            for nei in os_neighbors:
-                self.evaluate_individual(nei, store_stats=True)
-                tries += 1
-
-                if nei.fitness < current.fitness:
-                    return nei
-
-                if tries >= self.ls_max_tries:
-                    return current
-
-        return current
-
-    # =========================
-    # 局部搜索应用策略
-    # =========================
-
-    def apply_local_search_to_elites(self) -> None:
-        if not self.use_local_search:
-            return
-        if self.ls_apply_mode != "elite":
-            return
-        if not self.population:
-            return
-
-        self.population = self.sort_population(self.population)
-
-        n = min(self.elite_ls_count, len(self.population))
-        for i in range(n):
-            improved = self.local_search(self.population[i])
-            self.population[i] = improved
-
-        self.population = self.sort_population(self.population)
-        self._update_best(self.population)
-
-    def apply_local_search_to_offspring(self, offspring: List[Individual]) -> List[Individual]:
-        """
-        对子代做局部搜索：
-        - 先确保 offspring 已评价
-        - 按 fitness 排序
-        - 只对前 offspring_ls_count 个子代尝试 LS
-        - local_search 内部会再根据 blocking trigger 判断是否真正执行
-        """
-        if not self.use_local_search:
-            return offspring
-        if self.ls_apply_mode != "offspring":
-            return offspring
-        if not offspring:
-            return offspring
-
-        sorted_offspring = self.sort_population(offspring)
-        n = min(self.offspring_ls_count, len(sorted_offspring))
-
-        improved_offspring = [ind.copy() for ind in sorted_offspring]
-
-        for i in range(n):
-            improved_offspring[i] = self.local_search(improved_offspring[i])
-
-        return improved_offspring
+        self.reset_individual_evaluation(new_ind)
+        return new_ind
 
     # =========================
     # 子代生成 / 单代更新
@@ -558,33 +347,20 @@ class BasePopulationSearch:
 
     def run_one_generation(self, store_stats: bool = False) -> None:
         """
-        单代进化：
+        baseline 单代更新：
         1. 生成子代
         2. 评价子代
-        3. 若模式为 offspring，则对子代做局部搜索
-        4. 父代 + 子代 合并
-        5. 截断保留前 pop_size
-        6. 若模式为 elite，则对精英做局部搜索
-        7. 更新 best
+        3. 父代 + 子代 合并
+        4. 截断保留前 pop_size
+        5. 更新 best
         """
         offspring = self.generate_offspring()
-
-        # 先评价子代，offspring 模式需要基于 stats 判断是否触发 LS
-        self.evaluate_population(offspring, store_stats=True)
-
-        # offspring-based local search
-        if self.use_local_search and self.ls_apply_mode == "offspring":
-            offspring = self.apply_local_search_to_offspring(offspring)
+        self.evaluate_population(offspring, store_stats=store_stats)
 
         merged = self.population + offspring
         merged_sorted = self.sort_population(merged)
 
         self.population = [ind.copy() for ind in merged_sorted[:self.pop_size]]
-
-        # elite-based local search
-        if self.use_local_search and self.ls_apply_mode == "elite":
-            self.apply_local_search_to_elites()
-
         self._update_best(self.population)
 
     # =========================

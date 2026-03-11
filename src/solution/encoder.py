@@ -26,14 +26,17 @@ class Encoder:
 
     参数：
         operations : 调度实例中的 operations
+        rng        : 随机数生成器（可选），用于保证实验可复现
 
     属性：
         operations      : 原始工序数据
         ms_index_order  : MS 的固定展开顺序
+        rng             : 随机数生成器
     """
 
-    def __init__(self, operations):
+    def __init__(self, operations, rng=None):
         self.operations = operations
+        self.rng = rng if rng is not None else random
         self.ms_index_order = self.build_ms_index_order()
 
     def build_ms_index_order(self):
@@ -102,7 +105,7 @@ class Encoder:
         for job_id, ops in self.operations.items():
             os_seq += [job_id] * len(ops)
 
-        random.shuffle(os_seq)
+        self.rng.shuffle(os_seq)
 
         return os_seq
 
@@ -121,7 +124,7 @@ class Encoder:
 
         for job, op in self.ms_index_order:
             machines = list(self.operations[job][op]["machines"].keys())
-            ms_list.append(random.choice(machines))
+            ms_list.append(self.rng.choice(machines))
 
         return ms_list
 
