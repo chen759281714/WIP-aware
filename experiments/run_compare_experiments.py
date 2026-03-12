@@ -24,7 +24,7 @@ ALGORITHMS = {
     "EliteLSGA": EliteLSGA,
 }
 
-SEEDS = list(range(1, 21))
+SEEDS = list(range(1, 11))
 
 INSTANCE_DIR = "data/instances/WIP-FMS"
 

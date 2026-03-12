@@ -86,6 +86,31 @@ def _stage_weight(num_stages: int, profile: str) -> List[float]:
 def _clip_int(x: float, lo: int, hi: int) -> int:
     return max(lo, min(hi, int(round(x))))
 
+def _machine_multipliers(k: int) -> List[float]:
+    """
+    根据每工段机器数量 K，返回一组机器效率倍率。
+    倍率 <1 表示更快，>1 表示更慢。
+    """
+    if k == 1:
+        return [1.0]
+
+    if k == 2:
+        return [0.85, 1.25]
+
+    if k == 3:
+        return [0.75, 1.00, 1.35]
+
+    if k == 4:
+        return [0.70, 0.95, 1.20, 1.50]
+
+    # K>4 时自动生成
+    base = [0.7, 0.9, 1.1, 1.3, 1.5]
+    if k <= len(base):
+        return base[:k]
+
+    step = (1.6 - 0.7) / (k - 1)
+    return [0.7 + i * step for i in range(k)]
+
 
 def generate_fms_wip_instance(spec: InstanceSpec) -> Tuple[Dict[str, List[Dict[str, Any]]],
                                                           Dict[str, Dict[str, int]],
@@ -125,14 +150,24 @@ def generate_fms_wip_instance(spec: InstanceSpec) -> Tuple[Dict[str, List[Dict[s
             buffer_in = None if s == 0 else f"B{s-1}{s}"
             buffer_out = None if s == spec.num_stages - 1 else f"B{s}{s+1}"
 
-            # 为该工段内每台机生成加工时间
-            # 先从[pt_low, pt_high]抽一个基准，再乘以工段权重，再加一点机器间扰动
             base = rng.randint(spec.pt_low, spec.pt_high)
+
             machines_dict: Dict[str, int] = {}
-            for m in stage_machines[s]:
-                # 机器扰动：±10%
-                jitter = 1.0 + rng.uniform(-0.10, 0.10)
-                pt = _clip_int(base * weights[s] * jitter, spec.pt_low, spec.pt_high * 3)
+
+            # 获取该工段机器效率倍率
+            multipliers = _machine_multipliers(spec.machines_per_stage)
+
+            for m, mult in zip(stage_machines[s], multipliers):
+
+                # 小扰动 ±5%
+                jitter = 1.0 + rng.uniform(-0.05, 0.05)
+
+                pt = _clip_int(
+                    base * weights[s] * mult * jitter,
+                    spec.pt_low,
+                    spec.pt_high * 4
+                )
+
                 machines_dict[m] = int(pt)
 
             ops_j.append({
