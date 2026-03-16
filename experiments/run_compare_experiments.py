@@ -32,7 +32,7 @@ RUN_RESULT_DIR = "experiments/results/runs"
 SUMMARY_DIR = "experiments/results/summary"
 
 POP_SIZE = 100
-GENERATIONS = 100
+GENERATIONS = 50
 
 
 # =========================
@@ -92,11 +92,16 @@ def run_once(instance_path, seed, algo_name):
         store_stats_generations=False,
         verbose=False
     )
+    if best.stats is None:
+        search.evaluate_individual(best, store_stats=True)
+
+    blocking = best.stats["blocking"]["total_blocking_time"]
 
     runtime = time.time() - t0
 
     return {
         "makespan": best.makespan,
+        "blocking":blocking,
         "runtime": runtime,
         "history": search.history_best_fitness
     }
@@ -125,7 +130,8 @@ def save_run(instance_name, algo_name, seed, result):
         },
         "result": {
             "makespan": result["makespan"],
-            "runtime": result["runtime"]
+            "runtime": result["runtime"],
+            "blocking": result["blocking"]
         },
         "history": {
             "best_fitness_per_generation": result["history"]
@@ -181,6 +187,7 @@ def run_experiments():
                         f"algo={algo_name}  "
                         f"seed={seed}  "
                         f"makespan={result['makespan']}  "
+                        f"blocking={result['blocking']}  "
                         f"time={result['runtime']:.2f}s"
                     )
 

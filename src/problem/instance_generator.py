@@ -61,26 +61,38 @@ def _stage_weight(num_stages: int, profile: str) -> List[float]:
     """
     给每个工段一个“慢/快权重”，用于控制瓶颈位置。
     返回长度 S 的权重，权重越大 => 期望加工时间越大（越慢）。
+
+    这一版相较旧版，显著增强了瓶颈强度：
+    - balanced：各工段接近均衡
+    - downstream_bottleneck：末端形成明显瓶颈
+    - mid_bottleneck：中间形成明显瓶颈
     """
     if profile == "balanced":
+        # 仍然保留轻微层次，不做完全死板的 1.0
         return [1.0] * num_stages
 
     if profile == "downstream_bottleneck":
-        # 越靠后越慢：线性递增
-        # e.g. S=5 -> [0.8, 1.0, 1.2, 1.4, 1.6]
-        base = 0.8
-        step = 0.8 / max(1, num_stages - 1)
-        return [base + step * i for i in range(num_stages)]
+        # 从前到后明显变慢
+        # 例如 S=5 -> [0.6, 0.8, 1.2, 1.6, 2.0]
+        if num_stages == 2:
+            return [0.7, 1.8]
 
-    # mid_bottleneck：中间最慢，两端更快（“山峰形”）
+        vals = []
+        for s in range(num_stages):
+            ratio = s / (num_stages - 1)
+            # 0.6 -> 2.0
+            vals.append(0.6 + 1.4 * ratio)
+        return vals
+
+    # mid_bottleneck：中间最慢，两端更快
+    # 例如 S=5 -> [0.7, 1.2, 2.0, 1.2, 0.7]
     mid = (num_stages - 1) / 2.0
-    w = []
+    vals = []
     for s in range(num_stages):
-        # 距离中点越近权重越大
-        dist = abs(s - mid)
-        # dist=0 -> 1.6, dist大 -> 0.9 左右
-        w.append(1.6 - 0.7 * (dist / max(1.0, mid)))
-    return w
+        dist = abs(s - mid) / max(1.0, mid)   # 归一化到 [0,1]
+        # 中间 = 2.0, 两端 ≈ 0.7
+        vals.append(2.0 - 1.3 * dist)
+    return vals
 
 
 def _clip_int(x: float, lo: int, hi: int) -> int:
