@@ -217,6 +217,15 @@ class EliteLSGA:
     # =========================
 
     def crossover_os(self, os1: List[str], os2: List[str]) -> Tuple[List[str], List[str]]:
+        """
+        标准 POX（Precedence Operation Crossover）
+
+        做法：
+        - 随机选取一个 job 子集 keep_jobs
+        - child1 保留 os1 中 keep_jobs 的相对位置
+        - 其余空位按 os2 中非 keep_jobs 的出现顺序填充
+        - child2 对称处理
+        """
         jobs = list(self.operations.keys())
         n_jobs = len(jobs)
 
@@ -229,14 +238,17 @@ class EliteLSGA:
         child1 = [None] * len(os1)
         child2 = [None] * len(os2)
 
+        # child1: 保留父代1中 keep_jobs 的位置
         for i, gene in enumerate(os1):
             if gene in keep_jobs:
                 child1[i] = gene
 
+        # child2: 保留父代2中 keep_jobs 的位置
         for i, gene in enumerate(os2):
             if gene in keep_jobs:
                 child2[i] = gene
 
+        # 用另一个父代中“不属于 keep_jobs”的基因按顺序填空
         fill1 = [g for g in os2 if g not in keep_jobs]
         fill2 = [g for g in os1 if g not in keep_jobs]
 
@@ -286,24 +298,63 @@ class EliteLSGA:
     # =========================
 
     def mutate_os(self, os_seq: List[str]) -> List[str]:
+        """
+        混合 OS 变异：
+        - swap
+        - insert
+
+        目的：
+        - swap 负责基础扰动
+        - insert 更适合长序列，通常对调度顺序影响更有效
+        """
         new_os = os_seq[:]
 
         if len(new_os) < 2:
             return new_os
 
-        if self.rng.random() < self.os_mutation_rate:
+        if self.rng.random() >= self.os_mutation_rate:
+            return new_os
+
+        op_type = self.rng.choice(["swap", "insert"])
+
+        if op_type == "swap":
             i, j = self.rng.sample(range(len(new_os)), 2)
             new_os[i], new_os[j] = new_os[j], new_os[i]
+
+        else:  # insert
+            i, j = self.rng.sample(range(len(new_os)), 2)
+            gene = new_os.pop(i)
+            new_os.insert(j, gene)
 
         return new_os
 
     def mutate_ms(self, ms_list: List[str]) -> List[str]:
+        """
+        半贪婪 MS 变异：
+        - 70% 概率选择更快机器
+        - 30% 概率随机选择合法机器
+
+        说明：
+        - 仍保留随机性，避免过早收敛
+        - 但比纯随机更有方向性
+        """
         new_ms = ms_list[:]
 
         for idx, (job, op) in enumerate(self.encoder.ms_index_order):
             if self.rng.random() < self.ms_mutation_rate:
-                legal_machines = list(self.operations[job][op]["machines"].keys())
-                new_ms[idx] = self.rng.choice(legal_machines)
+                machine_dict = self.operations[job][op]["machines"]
+                legal_machines = list(machine_dict.keys())
+
+                if len(legal_machines) == 1:
+                    new_ms[idx] = legal_machines[0]
+                    continue
+
+                # 70% 选最快机器，30% 随机
+                if self.rng.random() < 0.7:
+                    best_machine = min(legal_machines, key=lambda m: machine_dict[m])
+                    new_ms[idx] = best_machine
+                else:
+                    new_ms[idx] = self.rng.choice(legal_machines)
 
         return new_ms
 
