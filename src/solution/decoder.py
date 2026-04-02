@@ -623,6 +623,14 @@ class StageBufferWIPScheduler:
         per_buffer_full_time: Dict[str, int] = {}
         per_buffer_empty_time: Dict[str, int] = {}
         per_buffer_area: Dict[str, float] = {}
+        # ===== 新增：WIP 下限统计 =====
+        per_buffer_low_wip: Dict[str, int] = {}
+        per_buffer_shortage_area: Dict[str, float] = {}
+        per_buffer_below_low_time: Dict[str, int] = {}
+        per_buffer_below_low_ratio: Dict[str, float] = {}
+
+        total_shortage_area = 0.0
+        total_below_low_time = 0
 
         for bid, events in buffer_trace.items():
             # 统计区间长度
@@ -630,6 +638,8 @@ class StageBufferWIPScheduler:
             per_buffer_horizon[bid] = T
 
             cap = int(self.buffers_def[bid]["capacity"])
+            low_wip = int(self.buffers_def[bid].get("low_wip", max(1, cap // 3)))
+            per_buffer_low_wip[bid] = low_wip
 
             if T <= 0:
                 per_buffer_avg_level[bid] = 0.0
@@ -655,6 +665,8 @@ class StageBufferWIPScheduler:
             area = 0.0
             full_time = 0
             empty_time = 0
+            shortage_area = 0.0
+            below_low_time = 0
 
             # 先补 [0, cur_t)
             if cur_t > 0:
@@ -666,6 +678,11 @@ class StageBufferWIPScheduler:
                     if cur_level == 0:
                         empty_time += dt
 
+                    # ===== 新增：low WIP =====
+                    gap = max(0, low_wip - cur_level)
+                    shortage_area += gap * dt
+                    if cur_level < low_wip:
+                        below_low_time += dt
             # 再遍历事件段
             for i in range(len(events_sorted) - 1):
                 t_i = int(events_sorted[i][0])
@@ -685,6 +702,12 @@ class StageBufferWIPScheduler:
                 if level_i == 0:
                     empty_time += dt
 
+                # ===== 新增：low WIP =====
+                gap = max(0, low_wip - level_i)
+                shortage_area += gap * dt
+                if level_i < low_wip:
+                    below_low_time += dt
+
             # 最后一条事件之后，延续到 T
             last_t = int(events_sorted[-1][0])
             last_level = int(events_sorted[-1][1])
@@ -696,12 +719,25 @@ class StageBufferWIPScheduler:
                 if last_level == 0:
                     empty_time += dt
 
+                # ===== 新增：low WIP =====
+                gap = max(0, low_wip - last_level)
+                shortage_area += gap * dt
+                if last_level < low_wip:
+                    below_low_time += dt
+
             per_buffer_avg_level[bid] = area / T
             per_buffer_full_ratio[bid] = full_time / T
             per_buffer_empty_ratio[bid] = empty_time / T
             per_buffer_full_time[bid] = full_time
             per_buffer_empty_time[bid] = empty_time
             per_buffer_area[bid] = area
+            # ===== 新增：low WIP =====
+            per_buffer_shortage_area[bid] = shortage_area
+            per_buffer_below_low_time[bid] = below_low_time
+            per_buffer_below_low_ratio[bid] = (below_low_time / T) if T > 0 else 0.0
+
+            total_shortage_area += shortage_area
+            total_below_low_time += below_low_time
 
         stats = {
             "makespan": makespan,
@@ -724,6 +760,14 @@ class StageBufferWIPScheduler:
                 "per_buffer_empty_time": per_buffer_empty_time,
                 "per_buffer_area": per_buffer_area,
                 "per_buffer_horizon": per_buffer_horizon,
+            },
+            "shortage": {
+                "total_shortage_area": total_shortage_area,
+                "total_below_low_time": total_below_low_time,
+                "per_buffer_low_wip": per_buffer_low_wip,
+                "per_buffer_shortage_area": per_buffer_shortage_area,
+                "per_buffer_below_low_time": per_buffer_below_low_time,
+                "per_buffer_below_low_ratio": per_buffer_below_low_ratio,
             }
         }
         return stats

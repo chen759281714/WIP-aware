@@ -14,6 +14,7 @@ from src.solution.decoder import StageBufferWIPScheduler
 
 
 @dataclass
+@dataclass
 class Individual:
     """
     个体表示：
@@ -25,6 +26,11 @@ class Individual:
 
     fitness: Optional[float] = None
     makespan: Optional[int] = None
+    shortage: Optional[float] = None
+
+    rank: Optional[int] = None
+    crowding_distance: float = 0.0
+
     schedule: Optional[List[Dict[str, Any]]] = None
     buffer_trace: Optional[Dict[str, Any]] = None
     stats: Optional[Dict[str, Any]] = None
@@ -35,6 +41,9 @@ class Individual:
             MS=self.MS[:],
             fitness=self.fitness,
             makespan=self.makespan,
+            shortage=self.shortage,
+            rank=self.rank,
+            crowding_distance=self.crowding_distance,
             schedule=[rec.copy() for rec in self.schedule] if self.schedule is not None else None,
             buffer_trace={k: v[:] for k, v in self.buffer_trace.items()} if self.buffer_trace is not None else None,
             stats=self.stats.copy() if self.stats is not None else None,
@@ -111,6 +120,7 @@ class EliteLSGA:
         self.population: List[Individual] = []
         self.best_individual: Optional[Individual] = None
         self.history_best_fitness: List[float] = []
+        self.history_best_shortage: List[float] = []
 
     # =========================
     # 初始化相关
@@ -139,18 +149,20 @@ class EliteLSGA:
         )
 
         ind.makespan = makespan
-        ind.fitness = float(makespan)
         ind.schedule = schedule
         ind.buffer_trace = buffer_trace
 
-        if store_stats:
-            ind.stats = self.scheduler.analyze(
-                schedule=schedule,
-                buffer_trace=buffer_trace,
-                makespan=makespan
-            )
-        else:
-            ind.stats = None
+        # 双目标下 shortage 依赖 stats，因此这里建议始终计算 stats
+        ind.stats = self.scheduler.analyze(
+            schedule=schedule,
+            buffer_trace=buffer_trace,
+            makespan=makespan
+        )
+
+        ind.shortage = float(ind.stats["shortage"]["total_shortage_area"])
+
+        # fitness 仅保留兼容性，不再作为主排序依据
+        ind.fitness = float(makespan)
 
         return ind.fitness
 
@@ -174,14 +186,135 @@ class EliteLSGA:
     # 排序 / 最优解维护
     # =========================
 
+    def get_objectives(self, ind: Individual) -> Tuple[float, float]:
+        if ind.makespan is None or ind.shortage is None:
+            raise ValueError("个体尚未完成双目标评价")
+        return float(ind.makespan), float(ind.shortage)
+
+    def dominates(self, a: Individual, b: Individual) -> bool:
+        a1, a2 = self.get_objectives(a)
+        b1, b2 = self.get_objectives(b)
+        return (
+            a1 <= b1 and
+            a2 <= b2 and
+            (a1 < b1 or a2 < b2)
+        )
+
+    def better(self, a: Individual, b: Individual) -> bool:
+        if self.dominates(a, b):
+            return True
+        if self.dominates(b, a):
+            return False
+
+        if a.rank is not None and b.rank is not None:
+            if a.rank != b.rank:
+                return a.rank < b.rank
+            return a.crowding_distance > b.crowding_distance
+
+        return (a.makespan, a.shortage) < (b.makespan, b.shortage)
+
+    def fast_non_dominated_sort(self, population: List[Individual]) -> List[List[Individual]]:
+        S = {}
+        n = {}
+        fronts: List[List[Individual]] = [[]]
+
+        for p in population:
+            pid = id(p)
+            S[pid] = []
+            n[pid] = 0
+
+            for q in population:
+                if p is q:
+                    continue
+                if self.dominates(p, q):
+                    S[pid].append(q)
+                elif self.dominates(q, p):
+                    n[pid] += 1
+
+            if n[pid] == 0:
+                p.rank = 0
+                fronts[0].append(p)
+
+        i = 0
+        while i < len(fronts) and fronts[i]:
+            next_front = []
+            for p in fronts[i]:
+                pid = id(p)
+                for q in S[pid]:
+                    qid = id(q)
+                    n[qid] -= 1
+                    if n[qid] == 0:
+                        q.rank = i + 1
+                        next_front.append(q)
+            if next_front:
+                fronts.append(next_front)
+            i += 1
+
+        return fronts
+
+    def assign_crowding_distance(self, front: List[Individual]) -> None:
+        if not front:
+            return
+
+        for ind in front:
+            ind.crowding_distance = 0.0
+
+        if len(front) <= 2:
+            for ind in front:
+                ind.crowding_distance = float("inf")
+            return
+
+        # 目标1：makespan
+        front.sort(key=lambda x: x.makespan)
+        front[0].crowding_distance = float("inf")
+        front[-1].crowding_distance = float("inf")
+        min_val = front[0].makespan
+        max_val = front[-1].makespan
+        if max_val > min_val:
+            for i in range(1, len(front) - 1):
+                if front[i].crowding_distance != float("inf"):
+                    front[i].crowding_distance += (
+                        (front[i + 1].makespan - front[i - 1].makespan) / (max_val - min_val)
+                    )
+
+        # 目标2：shortage
+        front.sort(key=lambda x: x.shortage)
+        front[0].crowding_distance = float("inf")
+        front[-1].crowding_distance = float("inf")
+        min_val = front[0].shortage
+        max_val = front[-1].shortage
+        if max_val > min_val:
+            for i in range(1, len(front) - 1):
+                if front[i].crowding_distance != float("inf"):
+                    front[i].crowding_distance += (
+                        (front[i + 1].shortage - front[i - 1].shortage) / (max_val - min_val)
+                    )
+
+    def assign_rank_and_crowding(self, population: List[Individual]) -> List[List[Individual]]:
+        fronts = self.fast_non_dominated_sort(population)
+        for front in fronts:
+            self.assign_crowding_distance(front)
+        return fronts
+
+    def get_pareto_front(self, population: Optional[List[Individual]] = None) -> List[Individual]:
+        if population is None:
+            population = self.population
+        fronts = self.assign_rank_and_crowding(population)
+        return [ind.copy() for ind in fronts[0]] if fronts else []
+    
     def sort_population(self, population: Optional[List[Individual]] = None) -> List[Individual]:
         if population is None:
             population = self.population
 
-        if any(ind.fitness is None for ind in population):
+        if any(ind.makespan is None or ind.shortage is None for ind in population):
             raise ValueError("存在未评价个体，不能排序")
 
-        return sorted(population, key=lambda ind: ind.fitness)
+        self.assign_rank_and_crowding(population)
+
+        return sorted(
+            population,
+            key=lambda ind: (ind.rank, -ind.crowding_distance, ind.makespan, ind.shortage)
+        )
 
     def get_best_individual(self, population: Optional[List[Individual]] = None) -> Individual:
         sorted_pop = self.sort_population(population)
@@ -194,7 +327,7 @@ class EliteLSGA:
             self.best_individual = current_best.copy()
             return
 
-        if current_best.fitness < self.best_individual.fitness:
+        if self.better(current_best, self.best_individual):
             self.best_individual = current_best.copy()
 
     # =========================
@@ -209,8 +342,13 @@ class EliteLSGA:
             raise ValueError("population 数量小于 tournament_size")
 
         candidates = self.rng.sample(population, self.tournament_size)
-        winner = min(candidates, key=lambda ind: ind.fitness)
-        return winner.copy()
+
+        best = candidates[0]
+        for cand in candidates[1:]:
+            if self.better(cand, best):
+                best = cand
+
+        return best.copy()
 
     # =========================
     # 交叉
@@ -361,6 +499,9 @@ class EliteLSGA:
     def reset_individual_evaluation(self, ind: Individual) -> None:
         ind.fitness = None
         ind.makespan = None
+        ind.shortage = None
+        ind.rank = None
+        ind.crowding_distance = 0.0
         ind.schedule = None
         ind.buffer_trace = None
         ind.stats = None
@@ -543,7 +684,7 @@ class EliteLSGA:
                 self.evaluate_individual(nei, store_stats=True)
                 tries += 1
 
-                if nei.fitness < current.fitness:
+                if self.dominates(nei, current):
                     return nei
 
                 if tries >= self.ls_max_tries:
@@ -554,7 +695,7 @@ class EliteLSGA:
                 self.evaluate_individual(nei, store_stats=True)
                 tries += 1
 
-                if nei.fitness < current.fitness:
+                if self.dominates(nei, current):
                     return nei
 
                 if tries >= self.ls_max_tries:
@@ -565,7 +706,7 @@ class EliteLSGA:
                 self.evaluate_individual(nei, store_stats=True)
                 tries += 1
 
-                if nei.fitness < current.fitness:
+                if self.dominates(nei, current):
                     return nei
 
                 if tries >= self.ls_max_tries:
@@ -588,6 +729,7 @@ class EliteLSGA:
             improved = self.local_search(self.population[i])
             self.population[i] = improved
 
+        self.assign_rank_and_crowding(self.population)
         self.population = self.sort_population(self.population)
         self._update_best(self.population)
 
@@ -615,11 +757,11 @@ class EliteLSGA:
 
     def run_one_generation(self, store_stats: bool = False) -> None:
         """
-        单代进化：
+        单代进化（双目标 NSGA-II 风格）：
         1. 生成子代
         2. 评价子代
         3. 父代 + 子代 合并
-        4. 截断保留前 pop_size
+        4. 非支配排序 + 拥挤距离，保留前 pop_size
         5. 对精英做局部搜索
         6. 更新 best
         """
@@ -627,13 +769,29 @@ class EliteLSGA:
         self.evaluate_population(offspring, store_stats=store_stats)
 
         merged = self.population + offspring
-        merged_sorted = self.sort_population(merged)
+        fronts = self.assign_rank_and_crowding(merged)
 
-        self.population = [ind.copy() for ind in merged_sorted[:self.pop_size]]
+        new_population: List[Individual] = []
+
+        for front in fronts:
+            if len(new_population) + len(front) <= self.pop_size:
+                front_sorted = sorted(
+                    front,
+                    key=lambda ind: (ind.rank, -ind.crowding_distance, ind.makespan, ind.shortage)
+                )
+                new_population.extend(ind.copy() for ind in front_sorted)
+            else:
+                remaining = self.pop_size - len(new_population)
+                front_sorted = sorted(front, key=lambda ind: ind.crowding_distance, reverse=True)
+                new_population.extend(ind.copy() for ind in front_sorted[:remaining])
+                break
+
+        self.population = new_population
 
         # elite-based local search
         self.apply_local_search_to_elites()
 
+        self.assign_rank_and_crowding(self.population)
         self._update_best(self.population)
 
     # =========================
@@ -648,21 +806,34 @@ class EliteLSGA:
     ) -> Individual:
         self.initialize_population()
         self.evaluate_population(self.population, store_stats=store_stats_init)
+        self.assign_rank_and_crowding(self.population)
 
         init_best = self.get_best_individual(self.population)
-        self.history_best_fitness = [init_best.fitness]
+        self.history_best_fitness = [float(init_best.makespan)]
+        self.history_best_shortage = [float(init_best.shortage)]
 
         if verbose:
-            print(f"[Init] best fitness = {init_best.fitness}, makespan = {init_best.makespan}")
+            print(
+                f"[Init] rep_makespan = {init_best.makespan}, "
+                f"rep_shortage = {init_best.shortage}, "
+                f"rank = {init_best.rank}"
+            )
 
         for gen in range(1, self.n_generations + 1):
             self.run_one_generation(store_stats=store_stats_generations)
 
             best = self.get_best_individual(self.population)
-            self.history_best_fitness.append(best.fitness)
+            self.history_best_fitness.append(float(best.makespan))
+            self.history_best_shortage.append(float(best.shortage))
 
             if verbose:
-                print(f"[Gen {gen}] best fitness = {best.fitness}, makespan = {best.makespan}")
+                pareto_size = len(self.get_pareto_front(self.population))
+                print(
+                    f"[Gen {gen}] rep_makespan = {best.makespan}, "
+                    f"rep_shortage = {best.shortage}, "
+                    f"rank = {best.rank}, "
+                    f"pareto_size = {pareto_size}"
+                )
 
         return self.best_individual.copy()
 
@@ -686,7 +857,8 @@ class EliteLSGA:
         for i in range(k):
             ind = sorted_pop[i]
             print(
-                f"[{i}] fitness={ind.fitness}, makespan={ind.makespan}, "
+                f"[{i}] rank={ind.rank}, crowd={ind.crowding_distance:.3f}, "
+                f"makespan={ind.makespan}, shortage={ind.shortage}, "
                 f"OS_len={len(ind.OS)}, MS_len={len(ind.MS)}"
             )
 
@@ -697,8 +869,10 @@ class EliteLSGA:
 
         ind = self.best_individual
         print("===== Best Individual =====")
-        print(f"fitness  : {ind.fitness}")
+        print(f"rank     : {ind.rank}")
+        print(f"crowd    : {ind.crowding_distance}")
         print(f"makespan : {ind.makespan}")
+        print(f"shortage : {ind.shortage}")
         print(f"OS       : {ind.OS}")
         print(f"MS       : {ind.MS}")
 
