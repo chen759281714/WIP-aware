@@ -22,7 +22,7 @@ from src.solution.decoder import StageBufferWIPScheduler
 # =========================================================
 
 ALGO_NAME = "EliteLSGA"
-INSTANCE_NAME = "WIP-FMS_01"
+INSTANCE_NAME = "WIP-FMS_05"
 SEED = 1
 
 RUN_JSON_PATH = os.path.join(
@@ -138,15 +138,28 @@ def pick_target_buffer(buffers: Dict[str, Dict[str, Any]], target_buffer_id: str
     return bids[0]
 
 
-def extract_solution_metrics(result: Dict[str, Any], buffers: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+def extract_solution_metrics(
+    result: Dict[str, Any],
+    buffers: Dict[str, Dict[str, Any]],
+    operations: Dict[str, List[Dict[str, Any]]],
+) -> Dict[str, Any]:
     stats = result["stats"]
 
     total_empty_time = sum(stats["buffers"]["per_buffer_empty_time"].values())
-    total_empty_ratio = sum(stats["buffers"]["per_buffer_empty_ratio"].values()) / max(1, len(stats["buffers"]["per_buffer_empty_ratio"]))
+    total_empty_ratio = sum(stats["buffers"]["per_buffer_empty_ratio"].values()) / max(
+        1, len(stats["buffers"]["per_buffer_empty_ratio"])
+    )
 
     total_below_low_time = stats["shortage"]["total_below_low_time"]
     total_shortage_area = stats["shortage"]["total_shortage_area"]
     total_blocking_time = stats["blocking"]["total_blocking_time"]
+
+    downstream_idle_per_buffer = compute_downstream_idle_per_buffer(
+        stats=stats,
+        operations=operations,
+        buffers=buffers,
+    )
+    total_downstream_idle = sum(downstream_idle_per_buffer.values())
 
     return {
         "makespan": result["makespan"],
@@ -155,6 +168,7 @@ def extract_solution_metrics(result: Dict[str, Any], buffers: Dict[str, Dict[str
         "blocking": total_blocking_time,
         "avg_empty_ratio": total_empty_ratio,
         "total_empty_time": total_empty_time,
+        "total_downstream_idle": total_downstream_idle,
     }
 
 
@@ -184,10 +198,37 @@ def flatten_per_buffer_metrics(result: Dict[str, Any]) -> Dict[str, Any]:
 # 输出表格
 # =========================================================
 
+def compute_downstream_idle_per_buffer(
+    stats: Dict[str, Any],
+    operations: Dict[str, List[Dict[str, Any]]],
+    buffers: Dict[str, Dict[str, Any]],
+) -> Dict[str, float]:
+    """
+    对每个 buffer，统计“使用该 buffer 作为 buffer_in 的下游机器”的总 idle time。
+    例如：
+      B01 -> 所有其下游工序(buffer_in == B01)可用机器的 idle time 之和
+    """
+    idle_times = stats["machines"]["per_machine_idle_time"]
+    downstream_idle = {}
+
+    for bid in buffers.keys():
+        downstream_machines = set()
+
+        for job, ops in operations.items():
+            for op in ops:
+                if op.get("buffer_in", None) == bid:
+                    downstream_machines.update(op["machines"].keys())
+
+        total_idle = sum(idle_times.get(m, 0) for m in downstream_machines)
+        downstream_idle[bid] = total_idle
+
+    return downstream_idle
+
 def save_comparison_excel(
     output_path: str,
     abc_results: Dict[str, Dict[str, Any]],
     buffers: Dict[str, Dict[str, Any]],
+    operations: Dict[str, List[Dict[str, Any]]],
 ) -> None:
     wb = Workbook()
     ws = wb.active
@@ -201,6 +242,7 @@ def save_comparison_excel(
         "blocking",
         "avg_empty_ratio",
         "total_empty_time",
+        "total_downstream_idle",
     ]
 
     # 补充所有 per-buffer 列
@@ -214,7 +256,7 @@ def save_comparison_excel(
 
     for name in ["A", "B", "C"]:
         result = abc_results[name]
-        base = extract_solution_metrics(result, buffers)
+        base = extract_solution_metrics(result, buffers, operations)
         extra = flatten_per_buffer_metrics(result)
 
         row = [
@@ -225,6 +267,7 @@ def save_comparison_excel(
             base["blocking"],
             base["avg_empty_ratio"],
             base["total_empty_time"],
+            base["total_downstream_idle"],
         ] + [extra.get(c, "") for c in extra_cols]
 
         ws.append(row)
@@ -408,6 +451,7 @@ def plot_gantt(
 def plot_metric_bars(
     abc_results: Dict[str, Dict[str, Any]],
     buffers: Dict[str, Dict[str, Any]],
+    operations: Dict[str, List[Dict[str, Any]]],
     output_dir: str
 ) -> None:
     labels = ["A", "B", "C"]
@@ -417,7 +461,7 @@ def plot_metric_bars(
     below_low_times = []
 
     for name in labels:
-        metrics = extract_solution_metrics(abc_results[name], buffers)
+        metrics = extract_solution_metrics(abc_results[name], buffers, operations)
         makespans.append(metrics["makespan"])
         shortages.append(metrics["shortage"])
         below_low_times.append(metrics["below_low_time"])
@@ -466,6 +510,53 @@ def plot_metric_bars(
     else:
         plt.close()
 
+# =========================================================
+# 作图：空缓冲与下游机器闲置对比柱状图
+# =========================================================
+def plot_idle_vs_empty_bar(
+    abc_results: Dict[str, Dict[str, Any]],
+    buffers: Dict[str, Dict[str, Any]],
+    operations: Dict[str, List[Dict[str, Any]]],
+    output_dir: str
+) -> None:
+    labels = ["A", "B", "C"]
+
+    empty_times = []
+    downstream_idles = []
+
+    for name in labels:
+        stats = abc_results[name]["stats"]
+        total_empty_time = sum(stats["buffers"]["per_buffer_empty_time"].values())
+        per_downstream_idle = compute_downstream_idle_per_buffer(
+            stats=stats,
+            operations=operations,
+            buffers=buffers,
+        )
+        total_downstream_idle = sum(per_downstream_idle.values())
+
+        empty_times.append(total_empty_time)
+        downstream_idles.append(total_downstream_idle)
+
+    x = range(len(labels))
+    width = 0.35
+
+    plt.figure(figsize=(7, 4))
+    plt.bar([i - width / 2 for i in x], empty_times, width=width, label="buffer_empty_time")
+    plt.bar([i + width / 2 for i in x], downstream_idles, width=width, label="downstream_idle")
+
+    plt.xticks(list(x), labels)
+    plt.ylabel("Time")
+    plt.title("Buffer Empty Time vs Downstream Idle")
+    plt.legend()
+    plt.tight_layout()
+
+    if SAVE_FIGURES:
+        plt.savefig(os.path.join(output_dir, "bar_empty_vs_downstream_idle.png"), dpi=200)
+    if SHOW_FIGURES:
+        plt.show()
+    else:
+        plt.close()
+
 
 # =========================================================
 # 打印结果
@@ -473,11 +564,12 @@ def plot_metric_bars(
 
 def print_abc_summary(
     abc_results: Dict[str, Dict[str, Any]],
-    buffers: Dict[str, Dict[str, Any]]
+    buffers: Dict[str, Dict[str, Any]],
+    operations: Dict[str, List[Dict[str, Any]]],
 ) -> None:
     print("\n===== A/B/C Detailed Comparison =====")
     for name in ["A", "B", "C"]:
-        metrics = extract_solution_metrics(abc_results[name], buffers)
+        metrics = extract_solution_metrics(abc_results[name], buffers, operations)
         print(f"\n[{name}]")
         for k, v in metrics.items():
             print(f"  {k}: {v}")
@@ -490,6 +582,13 @@ def print_abc_summary(
 
         per_empty = abc_results[name]["stats"]["buffers"]["per_buffer_empty_time"]
         print("  per_buffer_empty_time    :", per_empty)
+
+        per_downstream_idle = compute_downstream_idle_per_buffer(
+            stats=abc_results[name]["stats"],
+            operations=operations,
+            buffers=buffers,
+        )
+        print("  per_buffer_downstream_idle:", per_downstream_idle)
 
 
 # =========================================================
@@ -538,11 +637,11 @@ def main():
         abc_results[name] = evaluate_solution(operations, buffers, abc_selected[name])
 
     # 5) 打印详细信息
-    print_abc_summary(abc_results, buffers)
+    print_abc_summary(abc_results, buffers, operations)
 
     # 6) 存表
     excel_path = os.path.join(OUTPUT_DIR, "abc_comparison.xlsx")
-    save_comparison_excel(excel_path, abc_results, buffers)
+    save_comparison_excel(excel_path, abc_results, buffers, operations)
     print(f"\nExcel saved to: {excel_path}")
 
     # 7) 作图
@@ -554,7 +653,8 @@ def main():
     plot_gantt(abc_results["B"], "B", OUTPUT_DIR)
     plot_gantt(abc_results["C"], "C", OUTPUT_DIR)
 
-    plot_metric_bars(abc_results, buffers, OUTPUT_DIR)
+    plot_metric_bars(abc_results, buffers, operations, OUTPUT_DIR)
+    plot_idle_vs_empty_bar(abc_results, buffers, operations, OUTPUT_DIR)
 
     print(f"Analysis outputs saved to: {OUTPUT_DIR}")
 

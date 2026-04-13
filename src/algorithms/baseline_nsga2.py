@@ -63,12 +63,14 @@ class BaselineNSGA2:
         buffers: Dict[str, Dict[str, Any]],
         pop_size: int = 100,
         n_generations: int = 100,
-        crossover_rate: float = 0.8,
-        os_mutation_rate: float = 0.2,
-        ms_mutation_rate: float = 0.2,
+        max_evaluations: Optional[int] = None,
+        snapshot_interval: Optional[int] = None,
+        crossover_rate: float = 0.6,
+        os_mutation_rate: float = 0.4,
+        ms_mutation_rate: float = 0.4,
         tournament_size: int = 2,
         seed: Optional[int] = None,
-    ):
+        ):
         if pop_size <= 0:
             raise ValueError("pop_size 必须 > 0")
         if n_generations <= 0:
@@ -81,12 +83,20 @@ class BaselineNSGA2:
             raise ValueError("ms_mutation_rate 必须在 [0,1] 内")
         if tournament_size <= 0:
             raise ValueError("tournament_size 必须 > 0")
+        if max_evaluations is not None and max_evaluations <= 0:
+            raise ValueError("max_evaluations 必须 > 0")
+        if snapshot_interval is not None and snapshot_interval <= 0:
+            raise ValueError("snapshot_interval 必须 > 0")
 
         self.operations = operations
         self.buffers = buffers
 
         self.pop_size = pop_size
         self.n_generations = n_generations
+        self.max_evaluations = max_evaluations
+        self.snapshot_interval = snapshot_interval
+        self.n_evaluations = 0
+
         self.crossover_rate = crossover_rate
         self.os_mutation_rate = os_mutation_rate
         self.ms_mutation_rate = ms_mutation_rate
@@ -105,6 +115,11 @@ class BaselineNSGA2:
         self.history_best_fitness: List[float] = []
         self.history_best_shortage: List[float] = []
 
+        # 按评价次数记录历史，用于后续离线画 GD/IGD 收敛曲线
+        self.history_eval_counts: List[int] = []
+        self.history_fronts: List[Dict[str, Any]] = []
+        self._last_snapshot_eval: int = -1
+
     # =========================
     # 初始化相关
     # =========================
@@ -118,12 +133,23 @@ class BaselineNSGA2:
         population = [self.initialize_individual() for _ in range(self.pop_size)]
         self.population = population
         return population
+    
+    def has_budget(self) -> bool:
+        return self.max_evaluations is None or self.n_evaluations < self.max_evaluations
+
+    def remaining_budget(self) -> Optional[int]:
+        if self.max_evaluations is None:
+            return None
+        return max(0, self.max_evaluations - self.n_evaluations)
 
     # =========================
     # 评价相关
     # =========================
 
     def evaluate_individual(self, ind: Individual, store_stats: bool = True) -> float:
+        if not self.has_budget():
+            raise RuntimeError("Evaluation budget exhausted")
+
         ms_map = self.encoder.build_ms_map(ind.MS)
 
         makespan, schedule, buffer_trace = self.scheduler.decode(
@@ -146,8 +172,10 @@ class BaselineNSGA2:
 
         # fitness 仅保留兼容性
         ind.fitness = float(makespan)
-        return ind.fitness
 
+        self.n_evaluations += 1
+        return ind.fitness
+    
     def evaluate_population(
         self,
         population: Optional[List[Individual]] = None,
@@ -160,9 +188,13 @@ class BaselineNSGA2:
             raise ValueError("population 为空，无法评价")
 
         for ind in population:
+            if not self.has_budget():
+                break
             self.evaluate_individual(ind, store_stats=store_stats)
 
-        self._update_best(population)
+        evaluated = [ind for ind in population if ind.makespan is not None and ind.shortage is not None]
+        if evaluated:
+            self._update_best(evaluated)
 
     # =========================
     # 多目标相关工具函数
@@ -281,8 +313,76 @@ class BaselineNSGA2:
     def get_pareto_front(self, population: Optional[List[Individual]] = None) -> List[Individual]:
         if population is None:
             population = self.population
-        fronts = self.assign_rank_and_crowding(population)
+
+        valid_population = [
+            ind for ind in population
+            if ind.makespan is not None and ind.shortage is not None
+        ]
+
+        if not valid_population:
+            return []
+
+        fronts = self.assign_rank_and_crowding(valid_population)
         return [ind.copy() for ind in fronts[0]] if fronts else []
+    
+    def export_pareto_front_snapshot(
+        self,
+        population: Optional[List[Individual]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        导出当前 Pareto front 的精简快照，用于后续离线计算 GD/IGD 收敛曲线。
+        不保存完整 schedule / stats，避免 JSON 过大。
+        """
+        front = self.get_pareto_front(population)
+        snapshot = []
+
+        for ind in front:
+            crowd = ind.crowding_distance
+            if crowd == float("inf"):
+                crowd = "inf"
+
+            snapshot.append({
+                "makespan": ind.makespan,
+                "shortage": ind.shortage,
+                "rank": ind.rank,
+                "crowding_distance": crowd,
+                "OS": ind.OS[:],
+                "MS": ind.MS[:],
+            })
+
+        return snapshot
+
+    def record_front_snapshot(self, force: bool = False) -> None:
+        """
+        按评价次数记录当前种群的 Pareto front 快照。
+        - 若 snapshot_interval is None，则不记录
+        - force=True 时强制记录（常用于初始化结束 / 算法结束）
+        """
+        if self.snapshot_interval is None:
+            return
+
+        if not self.population:
+            return
+
+        current_eval = int(self.n_evaluations)
+
+        if not force:
+            if current_eval <= 0:
+                return
+            if current_eval - self._last_snapshot_eval < self.snapshot_interval:
+                return
+
+        # 避免同一 eval_count 重复记录
+        if self.history_fronts and self.history_fronts[-1]["eval_count"] == current_eval:
+            return
+
+        snapshot = {
+            "eval_count": current_eval,
+            "pareto_front": self.export_pareto_front_snapshot(self.population)
+        }
+
+        self.history_fronts.append(snapshot)
+        self._last_snapshot_eval = current_eval
 
     # =========================
     # 排序 / 最优解维护
@@ -488,7 +588,13 @@ class BaselineNSGA2:
     def generate_offspring(self) -> List[Individual]:
         offspring = []
 
-        while len(offspring) < self.pop_size:
+        remaining = self.remaining_budget()
+        if remaining is not None and remaining <= 0:
+            return offspring
+
+        target_size = self.pop_size if remaining is None else min(self.pop_size, remaining)
+
+        while len(offspring) < target_size:
             parent1 = self.tournament_select(self.population)
             parent2 = self.tournament_select(self.population)
 
@@ -498,7 +604,7 @@ class BaselineNSGA2:
             child2 = self.mutate(child2)
 
             offspring.append(child1)
-            if len(offspring) < self.pop_size:
+            if len(offspring) < target_size:
                 offspring.append(child2)
 
         return offspring
@@ -511,8 +617,19 @@ class BaselineNSGA2:
         3. 父代 + 子代 合并
         4. 非支配排序 + 拥挤距离，保留前 pop_size
         """
+        if not self.has_budget():
+            return
+
         offspring = self.generate_offspring()
+        if not offspring:
+            return
+
         self.evaluate_population(offspring, store_stats=store_stats)
+
+        # 只保留真正完成评价的子代
+        offspring = [ind for ind in offspring if ind.makespan is not None and ind.shortage is not None]
+        if not offspring:
+            return
 
         merged = self.population + offspring
         fronts = self.assign_rank_and_crowding(merged)
@@ -546,27 +663,65 @@ class BaselineNSGA2:
         store_stats_generations: bool = False,
         verbose: bool = True
     ) -> Individual:
+        self.n_evaluations = 0
+        self.population = []
+        self.best_individual = None
+
+        self.history_best_fitness = []
+        self.history_best_shortage = []
+        self.history_eval_counts = []
+        self.history_fronts = []
+        self._last_snapshot_eval = -1
+
         self.initialize_population()
         self.evaluate_population(self.population, store_stats=store_stats_init)
+
+        # 只保留真正完成评价的初始化个体
+        self.population = [ind for ind in self.population if ind.makespan is not None and ind.shortage is not None]
+        if not self.population:
+            raise RuntimeError("初始化阶段预算不足，未能完成任何个体评价")
+
         self.assign_rank_and_crowding(self.population)
 
         init_best = self.get_best_individual(self.population)
         self.history_best_fitness = [float(init_best.makespan)]
         self.history_best_shortage = [float(init_best.shortage)]
+        self.history_eval_counts = [int(self.n_evaluations)]
 
+        self.record_front_snapshot(force=True)
         if verbose:
             print(
                 f"[Init] rep_makespan = {init_best.makespan}, "
                 f"rep_shortage = {init_best.shortage}, "
-                f"rank = {init_best.rank}"
+                f"rank = {init_best.rank}, "
+                f"evals = {self.n_evaluations}"
             )
 
-        for gen in range(1, self.n_generations + 1):
+        gen = 0
+        while True:
+            # 优先按统一总评价次数终止
+            if self.max_evaluations is not None:
+                if not self.has_budget():
+                    break
+            else:
+                if gen >= self.n_generations:
+                    break
+
+            gen += 1
+            prev_evals = self.n_evaluations
+
             self.run_one_generation(store_stats=store_stats_generations)
+
+            # 如果这一代没有发生任何新评价，就停止，避免空转
+            if self.n_evaluations == prev_evals:
+                break
 
             best = self.get_best_individual(self.population)
             self.history_best_fitness.append(float(best.makespan))
             self.history_best_shortage.append(float(best.shortage))
+            self.history_eval_counts.append(int(self.n_evaluations))
+
+            self.record_front_snapshot(force=False)
 
             if verbose:
                 pareto_size = len(self.get_pareto_front(self.population))
@@ -574,9 +729,11 @@ class BaselineNSGA2:
                     f"[Gen {gen}] rep_makespan = {best.makespan}, "
                     f"rep_shortage = {best.shortage}, "
                     f"rank = {best.rank}, "
-                    f"pareto_size = {pareto_size}"
+                    f"pareto_size = {pareto_size}, "
+                    f"evals = {self.n_evaluations}"
                 )
 
+        self.record_front_snapshot(force=True)
         return self.best_individual.copy()
 
     # =========================
