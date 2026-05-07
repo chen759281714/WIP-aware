@@ -15,17 +15,19 @@ from src.algorithms.baseline_moead import BaselineMOEAD
 from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
 from src.algorithms.emt_glocal_ga_v2_no_gat import EMTGLocalGAV2_NoGAT
 from src.algorithms.emt_glocal_ga_v2_no_lat import EMTGLocalGAV2_NoLAT
+from src.algorithms.baseline_spea2 import BaselineSPEA2
 
 # =========================
 # 实验参数
 # =========================
 
 ALGORITHMS = {
-    "EMTGLocalGAV2": EMTGLocalGAV2,
+    #"EMTGLocalGAV2": EMTGLocalGAV2,
     #"NoGAT": EMTGLocalGAV2_NoGAT,
     #"NoLAT": EMTGLocalGAV2_NoLAT,
-    "BaselineNSGA2": BaselineNSGA2,
-    "BaselineMOEAD": BaselineMOEAD,
+    #"BaselineNSGA2": BaselineNSGA2,
+    #"BaselineMOEAD": BaselineMOEAD,
+    "BaselineSPEA2": BaselineSPEA2,
 }
 SEEDS = list(range(1, 11))
 
@@ -39,7 +41,7 @@ SNAPSHOT_INTERVAL = 2000
 
 # 只跑部分算例；None 表示全部
 # 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
-INSTANCE_INDEX_RANGE = (19, 20)
+INSTANCE_INDEX_RANGE = None
 
 # 并行进程数；None 表示自动取 cpu_count()
 N_PROCESSES = 15
@@ -159,6 +161,24 @@ def run_once(instance_path, seed, algo_name):
             neighborhood_size=max(5, POP_SIZE // 10),
             neighbor_mating_prob=0.9,
             max_replace=2,
+        )
+
+    elif algo_name == "BaselineSPEA2":
+        algo_params = {
+            "pop_size": POP_SIZE,
+            "archive_size": POP_SIZE,
+            "max_evaluations": MAX_EVALUATIONS,
+            "snapshot_interval": SNAPSHOT_INTERVAL,
+            "seed": seed,
+            "crossover_rate": 0.8,
+            "os_mutation_rate": 0.2,
+            "ms_mutation_rate": 0.2,
+            "tournament_size": 2,
+        }
+        search = AlgoClass(
+            operations=operations,
+            buffers=buffers,
+            **algo_params
         )
 
     elif algo_name in ["EMTGLocalGAV2", "NoGAT", "NoLAT"]:
