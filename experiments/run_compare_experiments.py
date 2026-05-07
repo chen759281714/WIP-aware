@@ -4,6 +4,7 @@ import time
 import json
 from dataclasses import asdict, is_dataclass
 from datetime import datetime
+from multiprocessing import Pool, cpu_count
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
@@ -12,6 +13,8 @@ from src.problem.instance_generator import load_instance_from_json
 from src.algorithms.baseline_nsga2 import BaselineNSGA2
 from src.algorithms.baseline_moead import BaselineMOEAD
 from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
+from src.algorithms.emt_glocal_ga_v2_no_gat import EMTGLocalGAV2_NoGAT
+from src.algorithms.emt_glocal_ga_v2_no_lat import EMTGLocalGAV2_NoLAT
 
 # =========================
 # 实验参数
@@ -19,10 +22,12 @@ from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
 
 ALGORITHMS = {
     "EMTGLocalGAV2": EMTGLocalGAV2,
+    #"NoGAT": EMTGLocalGAV2_NoGAT,
+    #"NoLAT": EMTGLocalGAV2_NoLAT,
     "BaselineNSGA2": BaselineNSGA2,
     "BaselineMOEAD": BaselineMOEAD,
 }
-SEEDS = list(range(1, 2))
+SEEDS = list(range(1, 11))
 
 INSTANCE_DIR = "data/instances/WIP-FMS"
 RUN_RESULT_DIR = "experiments/results/runs"
@@ -31,6 +36,16 @@ RUN_RESULT_DIR = "experiments/results/runs"
 POP_SIZE = 300
 MAX_EVALUATIONS = 100000
 SNAPSHOT_INTERVAL = 2000
+
+# 只跑部分算例；None 表示全部
+# 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
+INSTANCE_INDEX_RANGE = (19, 20)
+
+# 并行进程数；None 表示自动取 cpu_count()
+N_PROCESSES = 15
+
+# 是否跳过已经存在的 run json
+SKIP_EXISTING = True
 
 # EMT 三个种群的规模分配（总和应等于 POP_SIZE）
 EMT_MAIN_POP_SIZE = POP_SIZE//3
@@ -56,6 +71,11 @@ def get_instances():
             files.append(os.path.join(INSTANCE_DIR, f))
 
     files.sort()
+
+    if INSTANCE_INDEX_RANGE is not None:
+        start, end = INSTANCE_INDEX_RANGE
+        files = files[start:end]
+
     return files
 
 
@@ -141,11 +161,29 @@ def run_once(instance_path, seed, algo_name):
             max_replace=2,
         )
 
-    elif algo_name == "EMTGLocalGAV2":
+    elif algo_name in ["EMTGLocalGAV2", "NoGAT", "NoLAT"]:
+
+        if algo_name == "EMTGLocalGAV2":
+            main = EMT_MAIN_POP_SIZE
+            global_ = EMT_GLOBAL_POP_SIZE
+            local = EMT_LOCAL_POP_SIZE
+
+        elif algo_name == "NoGAT":
+            # 把 global 的资源分给 main + local
+            main = POP_SIZE // 2
+            local = POP_SIZE - main
+            global_ = 0
+
+        elif algo_name == "NoLAT":
+            # 把 local 的资源分给 main + global
+            main = POP_SIZE // 2
+            global_ = POP_SIZE - main
+            local = 0
+
         algo_params = {
-            "main_pop_size": EMT_MAIN_POP_SIZE,
-            "global_pop_size": EMT_GLOBAL_POP_SIZE,
-            "local_pop_size": EMT_LOCAL_POP_SIZE,
+            "main_pop_size": main,
+            "global_pop_size": global_,
+            "local_pop_size": local,
             "max_evaluations": MAX_EVALUATIONS,
             "snapshot_interval": SNAPSHOT_INTERVAL,
             "seed": seed,
@@ -160,12 +198,13 @@ def run_once(instance_path, seed, algo_name):
             "local_os_mutation_rate": 0.2,
             "local_ms_mutation_rate": 0.2,
         }
+
         search = AlgoClass(
             operations=operations,
             buffers=buffers,
-            pop_size=EMT_MAIN_POP_SIZE,
-            global_pop_size=EMT_GLOBAL_POP_SIZE,
-            local_pop_size=EMT_LOCAL_POP_SIZE,
+            pop_size=main,
+            global_pop_size=global_,
+            local_pop_size=local,
             max_evaluations=MAX_EVALUATIONS,
             snapshot_interval=SNAPSHOT_INTERVAL,
             seed=seed,
@@ -359,11 +398,8 @@ def save_run(result):
     instance_name = result["instance_name"]
     seed = result["seed"]
 
-    algo_dir = os.path.join(RUN_RESULT_DIR, algo_name)
-    os.makedirs(algo_dir, exist_ok=True)
-
-    filename = f"{instance_name}_seed{seed}.json"
-    path = os.path.join(algo_dir, filename)
+    path = get_run_json_path(instance_name, algo_name, seed)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
     jsonable_result = to_jsonable(result)
 
@@ -371,6 +407,54 @@ def save_run(result):
         json.dump(jsonable_result, f, indent=2, ensure_ascii=False)
 
     return path
+
+def get_run_json_path(instance_name, algo_name, seed):
+    algo_dir = os.path.join(RUN_RESULT_DIR, algo_name)
+    filename = f"{instance_name}_seed{seed}.json"
+    return os.path.join(algo_dir, filename)
+
+
+def already_done(instance_name, algo_name, seed):
+    path = get_run_json_path(instance_name, algo_name, seed)
+    return os.path.exists(path)
+
+def worker(task):
+    path, instance_name, algo_name, seed = task
+
+    try:
+        result = run_once(path, seed, algo_name)
+        save_path = save_run(result)
+
+        ps = result["pareto_summary"]
+
+        return {
+            "ok": True,
+            "instance": instance_name,
+            "algorithm": algo_name,
+            "seed": seed,
+            "file": save_path,
+            "n_evaluations": result["representative_result"]["n_evaluations"],
+            "runtime": result["representative_result"]["runtime"],
+            "snapshot_interval": SNAPSHOT_INTERVAL,
+            "has_front_history": result["front_history"]["snapshots"] is not None,
+
+            "rep_makespan": result["representative_result"]["makespan"],
+            "rep_shortage": result["representative_result"]["shortage"],
+            "pareto_size": ps["pareto_size"],
+            "pareto_size_raw": ps["pareto_size_raw"],
+            "pareto_duplicate_count": ps["pareto_duplicate_count"],
+            "rank0_population_size": ps["rank0_population_size"],
+            "unique_rank0_points": ps["unique_rank0_points"],
+        }
+
+    except Exception as e:
+        return {
+            "ok": False,
+            "instance": instance_name,
+            "algorithm": algo_name,
+            "seed": seed,
+            "error": repr(e),
+        }
 
 # =========================
 # 实验主循环
@@ -382,60 +466,89 @@ def run_experiments():
 
     instance_paths = get_instances()
 
-    total_runs = len(instance_paths) * len(ALGORITHMS) * len(SEEDS)
-    run_counter = 0
+    print("Instances selected:")
+    for i, p in enumerate(instance_paths):
+        print(f"  [{i}] {os.path.basename(p)}")
 
-    manifest = []
+    tasks = []
+    skipped = []
 
     for path in instance_paths:
         instance_name = os.path.splitext(os.path.basename(path))[0]
 
-        print("\n==============================")
-        print("Instance:", instance_name)
-
         for algo_name in ALGORITHMS:
-            print("Algorithm:", algo_name)
-
             for seed in SEEDS:
-                result = run_once(path, seed, algo_name)
-                save_path = save_run(result)
+                if SKIP_EXISTING and already_done(instance_name, algo_name, seed):
+                    skipped.append((instance_name, algo_name, seed))
+                    continue
 
-                run_counter += 1
+                tasks.append((path, instance_name, algo_name, seed))
 
-                manifest.append({
-                    "instance": instance_name,
-                    "algorithm": algo_name,
-                    "seed": seed,
-                    "file": save_path,
-                    "n_evaluations": result["representative_result"]["n_evaluations"],
-                    "runtime": result["representative_result"]["runtime"],
-                    "snapshot_interval": SNAPSHOT_INTERVAL,
-                    "has_front_history": result["front_history"]["snapshots"] is not None,
-                })
+    print()
+    print(f"Total tasks to run : {len(tasks)}")
+    print(f"Total tasks skipped: {len(skipped)}")
 
-                ps = result["pareto_summary"]
+    if skipped:
+        print("Skipped existing runs:")
+        for instance_name, algo_name, seed in skipped[:20]:
+            print(f"  SKIP {instance_name} | {algo_name} | seed={seed}")
+        if len(skipped) > 20:
+            print(f"  ... and {len(skipped) - 20} more")
 
+    manifest = []
+
+    if not tasks:
+        print("\nNo pending tasks. Nothing to run.")
+        manifest_path = os.path.join(RUN_RESULT_DIR, "_run_manifest.json")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump([], f, indent=2, ensure_ascii=False)
+        print("Manifest saved to:")
+        print(manifest_path)
+        return
+
+    n_proc = N_PROCESSES if N_PROCESSES is not None else cpu_count()
+    n_proc = max(1, n_proc)
+
+    print(f"\nUsing {n_proc} processes...\n")
+
+    done_count = 0
+
+    with Pool(processes=n_proc) as pool:
+        for res in pool.imap_unordered(worker, tasks):
+            done_count += 1
+
+            manifest.append(res)
+
+            if res["ok"]:
                 print(
-                    f"[RUN {run_counter}/{total_runs}] "
-                    f"instance={instance_name}  "
-                    f"algo={algo_name}  "
-                    f"seed={seed}  "
-                    f"rep_makespan={result['representative_result']['makespan']}  "
-                    f"rep_shortage={result['representative_result']['shortage']:.2f}  "
-                    f"pareto_size={ps['pareto_size']}  "
-                    f"pareto_size_raw={ps['pareto_size_raw']}  "
-                    f"dup={ps['pareto_duplicate_count']}  "
-                    f"rank0={ps['rank0_population_size']}  "
-                    f"rank0_unique={ps['unique_rank0_points']}  "
-                    f"evals={result['representative_result']['n_evaluations']}  "
-                    f"time={result['representative_result']['runtime']:.2f}s"
+                    f"[RUN {done_count}/{len(tasks)}] "
+                    f"instance={res['instance']}  "
+                    f"algo={res['algorithm']}  "
+                    f"seed={res['seed']}  "
+                    f"rep_makespan={res['rep_makespan']}  "
+                    f"rep_shortage={res['rep_shortage']:.2f}  "
+                    f"pareto_size={res['pareto_size']}  "
+                    f"pareto_size_raw={res['pareto_size_raw']}  "
+                    f"dup={res['pareto_duplicate_count']}  "
+                    f"rank0={res['rank0_population_size']}  "
+                    f"rank0_unique={res['unique_rank0_points']}  "
+                    f"evals={res['n_evaluations']}  "
+                    f"time={res['runtime']:.2f}s"
+                )
+            else:
+                print(
+                    f"[RUN {done_count}/{len(tasks)}] "
+                    f"instance={res['instance']}  "
+                    f"algo={res['algorithm']}  "
+                    f"seed={res['seed']}  "
+                    f"FAILED: {res['error']}"
                 )
 
     manifest_path = os.path.join(RUN_RESULT_DIR, "_run_manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
 
-    print("\nAll run JSON files saved.")
+    print("\nAll pending run JSON files processed.")
     print("Manifest saved to:")
     print(manifest_path)
 
