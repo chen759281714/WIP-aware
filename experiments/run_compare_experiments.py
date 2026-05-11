@@ -22,12 +22,12 @@ from src.algorithms.baseline_spea2 import BaselineSPEA2
 # =========================
 
 ALGORITHMS = {
-    #"EMTGLocalGAV2": EMTGLocalGAV2,
-    #"NoGAT": EMTGLocalGAV2_NoGAT,
-    #"NoLAT": EMTGLocalGAV2_NoLAT,
+    "EMTGLocalGAV2": EMTGLocalGAV2,
+    "NoGAT": EMTGLocalGAV2_NoGAT,
+    "NoLAT": EMTGLocalGAV2_NoLAT,
     #"BaselineNSGA2": BaselineNSGA2,
     #"BaselineMOEAD": BaselineMOEAD,
-    "BaselineSPEA2": BaselineSPEA2,
+    #"BaselineSPEA2": BaselineSPEA2,
 }
 SEEDS = list(range(1, 11))
 
@@ -36,15 +36,15 @@ RUN_RESULT_DIR = "experiments/results/runs"
 
 
 POP_SIZE = 300
-MAX_EVALUATIONS = 100000
-SNAPSHOT_INTERVAL = 2000
+MAX_EVALUATIONS = 40000
+SNAPSHOT_INTERVAL = 1000
 
 # 只跑部分算例；None 表示全部
 # 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
-INSTANCE_INDEX_RANGE = None
+INSTANCE_INDEX_RANGE = (2,15)
 
 # 并行进程数；None 表示自动取 cpu_count()
-N_PROCESSES = 15
+N_PROCESSES = 5
 
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
