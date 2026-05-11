@@ -193,8 +193,6 @@ def decode_trial_row(trial_id, row):
             "os_mutation_rate": params["Pm"],
             "ms_mutation_rate": params["Pm"],
             "tournament_size": 2,
-            "gat_improve_window": 5,
-            "gat_improve_threshold": 0.005,
             "local_elite_count": ls,
             "local_neighbors_per_elite": 6,
             "local_os_mutation_rate": min(1.0, params["Pm"] + 0.1),

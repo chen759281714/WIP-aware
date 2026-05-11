@@ -3,6 +3,9 @@ import json
 import math
 import statistics
 from collections import defaultdict
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
+from openpyxl.utils import get_column_letter
 
 import matplotlib.pyplot as plt
 
@@ -20,6 +23,8 @@ ALGO_ORDER = [
     "EMTGLocalGAV2",
     "BaselineNSGA2",
     "BaselineMOEAD",
+    "NoGAT",
+    "NoLAT",
 ]
 
 # 若系统没有 Times New Roman，会自动回退
@@ -280,24 +285,46 @@ def compute_run_convergence_igd(rec, reference_front, bounds):
     return curve
 
 
-def aggregate_mean_curve(curves):
+def resample_curve_to_grid(curve, eval_grid):
     """
-    输入若干条 run 的曲线，每条形如:
-    [
-      {"eval_count": 2000, "igd": 0.1},
-      {"eval_count": 4000, "igd": 0.08},
-      ...
-    ]
+    将单条收敛曲线按固定 evaluation grid 重采样。
+    对每个 grid 点，取 eval_count <= grid 的最后一个 IGD。
+    """
+    if not curve:
+        return []
 
-    按 eval_count 对齐求均值
+    pts = sorted(
+        [(int(p["eval_count"]), float(p["igd"])) for p in curve],
+        key=lambda x: x[0]
+    )
+
+    result = []
+    idx = 0
+    last_igd = None
+
+    for x in eval_grid:
+        while idx < len(pts) and pts[idx][0] <= x:
+            last_igd = pts[idx][1]
+            idx += 1
+
+        if last_igd is not None:
+            result.append({"eval_count": x, "igd": last_igd})
+
+    return result
+
+
+def aggregate_mean_curve(curves, eval_grid):
+    """
+    所有 run 先重采样到统一 eval_grid，再逐点求均值。
     """
     bucket = defaultdict(list)
 
     for curve in curves:
-        for pt in curve:
+        sampled = resample_curve_to_grid(curve, eval_grid)
+        for pt in sampled:
             bucket[int(pt["eval_count"])].append(float(pt["igd"]))
 
-    xs = sorted(bucket.keys())
+    xs = [x for x in eval_grid if x in bucket]
     ys = [statistics.mean(bucket[x]) for x in xs]
 
     return xs, ys
@@ -314,21 +341,28 @@ def get_algo_display_order(algo_names):
 
 
 def plot_convergence_curves(instance_name, algo_to_curves, out_path):
-    """
-    每个算法一条“平均 IGD 收敛曲线”
-    横轴：evaluation_count
-    纵轴：IGD
-    """
     plt.figure(figsize=(8, 5))
 
     algo_names = get_algo_display_order(list(algo_to_curves.keys()))
+
+    max_eval = 0
+    for curves in algo_to_curves.values():
+        for curve in curves:
+            for pt in curve:
+                max_eval = max(max_eval, int(pt["eval_count"]))
+
+    if max_eval <= 0:
+        return
+
+    step = 2000
+    eval_grid = list(range(0, max_eval + step, step))
 
     for algo in algo_names:
         curves = algo_to_curves[algo]
         if not curves:
             continue
 
-        xs, ys = aggregate_mean_curve(curves)
+        xs, ys = aggregate_mean_curve(curves, eval_grid)
         if not xs:
             continue
 
@@ -464,6 +498,110 @@ def save_global_summary(all_instance_results):
 
     return out_path
 
+def save_excel_summary(all_instance_results):
+    out_path = os.path.join(SUMMARY_DIR, "compare_metrics_summary.xlsx")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "GD_IGD_Mean"
+
+    algo_names = get_algo_display_order(
+        sorted({
+            algo
+            for res in all_instance_results
+            for algo in res["algorithm_summary"].keys()
+        })
+    )
+
+    # 表头：Instance + 每个算法两列 GD/IGD
+    header1 = ["Instance"]
+    header2 = [""]
+
+    for algo in algo_names:
+        header1.extend([algo, ""])
+        header2.extend(["GD", "IGD"])
+
+    ws.append(header1)
+    ws.append(header2)
+
+    # 合并算法表头
+    ws.merge_cells(start_row=1, start_column=1, end_row=2, end_column=1)
+
+    col = 2
+    for algo in algo_names:
+        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
+        col += 2
+
+    # 写数据
+    for res in sorted(all_instance_results, key=lambda x: x["instance_name"]):
+        instance_name = res["instance_name"]
+        algo_summary = res["algorithm_summary"]
+
+        row = [instance_name]
+
+        for algo in algo_names:
+            s = algo_summary.get(algo, {})
+            gd = s.get("gd_mean")
+            igd = s.get("igd_mean")
+
+            row.append(round(gd, 3) if gd is not None and math.isfinite(gd) else None)
+            row.append(round(igd, 3) if igd is not None and math.isfinite(igd) else None)
+
+        ws.append(row)
+
+    # 高亮每个测试集上的最优 GD / IGD
+    for r in range(3, ws.max_row + 1):
+        gd_cells = []
+        igd_cells = []
+
+        for i, algo in enumerate(algo_names):
+            gd_col = 2 + i * 2
+            igd_col = gd_col + 1
+
+            gd_val = ws.cell(r, gd_col).value
+            igd_val = ws.cell(r, igd_col).value
+
+            if gd_val is not None:
+                gd_cells.append(ws.cell(r, gd_col))
+            if igd_val is not None:
+                igd_cells.append(ws.cell(r, igd_col))
+
+        if gd_cells:
+            best_gd = min(c.value for c in gd_cells)
+            for c in gd_cells:
+                if c.value == best_gd:
+                    c.font = Font(bold=True)
+
+        if igd_cells:
+            best_igd = min(c.value for c in igd_cells)
+            for c in igd_cells:
+                if c.value == best_igd:
+                    c.font = Font(bold=True)
+
+    # 格式
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for cell in ws[2]:
+        cell.font = Font(bold=True)
+
+    for col in range(2, ws.max_column + 1):
+        for row in range(3, ws.max_row + 1):
+            ws.cell(row, col).number_format = "0.000"
+
+    ws.column_dimensions["A"].width = 18
+    for col in range(2, ws.max_column + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 12
+
+    ws.freeze_panes = "B3"
+
+    wb.save(out_path)
+    return out_path
+
 
 def generate_figures_for_instance(instance_result):
     instance_name = instance_result["instance_name"]
@@ -541,9 +679,11 @@ def main():
         all_instance_results.append(instance_result)
 
     global_summary_path = save_global_summary(all_instance_results)
+    excel_path = save_excel_summary(all_instance_results)
 
     print("\nAnalysis finished.")
     print(f"Global summary saved: {global_summary_path}")
+    print(f"Excel summary saved: {excel_path}")
 
 
 if __name__ == "__main__":
