@@ -27,8 +27,8 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
             for _ in range(self.pop_size)
         ]
         self.critical_population = [
-            self.initialize_individual(origin_task="critical")
-            for _ in range(self.critical_pop_size)
+            self.initialize_critical_individual(i)
+            for i in range(self.critical_pop_size)
         ]
         self.global_population = self.critical_population
         self.local_population = []

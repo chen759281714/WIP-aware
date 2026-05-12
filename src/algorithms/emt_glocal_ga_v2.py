@@ -211,10 +211,131 @@ class EMTGLocalGAV2:
         ms_list = self.encoder.generate_random_ms()
         return Individual(OS=os_seq, MS=ms_list, origin_task=origin_task)
 
+    def generate_fastest_ms(self) -> List[str]:
+        fastest_ms = []
+
+        for job, op_idx in self.encoder.ms_index_order:
+            machine_dict = self.operations[job][op_idx]["machines"]
+            fastest_machine = min(machine_dict.keys(), key=lambda m: machine_dict[m])
+            fastest_ms.append(fastest_machine)
+
+        return fastest_ms
+
+    def move_operation_in_os(
+        self,
+        os_seq: List[str],
+        job: str,
+        op_idx: int,
+        shift: int
+    ) -> List[str]:
+        pos = self.find_os_position_of_operation(os_seq, job, op_idx)
+        if pos is None:
+            return os_seq
+
+        new_pos = max(0, min(len(os_seq) - 1, pos + shift))
+        if new_pos == pos:
+            return os_seq
+
+        new_os = os_seq[:]
+        gene = new_os.pop(pos)
+        new_os.insert(new_pos, gene)
+        return new_os
+
+    def sample_buffer_ids(self, init_n_buffers: int) -> List[str]:
+        buffer_ids = list(self.buffers.keys())
+        if not buffer_ids or init_n_buffers <= 0:
+            return []
+        k = min(init_n_buffers, len(buffer_ids))
+        return self.rng.sample(buffer_ids, k)
+
+    def make_supply_forward_os(
+        self,
+        os_seq: List[str],
+        init_n_buffers: int = 2,
+        init_max_ops_per_buffer: int = 2,
+        init_max_shift: int = 6
+    ) -> List[str]:
+        new_os = os_seq[:]
+
+        for buffer_id in self.sample_buffer_ids(init_n_buffers):
+            supply_ops = self.get_upstream_supply_ops_of_buffer(buffer_id)
+            if not supply_ops:
+                continue
+
+            n_ops = min(init_max_ops_per_buffer, len(supply_ops))
+            for job, op_idx in self.rng.sample(supply_ops, n_ops):
+                shift = -self.rng.randint(1, max(1, init_max_shift))
+                new_os = self.move_operation_in_os(new_os, job, op_idx, shift)
+
+        return new_os
+
+    def make_consume_backward_os(
+        self,
+        os_seq: List[str],
+        init_n_buffers: int = 2,
+        init_max_ops_per_buffer: int = 2,
+        init_max_shift: int = 6
+    ) -> List[str]:
+        new_os = os_seq[:]
+
+        for buffer_id in self.sample_buffer_ids(init_n_buffers):
+            consume_ops = self.get_downstream_consume_ops_of_buffer(buffer_id)
+            if not consume_ops:
+                continue
+
+            n_ops = min(init_max_ops_per_buffer, len(consume_ops))
+            for job, op_idx in self.rng.sample(consume_ops, n_ops):
+                shift = self.rng.randint(1, max(1, init_max_shift))
+                new_os = self.move_operation_in_os(new_os, job, op_idx, shift)
+
+        return new_os
+
+    def initialize_critical_individual(self, index: int) -> Individual:
+        split = self.critical_pop_size // 2
+
+        if index < split:
+            return self.initialize_individual(origin_task="critical")
+
+        ind = Individual(
+            OS=self.encoder.generate_random_os(),
+            MS=self.generate_fastest_ms(),
+            origin_task="critical"
+        )
+        self.reset_individual_evaluation(ind)
+        return ind
+
+    def initialize_local_individual(self, index: int) -> Individual:
+        random_count = self.local_pop_size // 2
+        supply_count = self.local_pop_size // 4
+        supply_end = random_count + supply_count
+
+        if index < random_count:
+            return self.initialize_individual(origin_task="local")
+
+        ind = self.initialize_individual(origin_task="local")
+
+        if index < supply_end:
+            ind.OS = self.make_supply_forward_os(ind.OS)
+        else:
+            ind.OS = self.make_consume_backward_os(ind.OS)
+
+        ind.origin_task = "local"
+        self.reset_individual_evaluation(ind)
+        return ind
+
     def initialize_populations(self) -> None:
-        self.main_population = [self.initialize_individual(origin_task="main") for _ in range(self.pop_size)]
-        self.critical_population = [self.initialize_individual(origin_task="critical") for _ in range(self.critical_pop_size)]
-        self.local_population = [self.initialize_individual(origin_task="local") for _ in range(self.local_pop_size)]
+        self.main_population = [
+            self.initialize_individual(origin_task="main")
+            for _ in range(self.pop_size)
+        ]
+        self.critical_population = [
+            self.initialize_critical_individual(i)
+            for i in range(self.critical_pop_size)
+        ]
+        self.local_population = [
+            self.initialize_local_individual(i)
+            for i in range(self.local_pop_size)
+        ]
 
         # 兼容字段同步
         self.global_population = self.critical_population
@@ -1772,16 +1893,14 @@ class EMTGLocalGAV2:
             self.critical_population = []
             self.global_population = self.critical_population
 
-        # 初始化 LAT：由主种群精英生成 shortage-aware 邻域
-        if self.has_budget():
-            self.local_population = self.generate_local_offspring()
-            if self.local_population:
-                self.evaluate_population_main(self.local_population, store_stats=store_stats_init)
-                self.local_population = [
-                    ind for ind in self.local_population
-                    if ind.makespan is not None and ind.shortage is not None
-                ]
-                self.local_population = self.environmental_select_local(self.local_population, self.local_pop_size)
+        # 初始化 LAT：直接评价 initialize_populations() 中的启发式混合初始化个体。
+        if self.has_budget() and self.local_population:
+            self.evaluate_population_main(self.local_population, store_stats=store_stats_init)
+            self.local_population = [
+                ind for ind in self.local_population
+                if ind.makespan is not None and ind.shortage is not None
+            ]
+            self.local_population = self.environmental_select_local(self.local_population, self.local_pop_size)
         else:
             self.local_population = []
 

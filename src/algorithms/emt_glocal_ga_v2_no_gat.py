@@ -30,8 +30,8 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
         self.critical_population = []
         self.global_population = self.critical_population
         self.local_population = [
-            self.initialize_individual(origin_task="local")
-            for _ in range(self.local_pop_size)
+            self.initialize_local_individual(i)
+            for i in range(self.local_pop_size)
         ]
         self.population = self.main_population
         self.global_active = False
