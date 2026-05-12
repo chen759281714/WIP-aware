@@ -44,7 +44,7 @@ SNAPSHOT_INTERVAL = 1000
 INSTANCE_INDEX_RANGE = (2,15)
 
 # 并行进程数；None 表示自动取 cpu_count()
-N_PROCESSES = 5
+N_PROCESSES = 15
 
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
