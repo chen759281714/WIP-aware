@@ -190,14 +190,14 @@ def run_once(instance_path, seed, algo_name):
 
         elif algo_name == "NoGAT":
             # 把 global 的资源分给 main + local
-            main = POP_SIZE // 2
-            local = POP_SIZE - main
+            main = EMT_MAIN_POP_SIZE
             global_ = 0
+            local = EMT_LOCAL_POP_SIZE
 
         elif algo_name == "NoLAT":
             # 把 local 的资源分给 main + global
-            main = POP_SIZE // 2
-            global_ = POP_SIZE - main
+            main = EMT_MAIN_POP_SIZE
+            global_ = EMT_GLOBAL_POP_SIZE
             local = 0
 
         algo_params = {
