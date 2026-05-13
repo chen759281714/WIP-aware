@@ -7,10 +7,10 @@ from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
 
 class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
     """
-    消融版本：MT + LAT。
+    消融版本：MT + LAT，移除当前主算法中的 CPAT/BACP 辅助种群。
 
-    当前主算法中旧 GAT 已被 CPAT 替代，因此 NoGAT 表示移除 CPAT，
-    只保留主种群和 shortage-aware local auxiliary population。
+    类名保留 NoGAT 是为了兼容既有实验脚本；在当前版本中，
+    旧 GAT 已被 CPAT 替代，因此该类实际用于验证 CPAT 的有效性。
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -21,6 +21,7 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
         super().__init__(*args, **kwargs)
         self.critical_pop_size = 0
         self.global_pop_size = 0
+        self.critical_migration_count = 0
 
     def initialize_populations(self) -> None:
         self.main_population = [
@@ -42,6 +43,12 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
     def generate_global_offspring(self):
         return []
 
+    def generate_bacp_guided_neighbors(self, ind):
+        return []
+
+    def select_critical_migration_candidates(self, critical_offspring, main_population):
+        return []
+
     def evaluate_population_critical(self, population, store_stats: bool = True) -> None:
         return
 
@@ -58,6 +65,9 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
         self.global_active = False
 
     def run_one_generation(self, store_stats: bool = False) -> None:
+        """
+        只执行 MT + LAT 协同进化，不生成、不评价、不融合 CPAT/BACP 个体。
+        """
         if not self.has_budget():
             return
 
@@ -72,12 +82,17 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
         local_offspring = []
         if self.has_budget():
             local_offspring = self.generate_local_offspring()
-            if local_offspring:
-                self.evaluate_population_main(local_offspring, store_stats=store_stats)
-                local_offspring = [
-                    ind for ind in local_offspring
-                    if ind.makespan is not None and ind.shortage is not None
-                ]
+        if local_offspring:
+            self.evaluate_population_main(local_offspring, store_stats=store_stats)
+            local_offspring = [
+                ind for ind in local_offspring
+                if ind.makespan is not None and ind.shortage is not None
+            ]
+
+        local_migrants = self.select_local_migration_candidates(
+            local_offspring,
+            self.main_population
+        )
 
         main_candidates = (
             [ind.copy() for ind in self.main_population] +
@@ -90,7 +105,12 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
         ]
 
         if main_candidates:
-            self.main_population = self.environmental_select_main(main_candidates, self.pop_size)
+            selected_main = self.environmental_select_main(main_candidates, self.pop_size)
+            self.main_population = self.apply_protected_migration(
+                selected_main,
+                local_migrants,
+                self.pop_size
+            )
             self.assign_rank_and_crowding(self.main_population)
             self.population = self.main_population
             self._update_best(self.main_population)

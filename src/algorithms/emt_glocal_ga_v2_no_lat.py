@@ -20,6 +20,7 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
             kwargs["local_pop_size"] = 1
         super().__init__(*args, **kwargs)
         self.local_pop_size = 0
+        self.local_migration_count = 0
 
     def initialize_populations(self) -> None:
         self.main_population = [
@@ -36,6 +37,9 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
         self.global_active = False
 
     def generate_local_offspring(self):
+        return []
+
+    def select_local_migration_candidates(self, local_offspring, main_population):
         return []
 
     def run_one_generation(self, store_stats: bool = False) -> None:
@@ -60,6 +64,11 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
                     if ind.makespan is not None and ind.shortage is not None
                 ]
 
+        critical_migrants = self.select_critical_migration_candidates(
+            critical_offspring,
+            self.main_population
+        )
+
         main_candidates = (
             [ind.copy() for ind in self.main_population] +
             [ind.copy() for ind in main_offspring] +
@@ -71,7 +80,12 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
         ]
 
         if main_candidates:
-            self.main_population = self.environmental_select_main(main_candidates, self.pop_size)
+            selected_main = self.environmental_select_main(main_candidates, self.pop_size)
+            self.main_population = self.apply_protected_migration(
+                selected_main,
+                critical_migrants,
+                self.pop_size
+            )
             self.assign_rank_and_crowding(self.main_population)
             self.population = self.main_population
             self._update_best(self.main_population)

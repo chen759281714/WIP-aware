@@ -62,6 +62,32 @@ class Individual:
         )
 
 
+@dataclass
+class CriticalArc:
+    src: Tuple[Any, ...]
+    dst: Tuple[Any, ...]
+    weight: float
+    arc_type: str
+    op: Optional[Tuple[str, int]] = None
+    prev_op: Optional[Tuple[str, int]] = None
+    next_op: Optional[Tuple[str, int]] = None
+    machine: Optional[str] = None
+    buffer_id: Optional[str] = None
+
+
+@dataclass
+class ShortageChainInfo:
+    buffer_id: str
+    interval: Tuple[int, int, int]
+    chain_type: str
+    supply_lag_sum: float
+    consume_early_sum: float
+    blocking_sum: float
+    supply_lag_ops: List[Tuple[str, int, float]]
+    consume_early_ops: List[Tuple[str, int, float]]
+    blocking_ops: List[Tuple[str, int, float]]
+
+
 class EMTGLocalGAV2:
     """
     CPAT-LAT 三种群协同进化算法：
@@ -114,6 +140,11 @@ class EMTGLocalGAV2:
         local_neighbors_per_elite: int = 6,
         local_os_mutation_rate: float = 0.35,
         local_ms_mutation_rate: float = 0.35,
+
+        # ----- 过滤保护式迁移参数 -----
+        critical_migration_count: int = 2,
+        local_migration_count: int = 2,
+        migration_degradation_ratio: float = 1.2,
     ):
         if pop_size <= 0:
             raise ValueError("pop_size 必须 > 0")
@@ -139,6 +170,12 @@ class EMTGLocalGAV2:
             raise ValueError("local_os_mutation_rate 必须在 [0,1] 内")
         if not (0.0 <= local_ms_mutation_rate <= 1.0):
             raise ValueError("local_ms_mutation_rate 必须在 [0,1] 内")
+        if critical_migration_count < 0:
+            raise ValueError("critical_migration_count 必须 >= 0")
+        if local_migration_count < 0:
+            raise ValueError("local_migration_count 必须 >= 0")
+        if migration_degradation_ratio < 1.0:
+            raise ValueError("migration_degradation_ratio 必须 >= 1.0")
         if max_evaluations is not None and max_evaluations <= 0:
             raise ValueError("max_evaluations 必须 > 0")
         if snapshot_interval is not None and snapshot_interval <= 0:
@@ -152,9 +189,9 @@ class EMTGLocalGAV2:
         self.buffers = buffers
 
         self.pop_size = pop_size
-        self.critical_pop_size = global_pop_size if global_pop_size is not None else pop_size
+        self.critical_pop_size = global_pop_size if global_pop_size is not None else max(1, pop_size // 2)
         self.global_pop_size = self.critical_pop_size  # 兼容旧字段名
-        self.local_pop_size = local_pop_size if local_pop_size is not None else pop_size
+        self.local_pop_size = local_pop_size if local_pop_size is not None else max(1, pop_size // 2)
 
         self.n_generations = n_generations
         self.max_evaluations = max_evaluations
@@ -175,6 +212,9 @@ class EMTGLocalGAV2:
         self.local_neighbors_per_elite = local_neighbors_per_elite
         self.local_os_mutation_rate = local_os_mutation_rate
         self.local_ms_mutation_rate = local_ms_mutation_rate
+        self.critical_migration_count = critical_migration_count
+        self.local_migration_count = local_migration_count
+        self.migration_degradation_ratio = migration_degradation_ratio
 
         self.rng = random.Random(seed)
 
@@ -953,6 +993,529 @@ class EMTGLocalGAV2:
         records.sort(key=lambda x: x["blocking"], reverse=True)
         return records[:top_k]
 
+    def get_operation_key_from_record(self, rec: Dict[str, Any]) -> Tuple[str, int]:
+        return str(rec["job"]), int(rec["op"])
+
+    def get_record_release(self, rec: Dict[str, Any]) -> int:
+        return int(rec.get("release", rec.get("end", 0)))
+
+    def get_schedule_record_by_op(
+        self,
+        ind: Individual,
+        job: str,
+        op_idx: int
+    ) -> Optional[Dict[str, Any]]:
+        if not ind.schedule:
+            return None
+        for rec in ind.schedule:
+            if str(rec["job"]) == str(job) and int(rec["op"]) == int(op_idx):
+                return rec
+        return None
+
+    def build_blocking_aware_critical_graph(
+        self,
+        ind: Individual
+    ) -> Tuple[Dict[Tuple[Any, ...], List[CriticalArc]], List[CriticalArc], List[Tuple[Any, ...]]]:
+        if not ind.schedule:
+            return {}, [], []
+
+        source = ("source",)
+        sink = ("sink",)
+        nodes = {source, sink}
+        arcs: List[CriticalArc] = []
+        graph: Dict[Tuple[Any, ...], List[CriticalArc]] = {}
+
+        def add_arc(arc: CriticalArc) -> None:
+            nodes.add(arc.src)
+            nodes.add(arc.dst)
+            arcs.append(arc)
+            graph.setdefault(arc.src, []).append(arc)
+
+        records_by_op = {
+            self.get_operation_key_from_record(rec): rec
+            for rec in ind.schedule
+        }
+
+        for op_key, rec in records_by_op.items():
+            job, op_idx = op_key
+            s_node = ("S", job, op_idx)
+            c_node = ("C", job, op_idx)
+            r_node = ("R", job, op_idx)
+            start = int(rec.get("start", 0))
+            end = int(rec.get("end", start))
+            release = self.get_record_release(rec)
+            op_def = self.operations[job][op_idx]
+
+            add_arc(CriticalArc(
+                src=s_node,
+                dst=c_node,
+                weight=max(0.0, float(end - start)),
+                arc_type="processing",
+                op=op_key,
+                machine=rec.get("machine"),
+                buffer_id=op_def.get("buffer_out", None)
+            ))
+            add_arc(CriticalArc(
+                src=c_node,
+                dst=r_node,
+                weight=max(0.0, float(release - end)),
+                arc_type="blocking",
+                op=op_key,
+                machine=rec.get("machine"),
+                buffer_id=op_def.get("buffer_out", None)
+            ))
+
+        for job in self.operations:
+            job_records = [rec for rec in ind.schedule if str(rec["job"]) == str(job)]
+            job_records.sort(key=lambda r: int(r["op"]))
+            for prev_rec, next_rec in zip(job_records, job_records[1:]):
+                prev_op = self.get_operation_key_from_record(prev_rec)
+                next_op = self.get_operation_key_from_record(next_rec)
+                prev_release = self.get_record_release(prev_rec)
+                next_start = int(next_rec.get("start", 0))
+                add_arc(CriticalArc(
+                    src=("R", prev_op[0], prev_op[1]),
+                    dst=("S", next_op[0], next_op[1]),
+                    weight=max(0.0, float(next_start - prev_release)),
+                    arc_type="job",
+                    prev_op=prev_op,
+                    next_op=next_op
+                ))
+
+        machine_records: Dict[str, List[Dict[str, Any]]] = {}
+        for rec in ind.schedule:
+            machine_records.setdefault(str(rec["machine"]), []).append(rec)
+
+        for machine, records in machine_records.items():
+            records.sort(key=lambda r: (
+                int(r.get("start", 0)),
+                int(r.get("end", 0)),
+                self.get_record_release(r),
+                str(r["job"]),
+                int(r["op"])
+            ))
+            for prev_rec, next_rec in zip(records, records[1:]):
+                prev_op = self.get_operation_key_from_record(prev_rec)
+                next_op = self.get_operation_key_from_record(next_rec)
+                prev_release = self.get_record_release(prev_rec)
+                next_start = int(next_rec.get("start", 0))
+                add_arc(CriticalArc(
+                    src=("R", prev_op[0], prev_op[1]),
+                    dst=("S", next_op[0], next_op[1]),
+                    weight=max(0.0, float(next_start - prev_release)),
+                    arc_type="machine",
+                    prev_op=prev_op,
+                    next_op=next_op,
+                    machine=machine
+                ))
+
+        predecessor_count = {node: 0 for node in nodes}
+        outgoing_count = {node: 0 for node in nodes}
+        for arc in arcs:
+            predecessor_count[arc.dst] = predecessor_count.get(arc.dst, 0) + 1
+            outgoing_count[arc.src] = outgoing_count.get(arc.src, 0) + 1
+            predecessor_count.setdefault(arc.src, predecessor_count.get(arc.src, 0))
+            outgoing_count.setdefault(arc.dst, outgoing_count.get(arc.dst, 0))
+
+        for op_key in records_by_op:
+            s_node = ("S", op_key[0], op_key[1])
+            r_node = ("R", op_key[0], op_key[1])
+            if predecessor_count.get(s_node, 0) == 0:
+                add_arc(CriticalArc(
+                    src=source,
+                    dst=s_node,
+                    weight=0.0,
+                    arc_type="source",
+                    next_op=op_key
+                ))
+            if outgoing_count.get(r_node, 0) == 0:
+                add_arc(CriticalArc(
+                    src=r_node,
+                    dst=sink,
+                    weight=0.0,
+                    arc_type="sink",
+                    prev_op=op_key
+                ))
+
+        indegree = {node: 0 for node in nodes}
+        for arc in arcs:
+            indegree[arc.dst] = indegree.get(arc.dst, 0) + 1
+            indegree.setdefault(arc.src, indegree.get(arc.src, 0))
+
+        queue = [node for node, deg in indegree.items() if deg == 0]
+        queue.sort(key=lambda n: str(n))
+        node_order = []
+        while queue:
+            node = queue.pop(0)
+            node_order.append(node)
+            for arc in graph.get(node, []):
+                indegree[arc.dst] -= 1
+                if indegree[arc.dst] == 0:
+                    queue.append(arc.dst)
+                    queue.sort(key=lambda n: str(n))
+
+        if len(node_order) != len(indegree):
+            return graph, arcs, []
+
+        return graph, arcs, node_order
+
+    def identify_blocking_aware_critical_path(self, ind: Individual) -> List[CriticalArc]:
+        graph, _, node_order = self.build_blocking_aware_critical_graph(ind)
+        source = ("source",)
+        sink = ("sink",)
+        if not graph or not node_order or source not in node_order:
+            return []
+
+        dist = {node: float("-inf") for node in node_order}
+        prev_arc: Dict[Tuple[Any, ...], CriticalArc] = {}
+        dist[source] = 0.0
+
+        for node in node_order:
+            if dist[node] == float("-inf"):
+                continue
+            for arc in graph.get(node, []):
+                cand = dist[node] + arc.weight
+                if cand > dist.get(arc.dst, float("-inf")):
+                    dist[arc.dst] = cand
+                    prev_arc[arc.dst] = arc
+
+        if sink not in prev_arc:
+            return []
+
+        path_arcs = []
+        node = sink
+        while node != source:
+            arc = prev_arc.get(node)
+            if arc is None:
+                return []
+            path_arcs.append(arc)
+            node = arc.src
+
+        path_arcs.reverse()
+        return path_arcs
+
+    def classify_bacp_path(self, path_arcs: List[CriticalArc]) -> Dict[str, Any]:
+        processing_sum = sum(arc.weight for arc in path_arcs if arc.arc_type == "processing")
+        blocking_sum = sum(arc.weight for arc in path_arcs if arc.arc_type == "blocking" and arc.weight > 0)
+        machine_arcs = [arc for arc in path_arcs if arc.arc_type == "machine"]
+        machine_sum = sum(max(1.0, arc.weight) for arc in machine_arcs)
+        total = processing_sum + blocking_sum + machine_sum
+
+        if total <= 0:
+            path_type = "processing"
+            total = 0.0
+        else:
+            contributions = {
+                "blocking": blocking_sum,
+                "machine": machine_sum,
+                "processing": processing_sum,
+            }
+            path_type = max(contributions, key=contributions.get)
+
+        return {
+            "path_type": path_type,
+            "processing_sum": processing_sum,
+            "blocking_sum": blocking_sum,
+            "machine_sum": machine_sum,
+            "processing_ratio": processing_sum / total if total > 0 else 0.0,
+            "blocking_ratio": blocking_sum / total if total > 0 else 0.0,
+            "machine_ratio": machine_sum / total if total > 0 else 0.0,
+        }
+
+    def make_os_insert_neighbor_preserve_job_order(
+        self,
+        ind: Individual,
+        job: str,
+        op_idx: int,
+        desired_pos: int,
+        origin_task: str
+    ) -> Optional[Individual]:
+        pos = self.find_os_position_of_operation(ind.OS, job, op_idx)
+        if pos is None:
+            return None
+
+        positions = [i for i, g in enumerate(ind.OS) if g == job]
+        if op_idx < 0 or op_idx >= len(positions):
+            return None
+
+        lower_bound = positions[op_idx - 1] + 1 if op_idx > 0 else 0
+        upper_bound = positions[op_idx + 1] - 1 if op_idx < len(positions) - 1 else len(ind.OS) - 1
+        if lower_bound > upper_bound:
+            return None
+
+        new_pos = max(lower_bound, min(upper_bound, desired_pos))
+        if new_pos == pos:
+            return None
+
+        nei = ind.copy()
+        gene = nei.OS.pop(pos)
+        nei.OS.insert(new_pos, gene)
+        nei.origin_task = origin_task
+        self.reset_individual_evaluation(nei)
+        return nei
+
+    def make_fastest_or_alternative_ms_neighbor(
+        self,
+        ind: Individual,
+        job: str,
+        op_idx: int,
+        origin_task: str = "critical"
+    ) -> Optional[Individual]:
+        target_idx = self.get_ms_index(job, op_idx)
+        if target_idx is None:
+            return None
+
+        machine_dict = self.operations[job][op_idx]["machines"]
+        legal_machines = sorted(machine_dict.keys(), key=lambda m: machine_dict[m])
+        if len(legal_machines) <= 1:
+            return None
+
+        current_machine = ind.MS[target_idx]
+        target_machine = legal_machines[0]
+        if target_machine == current_machine:
+            alternatives = [m for m in legal_machines if m != current_machine]
+            if not alternatives:
+                return None
+            target_machine = alternatives[0]
+
+        nei = ind.copy()
+        nei.MS[target_idx] = target_machine
+        nei.origin_task = origin_task
+        self.reset_individual_evaluation(nei)
+        return nei
+
+    def select_consume_op_for_buffer(
+        self,
+        ind: Individual,
+        buffer_id: Optional[str],
+        reference_time: Optional[int] = None
+    ) -> Optional[Tuple[str, int]]:
+        if buffer_id is None:
+            return None
+
+        consume_ops = self.get_downstream_consume_ops_of_buffer(buffer_id)
+        if not consume_ops:
+            return None
+
+        ranked = []
+        for job, op_idx in consume_ops:
+            rec = self.get_schedule_record_by_op(ind, job, op_idx)
+            if rec is None:
+                ranked.append((float("inf"), 0, job, op_idx))
+                continue
+            start = int(rec.get("start", 0))
+            distance = abs(start - reference_time) if reference_time is not None else 0
+            ranked.append((distance, -start, job, op_idx))
+
+        ranked.sort()
+        _, _, job, op_idx = ranked[0]
+        return job, op_idx
+
+    def neighbor_bacp_blocking_os(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        blocking_arcs = [arc for arc in path_arcs if arc.arc_type == "blocking" and arc.op is not None]
+        if not blocking_arcs:
+            return None
+
+        arc = max(blocking_arcs, key=lambda a: a.weight)
+        if arc.op is None:
+            return None
+        rec = self.get_schedule_record_by_op(ind, arc.op[0], arc.op[1])
+        reference_time = self.get_record_release(rec) if rec is not None else None
+        consume_op = self.select_consume_op_for_buffer(ind, arc.buffer_id, reference_time)
+        if consume_op is None:
+            return None
+
+        pos = self.find_os_position_of_operation(ind.OS, consume_op[0], consume_op[1])
+        if pos is None:
+            return None
+        shift = self.rng.randint(1, 8)
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            consume_op[0],
+            consume_op[1],
+            max(0, pos - shift),
+            origin_task="critical"
+        )
+
+    def neighbor_bacp_blocking_ms(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        blocking_arcs = [arc for arc in path_arcs if arc.arc_type == "blocking" and arc.op is not None]
+        if not blocking_arcs:
+            return None
+
+        arc = max(blocking_arcs, key=lambda a: a.weight)
+        rec = self.get_schedule_record_by_op(ind, arc.op[0], arc.op[1]) if arc.op is not None else None
+        reference_time = self.get_record_release(rec) if rec is not None else None
+        consume_op = self.select_consume_op_for_buffer(ind, arc.buffer_id, reference_time)
+        if consume_op is None:
+            return None
+
+        return self.make_fastest_or_alternative_ms_neighbor(
+            ind,
+            consume_op[0],
+            consume_op[1],
+            origin_task="critical"
+        )
+
+    def neighbor_bacp_processing_os(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        processing_arcs = [arc for arc in path_arcs if arc.arc_type == "processing" and arc.op is not None]
+        if not processing_arcs:
+            return None
+
+        arc = max(processing_arcs, key=lambda a: a.weight)
+        if arc.op is None:
+            return None
+        pos = self.find_os_position_of_operation(ind.OS, arc.op[0], arc.op[1])
+        if pos is None:
+            return None
+        shift = self.rng.randint(1, 8)
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            arc.op[0],
+            arc.op[1],
+            max(0, pos - shift),
+            origin_task="critical"
+        )
+
+    def neighbor_bacp_processing_ms(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        processing_arcs = [arc for arc in path_arcs if arc.arc_type == "processing" and arc.op is not None]
+        if not processing_arcs:
+            return None
+
+        arc = max(processing_arcs, key=lambda a: a.weight)
+        if arc.op is None:
+            return None
+        return self.make_fastest_or_alternative_ms_neighbor(
+            ind,
+            arc.op[0],
+            arc.op[1],
+            origin_task="critical"
+        )
+
+    def neighbor_bacp_machine_os(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        machine_arcs = [
+            arc for arc in path_arcs
+            if arc.arc_type == "machine" and arc.prev_op is not None and arc.next_op is not None
+        ]
+        if not machine_arcs:
+            return None
+
+        arc = max(machine_arcs, key=lambda a: a.weight)
+        if arc.prev_op is None or arc.next_op is None:
+            return None
+        prev_pos = self.find_os_position_of_operation(ind.OS, arc.prev_op[0], arc.prev_op[1])
+        next_pos = self.find_os_position_of_operation(ind.OS, arc.next_op[0], arc.next_op[1])
+        if prev_pos is None or next_pos is None or prev_pos == next_pos:
+            return None
+
+        nei = self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            arc.next_op[0],
+            arc.next_op[1],
+            prev_pos,
+            origin_task="critical"
+        )
+        if nei is not None:
+            return nei
+
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            arc.prev_op[0],
+            arc.prev_op[1],
+            next_pos,
+            origin_task="critical"
+        )
+
+    def neighbor_bacp_machine_ms(
+        self,
+        ind: Individual,
+        path_arcs: List[CriticalArc]
+    ) -> Optional[Individual]:
+        machine_arcs = [
+            arc for arc in path_arcs
+            if arc.arc_type == "machine" and arc.next_op is not None
+        ]
+        if not machine_arcs:
+            return None
+
+        arc = max(machine_arcs, key=lambda a: a.weight)
+        if arc.next_op is None:
+            return None
+
+        job, op_idx = arc.next_op
+        target_idx = self.get_ms_index(job, op_idx)
+        if target_idx is None:
+            return None
+
+        current_machine = ind.MS[target_idx]
+        machine_dict = self.operations[job][op_idx]["machines"]
+        alternatives = [m for m in machine_dict if m != current_machine]
+        if not alternatives:
+            return None
+
+        target_machine = min(alternatives, key=lambda m: machine_dict[m])
+        nei = ind.copy()
+        nei.MS[target_idx] = target_machine
+        nei.origin_task = "critical"
+        self.reset_individual_evaluation(nei)
+        return nei
+
+    def generate_bacp_guided_neighbors(self, ind: Individual) -> List[Individual]:
+        path_arcs = self.identify_blocking_aware_critical_path(ind)
+        neighbors: List[Individual] = []
+
+        if path_arcs:
+            path_info = self.classify_bacp_path(path_arcs)
+            path_type = path_info["path_type"]
+
+            if path_type == "blocking":
+                candidate_neighbors = [
+                    self.neighbor_bacp_blocking_os(ind, path_arcs),
+                    self.neighbor_bacp_blocking_ms(ind, path_arcs),
+                ]
+            elif path_type == "machine":
+                candidate_neighbors = [
+                    self.neighbor_bacp_machine_os(ind, path_arcs),
+                    self.neighbor_bacp_machine_ms(ind, path_arcs),
+                ]
+            else:
+                candidate_neighbors = [
+                    self.neighbor_bacp_processing_os(ind, path_arcs),
+                    self.neighbor_bacp_processing_ms(ind, path_arcs),
+                ]
+
+            neighbors.extend(nei for nei in candidate_neighbors if nei is not None)
+
+        while len(neighbors) < 2:
+            nei = self.mutate(
+                ind,
+                os_mut_rate=min(self.os_mutation_rate, 0.1),
+                ms_mut_rate=min(self.ms_mutation_rate, 0.1)
+            )
+            nei.origin_task = "critical"
+            neighbors.append(nei)
+
+        return neighbors[:2]
+
     def neighbor_os_forward_last_job(
         self,
         ind: Individual,
@@ -1202,16 +1765,7 @@ class EMTGLocalGAV2:
             clone.origin_task = "critical"
             candidates.append(clone)
 
-            neighbor_budget = self.local_neighbors_per_elite
-            candidates.extend(self.take_neighbors_by_budget(
-                batches=[
-                    self.neighbor_os_forward_last_job(ind, max_neighbors=neighbor_budget, max_shift=8),
-                    self.neighbor_ms_reassign_critical_ops(ind, max_neighbors=neighbor_budget, max_machines_per_op=2),
-                    self.neighbor_blocking_release_forward_consumer(ind, max_neighbors=neighbor_budget, max_shift=8),
-                    self.neighbor_bottleneck_machine_forward(ind, max_neighbors=neighbor_budget, max_shift=6),
-                ],
-                budget=neighbor_budget
-            ))
+            candidates.extend(self.generate_bacp_guided_neighbors(ind))
 
         while len(candidates) < self.critical_pop_size:
             base = self.rng.choice(elites).copy()
@@ -1313,6 +1867,309 @@ class EMTGLocalGAV2:
         if not intervals:
             return None
         return max(intervals, key=lambda x: (x[1] - x[0]) * x[2])
+
+    def identify_buffer_shortage_critical_chain(
+        self,
+        ind: Individual,
+        buffer_id: str
+    ) -> Optional[ShortageChainInfo]:
+        if not ind.schedule or ind.stats is None:
+            return None
+
+        interval = self.get_most_critical_shortage_interval(ind, buffer_id)
+        if interval is None:
+            return None
+
+        t_start, t_end, _ = interval
+        supply_lag_ops: List[Tuple[str, int, float]] = []
+        consume_early_ops: List[Tuple[str, int, float]] = []
+        blocking_ops: List[Tuple[str, int, float]] = []
+
+        for rec in ind.schedule:
+            job, op_idx = self.get_operation_key_from_record(rec)
+            op_def = self.operations[job][op_idx]
+            start = int(rec.get("start", 0))
+            end = int(rec.get("end", start))
+            release = self.get_record_release(rec)
+
+            if op_def.get("buffer_out", None) == buffer_id:
+                if release > t_start and end <= t_end:
+                    supply_lag = max(0.0, float(min(release, t_end) - t_start))
+                else:
+                    supply_lag = 0.0
+                if supply_lag > 0:
+                    supply_lag_ops.append((job, op_idx, supply_lag))
+
+                overlap_start = max(end, t_start)
+                overlap_end = min(release, t_end)
+                blocking = max(0.0, float(overlap_end - overlap_start))
+                if blocking > 0:
+                    blocking_ops.append((job, op_idx, blocking))
+
+            if op_def.get("buffer_in", None) == buffer_id:
+                if start < t_end and release >= t_start:
+                    consume_early = max(0.0, float(t_end - max(start, t_start)))
+                else:
+                    consume_early = 0.0
+                if consume_early > 0:
+                    consume_early_ops.append((job, op_idx, consume_early))
+
+        supply_lag_ops.sort(key=lambda x: x[2], reverse=True)
+        consume_early_ops.sort(key=lambda x: x[2], reverse=True)
+        blocking_ops.sort(key=lambda x: x[2], reverse=True)
+
+        supply_lag_sum = sum(x[2] for x in supply_lag_ops)
+        consume_early_sum = sum(x[2] for x in consume_early_ops)
+        blocking_sum = sum(x[2] for x in blocking_ops)
+
+        contributions = {
+            "supply_lag": supply_lag_sum,
+            "consume_early": consume_early_sum,
+            "blocking_induced": blocking_sum,
+        }
+        chain_type = max(contributions, key=contributions.get)
+        if contributions[chain_type] <= 0:
+            chain_type = "supply_lag"
+
+        return ShortageChainInfo(
+            buffer_id=buffer_id,
+            interval=interval,
+            chain_type=chain_type,
+            supply_lag_sum=supply_lag_sum,
+            consume_early_sum=consume_early_sum,
+            blocking_sum=blocking_sum,
+            supply_lag_ops=supply_lag_ops,
+            consume_early_ops=consume_early_ops,
+            blocking_ops=blocking_ops,
+        )
+
+    def select_bscc_for_individual(
+        self,
+        ind: Individual,
+        top_k_buffers: int = 2
+    ) -> Optional[ShortageChainInfo]:
+        if ind.stats is None:
+            return None
+
+        chains = []
+        for buffer_id in self.get_critical_shortage_buffers_from_main(ind, top_k=top_k_buffers):
+            chain = self.identify_buffer_shortage_critical_chain(ind, buffer_id)
+            if chain is not None:
+                chains.append(chain)
+
+        if not chains:
+            return None
+
+        return max(
+            chains,
+            key=lambda c: c.supply_lag_sum + c.consume_early_sum + c.blocking_sum
+        )
+
+    def make_local_light_mutation_neighbor(self, ind: Individual) -> Individual:
+        nei = self.mutate(
+            ind,
+            os_mut_rate=min(self.local_os_mutation_rate, 0.1),
+            ms_mut_rate=min(self.local_ms_mutation_rate, 0.1)
+        )
+        nei.origin_task = "local"
+        return nei
+
+    def make_strict_fastest_ms_neighbor(
+        self,
+        ind: Individual,
+        job: str,
+        op_idx: int,
+        origin_task: str = "local"
+    ) -> Optional[Individual]:
+        target_idx = self.get_ms_index(job, op_idx)
+        if target_idx is None:
+            return None
+
+        machine_dict = self.operations[job][op_idx]["machines"]
+        legal_machines = sorted(machine_dict.keys(), key=lambda m: machine_dict[m])
+        if len(legal_machines) <= 1:
+            return None
+
+        fastest_machine = legal_machines[0]
+        if ind.MS[target_idx] == fastest_machine:
+            return None
+
+        nei = ind.copy()
+        nei.MS[target_idx] = fastest_machine
+        nei.origin_task = origin_task
+        self.reset_individual_evaluation(nei)
+        return nei
+
+    def neighbor_bscc_supply_lag_os(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if not chain.supply_lag_ops:
+            return None
+
+        job, op_idx, _ = chain.supply_lag_ops[0]
+        pos = self.find_os_position_of_operation(ind.OS, job, op_idx)
+        if pos is None:
+            return None
+
+        shift = self.rng.randint(1, 6)
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            job,
+            op_idx,
+            max(0, pos - shift),
+            origin_task="local"
+        )
+
+    def neighbor_bscc_supply_lag_ms(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if not chain.supply_lag_ops:
+            return None
+
+        job, op_idx, _ = chain.supply_lag_ops[0]
+        return self.make_strict_fastest_ms_neighbor(
+            ind,
+            job,
+            op_idx,
+            origin_task="local"
+        )
+
+    def neighbor_bscc_consume_early_os(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if not chain.consume_early_ops:
+            return None
+
+        job, op_idx, _ = chain.consume_early_ops[0]
+        pos = self.find_os_position_of_operation(ind.OS, job, op_idx)
+        if pos is None:
+            return None
+
+        shift = self.rng.randint(1, 6)
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            job,
+            op_idx,
+            min(len(ind.OS) - 1, pos + shift),
+            origin_task="local"
+        )
+
+    def neighbor_bscc_consume_early_ms_or_fallback(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if chain.supply_lag_ops:
+            job, op_idx, _ = chain.supply_lag_ops[0]
+            nei = self.make_strict_fastest_ms_neighbor(
+                ind,
+                job,
+                op_idx,
+                origin_task="local"
+            )
+            if nei is not None:
+                return nei
+
+        return self.make_local_light_mutation_neighbor(ind)
+
+    def neighbor_bscc_blocking_induced_os(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if not chain.blocking_ops:
+            return None
+
+        job, op_idx, _ = chain.blocking_ops[0]
+        rec = self.get_schedule_record_by_op(ind, job, op_idx)
+        reference_time = self.get_record_release(rec) if rec is not None else None
+        op_def = self.operations[job][op_idx]
+        buffer_out = op_def.get("buffer_out", chain.buffer_id)
+
+        consume_op = self.select_consume_op_for_buffer(ind, buffer_out, reference_time)
+        if consume_op is None:
+            return None
+
+        consume_job, consume_op_idx = consume_op
+        pos = self.find_os_position_of_operation(ind.OS, consume_job, consume_op_idx)
+        if pos is None:
+            return None
+
+        shift = self.rng.randint(1, 6)
+        return self.make_os_insert_neighbor_preserve_job_order(
+            ind,
+            consume_job,
+            consume_op_idx,
+            max(0, pos - shift),
+            origin_task="local"
+        )
+
+    def neighbor_bscc_blocking_induced_ms(
+        self,
+        ind: Individual,
+        chain: ShortageChainInfo
+    ) -> Optional[Individual]:
+        if not chain.blocking_ops:
+            return None
+
+        job, op_idx, _ = chain.blocking_ops[0]
+        nei = self.make_strict_fastest_ms_neighbor(
+            ind,
+            job,
+            op_idx,
+            origin_task="local"
+        )
+        if nei is not None:
+            return nei
+
+        rec = self.get_schedule_record_by_op(ind, job, op_idx)
+        reference_time = self.get_record_release(rec) if rec is not None else None
+        op_def = self.operations[job][op_idx]
+        buffer_out = op_def.get("buffer_out", chain.buffer_id)
+        consume_op = self.select_consume_op_for_buffer(ind, buffer_out, reference_time)
+        if consume_op is None:
+            return None
+
+        return self.make_strict_fastest_ms_neighbor(
+            ind,
+            consume_op[0],
+            consume_op[1],
+            origin_task="local"
+        )
+
+    def generate_bscc_guided_neighbors(self, ind: Individual) -> List[Individual]:
+        chain = self.select_bscc_for_individual(ind, top_k_buffers=2)
+        neighbors: List[Individual] = []
+
+        if chain is not None:
+            if chain.chain_type == "consume_early":
+                candidate_neighbors = [
+                    self.neighbor_bscc_consume_early_os(ind, chain),
+                    self.neighbor_bscc_consume_early_ms_or_fallback(ind, chain),
+                ]
+            elif chain.chain_type == "blocking_induced":
+                candidate_neighbors = [
+                    self.neighbor_bscc_blocking_induced_os(ind, chain),
+                    self.neighbor_bscc_blocking_induced_ms(ind, chain),
+                ]
+            else:
+                candidate_neighbors = [
+                    self.neighbor_bscc_supply_lag_os(ind, chain),
+                    self.neighbor_bscc_supply_lag_ms(ind, chain),
+                ]
+
+            neighbors.extend(nei for nei in candidate_neighbors if nei is not None)
+
+        while len(neighbors) < 2:
+            neighbors.append(self.make_local_light_mutation_neighbor(ind))
+
+        return neighbors[:2]
 
     def neighbor_ms_reassign_supply_to_buffer(
         self,
@@ -1534,50 +2391,7 @@ class EMTGLocalGAV2:
             clone.origin_task = "local"
             local_candidates.append(clone)
 
-            critical_buffers = self.get_critical_shortage_buffers_from_main(ind, top_k=2)
-
-            if critical_buffers:
-                batches: List[List[Individual]] = []
-                for bid in critical_buffers:
-                    batches.append(
-                        self.neighbor_ms_reassign_supply_to_buffer(ind, bid, max_neighbors_per_op=1)
-                    )
-                    batches.append(
-                        self.neighbor_os_forward_insert_supply_to_buffer(
-                            ind,
-                            bid,
-                            max_neighbors=self.local_neighbors_per_elite,
-                            max_shift=6
-                        )
-                    )
-                    batches.append(
-                        self.neighbor_os_backward_insert_consume_from_buffer(
-                            ind,
-                            bid,
-                            max_neighbors=self.local_neighbors_per_elite,
-                            max_shift=6
-                        )
-                    )
-                    batches.append(
-                        self.neighbor_shortage_window_alignment(
-                            ind,
-                            bid,
-                            max_neighbors=self.local_neighbors_per_elite
-                        )
-                    )
-                local_candidates.extend(self.take_neighbors_by_budget(
-                    batches=batches,
-                    budget=self.local_neighbors_per_elite
-                ))
-            else:
-                for _ in range(self.local_neighbors_per_elite):
-                    nei = self.mutate(
-                        ind,
-                        os_mut_rate=self.local_os_mutation_rate,
-                        ms_mut_rate=self.local_ms_mutation_rate
-                    )
-                    nei.origin_task = "local"
-                    local_candidates.append(nei)
+            local_candidates.extend(self.generate_bscc_guided_neighbors(ind))
 
         while len(local_candidates) < self.local_pop_size:
             base = self.rng.choice(elites).copy()
@@ -1629,6 +2443,164 @@ class EMTGLocalGAV2:
     # =========================================================
     # 环境选择
     # =========================================================
+
+    def _median_objectives(self, population: List[Individual]) -> Tuple[float, float]:
+        valid = [
+            (float(ind.makespan), float(ind.shortage))
+            for ind in population
+            if ind.makespan is not None and ind.shortage is not None
+        ]
+        if not valid:
+            return float("inf"), float("inf")
+
+        def median(values: List[float]) -> float:
+            values = sorted(values)
+            n = len(values)
+            mid = n // 2
+            if n % 2 == 1:
+                return values[mid]
+            return (values[mid - 1] + values[mid]) / 2.0
+
+        return median([x[0] for x in valid]), median([x[1] for x in valid])
+
+    def is_strongly_dominated_by_population(
+        self,
+        candidate: Individual,
+        population: List[Individual]
+    ) -> bool:
+        if candidate.makespan is None or candidate.shortage is None:
+            return True
+
+        for ind in population:
+            if ind.makespan is None or ind.shortage is None:
+                continue
+            if self.dominates(ind, candidate):
+                return True
+
+        return False
+
+    def select_critical_migration_candidates(
+        self,
+        critical_offspring: List[Individual],
+        main_population: List[Individual]
+    ) -> List[Individual]:
+        if self.critical_migration_count <= 0:
+            return []
+
+        median_makespan, median_shortage = self._median_objectives(main_population)
+        shortage_threshold = self.migration_degradation_ratio * median_shortage
+        selected = []
+
+        for ind in critical_offspring:
+            if ind.makespan is None or ind.shortage is None:
+                continue
+            if ind.makespan > median_makespan:
+                continue
+            if ind.shortage > shortage_threshold:
+                continue
+            if self.is_strongly_dominated_by_population(ind, main_population):
+                continue
+
+            migrant = ind.copy()
+            migrant.origin_task = "critical"
+            selected.append(migrant)
+
+        selected.sort(key=lambda ind: (ind.makespan, ind.shortage))
+        return selected[:self.critical_migration_count]
+
+    def select_local_migration_candidates(
+        self,
+        local_offspring: List[Individual],
+        main_population: List[Individual]
+    ) -> List[Individual]:
+        if self.local_migration_count <= 0:
+            return []
+
+        median_makespan, median_shortage = self._median_objectives(main_population)
+        makespan_threshold = self.migration_degradation_ratio * median_makespan
+        selected = []
+
+        for ind in local_offspring:
+            if ind.makespan is None or ind.shortage is None:
+                continue
+            if ind.shortage > median_shortage:
+                continue
+            if ind.makespan > makespan_threshold:
+                continue
+            if self.is_strongly_dominated_by_population(ind, main_population):
+                continue
+
+            migrant = ind.copy()
+            migrant.origin_task = "local"
+            selected.append(migrant)
+
+        selected.sort(key=lambda ind: (ind.shortage, ind.makespan))
+        return selected[:self.local_migration_count]
+
+    def apply_protected_migration(
+        self,
+        selected_main: List[Individual],
+        migration_candidates: List[Individual],
+        pop_size: int
+    ) -> List[Individual]:
+        selected = [
+            ind.copy()
+            for ind in selected_main
+            if ind.makespan is not None and ind.shortage is not None
+        ][:pop_size]
+        candidates = [
+            ind.copy()
+            for ind in migration_candidates
+            if ind.makespan is not None and ind.shortage is not None
+        ]
+        if not candidates:
+            self.assign_rank_and_crowding(selected)
+            return selected[:pop_size]
+
+        existing_keys = {
+            (float(ind.makespan), float(ind.shortage), tuple(ind.OS), tuple(ind.MS))
+            for ind in selected
+        }
+
+        for cand in candidates:
+            key = (float(cand.makespan), float(cand.shortage), tuple(cand.OS), tuple(cand.MS))
+            if key in existing_keys:
+                continue
+
+            cand.origin_task = cand.origin_task or "main"
+
+            if len(selected) < pop_size:
+                selected.append(cand.copy())
+                existing_keys.add(key)
+                continue
+
+            self.assign_rank_and_crowding(selected)
+            replaceable = [
+                (idx, ind)
+                for idx, ind in enumerate(selected)
+                if not (ind.rank == 0 and ind.crowding_distance == float("inf"))
+            ]
+            if not replaceable:
+                continue
+
+            worst_idx, _ = max(
+                replaceable,
+                key=lambda item: (
+                    item[1].rank if item[1].rank is not None else float("inf"),
+                    -item[1].crowding_distance,
+                    item[1].makespan,
+                    item[1].shortage
+                )
+            )
+            old = selected[worst_idx]
+            old_key = (float(old.makespan), float(old.shortage), tuple(old.OS), tuple(old.MS))
+            selected[worst_idx] = cand.copy()
+            existing_keys.discard(old_key)
+            existing_keys.add(key)
+
+        selected = self.environmental_select_main(selected, pop_size)
+        self.assign_rank_and_crowding(selected)
+        return selected[:pop_size]
 
     def refill_population_from_candidates(
         self,
@@ -1804,6 +2776,16 @@ class EMTGLocalGAV2:
                 self.evaluate_population_main(local_offspring, store_stats=store_stats)
                 local_offspring = [ind for ind in local_offspring if ind.makespan is not None and ind.shortage is not None]
 
+        critical_migrants = self.select_critical_migration_candidates(
+            critical_offspring,
+            self.main_population
+        )
+        local_migrants = self.select_local_migration_candidates(
+            local_offspring,
+            self.main_population
+        )
+        migration_candidates = critical_migrants + local_migrants
+
         # 2) MT 环境选择：融合三类搜索结果
         main_candidates = (
             [ind.copy() for ind in self.main_population] +
@@ -1814,7 +2796,12 @@ class EMTGLocalGAV2:
         main_candidates = [ind for ind in main_candidates if ind.makespan is not None and ind.shortage is not None]
 
         if main_candidates:
-            self.main_population = self.environmental_select_main(main_candidates, self.pop_size)
+            selected_main = self.environmental_select_main(main_candidates, self.pop_size)
+            self.main_population = self.apply_protected_migration(
+                selected_main,
+                migration_candidates,
+                self.pop_size
+            )
             self.assign_rank_and_crowding(self.main_population)
             self.population = self.main_population
             self._update_best(self.main_population)
