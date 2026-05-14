@@ -35,8 +35,8 @@ INSTANCE_DIR = "data/instances/WIP-FMS"
 RUN_RESULT_DIR = "experiments/results/runs"
 
 
-POP_SIZE = 300
-MAX_EVALUATIONS = 60000
+POP_SIZE = 200
+MAX_EVALUATIONS = 4000
 SNAPSHOT_INTERVAL = 1000
 
 # 只跑部分算例；None 表示全部
@@ -44,14 +44,14 @@ SNAPSHOT_INTERVAL = 1000
 INSTANCE_INDEX_RANGE = None 
 
 # 并行进程数；None 表示自动取 cpu_count()
-N_PROCESSES = 15
+N_PROCESSES = 5
 
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
 
 # EMT 三个种群的规模分配（总和应等于 POP_SIZE）
-EMT_MAIN_POP_SIZE = POP_SIZE//3
-EMT_GLOBAL_POP_SIZE = POP_SIZE//3
+EMT_MAIN_POP_SIZE = POP_SIZE//2
+EMT_GLOBAL_POP_SIZE = POP_SIZE//4
 EMT_LOCAL_POP_SIZE = POP_SIZE - EMT_MAIN_POP_SIZE - EMT_GLOBAL_POP_SIZE
 
 def validate_experiment_config():
