@@ -36,15 +36,15 @@ RUN_RESULT_DIR = "experiments/results/runs"
 
 
 POP_SIZE = 200
-MAX_EVALUATIONS = 4000
+MAX_EVALUATIONS = 40000
 SNAPSHOT_INTERVAL = 1000
 
 # 只跑部分算例；None 表示全部
 # 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
-INSTANCE_INDEX_RANGE = None 
+INSTANCE_INDEX_RANGE = (12, 20) 
 
 # 并行进程数；None 表示自动取 cpu_count()
-N_PROCESSES = 5
+N_PROCESSES = 15
 
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
