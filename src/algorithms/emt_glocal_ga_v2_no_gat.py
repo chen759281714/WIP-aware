@@ -44,9 +44,6 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
     def generate_critical_offspring(self):
         return []
 
-    def generate_global_offspring(self):
-        return []
-
     def generate_bacp_guided_neighbors(self, ind):
         return []
 
@@ -56,17 +53,8 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
     def evaluate_population_critical(self, population, store_stats: bool = True) -> None:
         return
 
-    def evaluate_population_global(self, population) -> None:
-        return
-
     def environmental_select_critical(self, candidates, target_size: int):
         return []
-
-    def environmental_select_global(self, candidates, target_size: int):
-        return []
-
-    def update_global_activity(self) -> None:
-        self.global_active = False
 
     def run_one_generation(self, store_stats: bool = False) -> None:
         """
