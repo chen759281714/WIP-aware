@@ -41,7 +41,7 @@ SNAPSHOT_INTERVAL = 1000
 
 # 只跑部分算例；None 表示全部
 # 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
-INSTANCE_INDEX_RANGE = (12, 20) 
+INSTANCE_INDEX_RANGE = (15, 20) 
 
 # 并行进程数；None 表示自动取 cpu_count()
 N_PROCESSES = 15
