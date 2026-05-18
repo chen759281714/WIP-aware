@@ -10,7 +10,8 @@ class EMTGLocalGAV2_NoLAT(EMTGLocalGAV2):
     消融版本：MT + CPAT。
 
     当前主算法中 CPAT 替代了旧 GAT，因此 NoLAT 表示移除
-    shortage-aware local auxiliary population，只保留主种群和 CPAT。
+    WIP-aware shortage-oriented global auxiliary population，只保留主种群
+    和 BACP-guided CPAT。
     """
 
     def __init__(self, *args: Any, **kwargs: Any):

@@ -11,6 +11,10 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
 
     类名保留 NoGAT 是为了兼容既有实验脚本；在当前版本中，
     旧 GAT 已被 CPAT 替代，因此该类实际用于验证 CPAT 的有效性。
+
+    LAT 保持与主算法一致：WIP-aware shortage-oriented global auxiliary
+    population，使用真实 WIP 评价、shortage-first selection、buffer-aware
+    crossover 和 shortage-guided mutation。
     """
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -67,6 +71,7 @@ class EMTGLocalGAV2_NoGAT(EMTGLocalGAV2):
     def run_one_generation(self, store_stats: bool = False) -> None:
         """
         只执行 MT + LAT 协同进化，不生成、不评价、不融合 CPAT/BACP 个体。
+        LAT offspring 由父类当前的 shortage-oriented global GA 生成。
         """
         if not self.has_budget():
             return

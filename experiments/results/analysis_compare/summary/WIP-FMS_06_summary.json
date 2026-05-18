@@ -1,0 +1,67 @@
+{
+  "instance_name": "WIP-FMS_06",
+  "reference_front": [
+    {
+      "makespan": 157.0,
+      "shortage": 178.0
+    },
+    {
+      "makespan": 158.0,
+      "shortage": 143.0
+    },
+    {
+      "makespan": 160.0,
+      "shortage": 121.0
+    },
+    {
+      "makespan": 165.0,
+      "shortage": 118.0
+    },
+    {
+      "makespan": 168.0,
+      "shortage": 115.0
+    },
+    {
+      "makespan": 174.0,
+      "shortage": 105.0
+    }
+  ],
+  "normalization_bounds": {
+    "m_min": 157.0,
+    "m_max": 174.0,
+    "s_min": 105.0,
+    "s_max": 178.0
+  },
+  "algorithm_summary": {
+    "NoGAT": {
+      "n_runs": 10,
+      "gd_mean": 0.3612037903371245,
+      "gd_std": 0.07768086050628518,
+      "igd_mean": 0.3829689633467134,
+      "igd_std": 0.059096356958739424,
+      "rep_makespan_mean": 165.6,
+      "rep_shortage_mean": 149.7,
+      "runtime_mean": 1453.7307908773423
+    },
+    "EMTGLocalGAV2": {
+      "n_runs": 10,
+      "gd_mean": 0.29239415000067465,
+      "gd_std": 0.13262195423317433,
+      "igd_mean": 0.3474607989688604,
+      "igd_std": 0.12542167773602383,
+      "rep_makespan_mean": 162.4,
+      "rep_shortage_mean": 149.8,
+      "runtime_mean": 1477.1702653646469
+    },
+    "NoLAT": {
+      "n_runs": 10,
+      "gd_mean": 0.35002822866266065,
+      "gd_std": 0.14993275120019645,
+      "igd_mean": 0.37506276207003414,
+      "igd_std": 0.14461319870089698,
+      "rep_makespan_mean": 164.6,
+      "rep_shortage_mean": 149.3,
+      "runtime_mean": 1494.5294375896453
+    }
+  }
+}

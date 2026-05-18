@@ -104,7 +104,9 @@ class EMTGLocalGAV2:
        - 替代原 GAT，不再使用 NoWIP 解码器
 
     3) Local Auxiliary Task Population (LAT)
-       - 沿用 shortage-aware 邻域结构
+       - WIP 感知短缺导向全局辅助种群
+       - 使用真实 WIP / buffer 约束评价
+       - 通过 shortage-first 选择、缓冲区感知交叉和短缺引导变异搜索低 shortage 的全局调度结构
        - 环境选择按 (shortage, makespan) 升序
 
     接口保持与原 EMTGLocalGAV2 尽量一致：
@@ -281,12 +283,158 @@ class EMTGLocalGAV2:
         new_os.insert(new_pos, gene)
         return new_os
 
+    def move_operation_in_os_preserve_job_order(
+        self,
+        os_seq: List[str],
+        job: str,
+        op_idx: int,
+        desired_pos: int
+    ) -> List[str]:
+        new_os = os_seq[:]
+        pos = self.find_os_position_of_operation(new_os, job, op_idx)
+        if pos is None:
+            return new_os
+
+        positions = [i for i, g in enumerate(new_os) if g == job]
+        if op_idx < 0 or op_idx >= len(positions):
+            return new_os
+
+        lower_bound = positions[op_idx - 1] + 1 if op_idx > 0 else 0
+        upper_bound = positions[op_idx + 1] - 1 if op_idx < len(positions) - 1 else len(new_os) - 1
+        if lower_bound > upper_bound:
+            return new_os
+
+        new_pos = max(lower_bound, min(upper_bound, desired_pos))
+        if new_pos == pos:
+            return new_os
+
+        gene = new_os.pop(pos)
+        new_os.insert(new_pos, gene)
+        return new_os
+
     def sample_buffer_ids(self, init_n_buffers: int) -> List[str]:
         buffer_ids = list(self.buffers.keys())
         if not buffer_ids or init_n_buffers <= 0:
             return []
         k = min(init_n_buffers, len(buffer_ids))
         return self.rng.sample(buffer_ids, k)
+
+    def sample_local_buffer_ids(self, max_buffers: int = 2) -> List[str]:
+        if not self.buffers:
+            return []
+        k = self.rng.randint(1, min(max_buffers, len(self.buffers)))
+        return self.sample_buffer_ids(k)
+
+    def _apply_local_supply_forward_action(
+        self,
+        ind: Individual,
+        buffer_ids: List[str],
+        max_shift: int = 4
+    ) -> bool:
+        buffers = buffer_ids[:] or self.sample_local_buffer_ids()
+        self.rng.shuffle(buffers)
+
+        for buffer_id in buffers:
+            supply_ops = self.get_upstream_supply_ops_of_buffer(buffer_id)
+            if not supply_ops:
+                continue
+            ops = supply_ops[:]
+            self.rng.shuffle(ops)
+            for job, op_idx in ops:
+                pos = self.find_os_position_of_operation(ind.OS, job, op_idx)
+                if pos is None:
+                    continue
+                shift = self.rng.randint(1, max(1, max_shift))
+                new_os = self.move_operation_in_os_preserve_job_order(ind.OS, job, op_idx, max(0, pos - shift))
+                if new_os != ind.OS:
+                    ind.OS = new_os
+                    return True
+        return False
+
+    def _apply_local_consume_delay_action(
+        self,
+        ind: Individual,
+        buffer_ids: List[str],
+        max_shift: int = 4
+    ) -> bool:
+        buffers = buffer_ids[:] or self.sample_local_buffer_ids()
+        self.rng.shuffle(buffers)
+
+        for buffer_id in buffers:
+            consume_ops = self.get_downstream_consume_ops_of_buffer(buffer_id)
+            if not consume_ops:
+                continue
+            ops = consume_ops[:]
+            self.rng.shuffle(ops)
+            for job, op_idx in ops:
+                pos = self.find_os_position_of_operation(ind.OS, job, op_idx)
+                if pos is None:
+                    continue
+                shift = self.rng.randint(1, max(1, max_shift))
+                new_os = self.move_operation_in_os_preserve_job_order(
+                    ind.OS,
+                    job,
+                    op_idx,
+                    min(len(ind.OS) - 1, pos + shift)
+                )
+                if new_os != ind.OS:
+                    ind.OS = new_os
+                    return True
+        return False
+
+    def _apply_local_supply_fast_machine_action(
+        self,
+        ind: Individual,
+        buffer_ids: List[str]
+    ) -> bool:
+        buffers = buffer_ids[:] or self.sample_local_buffer_ids()
+        self.rng.shuffle(buffers)
+
+        for buffer_id in buffers:
+            supply_ops = self.get_upstream_supply_ops_of_buffer(buffer_id)
+            if not supply_ops:
+                continue
+            ops = supply_ops[:]
+            self.rng.shuffle(ops)
+            for job, op_idx in ops:
+                target_idx = self.get_ms_index(job, op_idx)
+                if target_idx is None:
+                    continue
+                machine_dict = self.operations[job][op_idx]["machines"]
+                if len(machine_dict) <= 1:
+                    continue
+                fastest_machine = min(machine_dict.keys(), key=lambda m: machine_dict[m])
+                if ind.MS[target_idx] == fastest_machine:
+                    continue
+                ind.MS[target_idx] = fastest_machine
+                return True
+        return False
+
+    def apply_shortage_guided_initialization(self, ind: Individual) -> Individual:
+        nei = ind.copy()
+        actions = [
+            "supply_forward",
+            "consume_delay",
+            "supply_fast_machine",
+        ]
+        first = self.rng.choice(actions)
+        ordered_actions = [first] + [a for a in actions if a != first]
+        buffer_ids = self.sample_local_buffer_ids(max_buffers=2)
+
+        for action in ordered_actions:
+            if action == "supply_forward":
+                success = self._apply_local_supply_forward_action(nei, buffer_ids, max_shift=4)
+            elif action == "consume_delay":
+                success = self._apply_local_consume_delay_action(nei, buffer_ids, max_shift=4)
+            else:
+                success = self._apply_local_supply_fast_machine_action(nei, buffer_ids)
+
+            if success:
+                break
+
+        nei.origin_task = "local"
+        self.reset_individual_evaluation(nei)
+        return nei
 
     def make_supply_forward_os(
         self,
@@ -346,22 +494,12 @@ class EMTGLocalGAV2:
 
     def initialize_local_individual(self, index: int) -> Individual:
         random_count = self.local_pop_size // 2
-        supply_count = self.local_pop_size // 4
-        supply_end = random_count + supply_count
 
         if index < random_count:
             return self.initialize_individual(origin_task="local")
 
         ind = self.initialize_individual(origin_task="local")
-
-        if index < supply_end:
-            ind.OS = self.make_supply_forward_os(ind.OS)
-        else:
-            ind.OS = self.make_consume_backward_os(ind.OS)
-
-        ind.origin_task = "local"
-        self.reset_individual_evaluation(ind)
-        return ind
+        return self.apply_shortage_guided_initialization(ind)
 
     def initialize_populations(self) -> None:
         self.main_population = [
@@ -1419,7 +1557,7 @@ class EMTGLocalGAV2:
         if not machine_arcs:
             return None
 
-        arc = max(machine_arcs, key=lambda a: a.weight)
+        arc = max(machine_arcs, key=lambda a: max(1.0, a.weight))
         if arc.prev_op is None or arc.next_op is None:
             return None
         prev_pos = self.find_os_position_of_operation(ind.OS, arc.prev_op[0], arc.prev_op[1])
@@ -1457,7 +1595,7 @@ class EMTGLocalGAV2:
         if not machine_arcs:
             return None
 
-        arc = max(machine_arcs, key=lambda a: a.weight)
+        arc = max(machine_arcs, key=lambda a: max(1.0, a.weight))
         if arc.next_op is None:
             return None
 
@@ -1781,7 +1919,8 @@ class EMTGLocalGAV2:
         return candidates[:self.critical_pop_size]
 
     # =========================================================
-    # LAT：shortage-aware 邻域，保留原设计
+    # LAT：WIP-aware shortage-oriented global auxiliary population
+    # 下方 BSCC 邻域函数保留为备用/对比实验接口，默认 offspring 生成使用 LAT 全局 GA。
     # =========================================================
 
     def get_critical_shortage_buffers_from_main(
@@ -2359,52 +2498,258 @@ class EMTGLocalGAV2:
 
         return neighbors
 
-    def generate_local_offspring(self) -> List[Individual]:
-        if not self.main_population:
-            return [self.initialize_individual(origin_task="local") for _ in range(self.local_pop_size)]
+    def tournament_select_local(self, population: Optional[List[Individual]] = None) -> Individual:
+        if population is None:
+            population = self.local_population
 
-        seed_pool = []
-        seed_pool.extend(self.sort_population(self.main_population)[:min(self.local_elite_count, len(self.main_population))])
+        valid_population = [
+            ind for ind in population
+            if ind.makespan is not None and ind.shortage is not None
+        ]
+        if not valid_population:
+            return self.initialize_individual(origin_task="local")
 
-        if self.local_population:
-            valid_local = [ind for ind in self.local_population if ind.makespan is not None and ind.shortage is not None]
-            valid_local.sort(key=lambda ind: (ind.shortage, ind.makespan))
-            seed_pool.extend(valid_local[:min(self.local_elite_count, len(valid_local))])
+        k = min(self.tournament_size, len(valid_population))
+        candidates = self.rng.sample(valid_population, k)
+        best = min(candidates, key=lambda ind: (ind.shortage, ind.makespan))
+        clone = best.copy()
+        clone.origin_task = "local"
+        return clone
 
-        if not seed_pool:
-            return [self.initialize_individual(origin_task="local") for _ in range(self.local_pop_size)]
+    def get_local_crossover_buffers(self, ind: Optional[Individual] = None, top_k: int = 2) -> List[str]:
+        if ind is not None and ind.stats is not None:
+            buffers = self.get_critical_shortage_buffers_from_main(ind, top_k=top_k)
+            if buffers:
+                return buffers
+        return self.sample_local_buffer_ids(max_buffers=top_k)
 
-        # 去重
-        unique_seed = {}
-        for ind in seed_pool:
-            if ind.makespan is None or ind.shortage is None:
+    def get_buffer_related_jobs(self, buffer_ids: List[str]) -> set:
+        related_jobs = set()
+        for buffer_id in buffer_ids:
+            for job, _ in self.get_upstream_supply_ops_of_buffer(buffer_id):
+                related_jobs.add(job)
+            for job, _ in self.get_downstream_consume_ops_of_buffer(buffer_id):
+                related_jobs.add(job)
+        return related_jobs
+
+    def get_buffer_supply_ops(self, buffer_ids: List[str]) -> set:
+        supply_ops = set()
+        for buffer_id in buffer_ids:
+            supply_ops.update(self.get_upstream_supply_ops_of_buffer(buffer_id))
+        return supply_ops
+
+    def os_has_valid_job_counts(self, os_seq: List[str], reference_os: List[str]) -> bool:
+        if len(os_seq) != len(reference_os):
+            return False
+
+        counts = {}
+        ref_counts = {}
+        for job in os_seq:
+            counts[job] = counts.get(job, 0) + 1
+        for job in reference_os:
+            ref_counts[job] = ref_counts.get(job, 0) + 1
+        return counts == ref_counts
+
+    def crossover_os_buffer_aware_local(
+        self,
+        lead_os: List[str],
+        other_os: List[str],
+        critical_buffers: Optional[List[str]] = None
+    ) -> List[str]:
+        if not critical_buffers:
+            critical_buffers = self.sample_local_buffer_ids(max_buffers=2)
+
+        related_jobs = self.get_buffer_related_jobs(critical_buffers)
+        if not related_jobs:
+            child, _ = self.crossover_os(lead_os, other_os)
+            return child
+
+        child: List[Optional[str]] = [None] * len(lead_os)
+        for i, job in enumerate(lead_os):
+            if job in related_jobs:
+                child[i] = job
+
+        fill = [job for job in other_os if job not in related_jobs]
+        ptr = 0
+        for i in range(len(child)):
+            if child[i] is None:
+                if ptr >= len(fill):
+                    fallback, _ = self.crossover_os(lead_os, other_os)
+                    return fallback
+                child[i] = fill[ptr]
+                ptr += 1
+
+        child_os = [str(job) for job in child if job is not None]
+        if not self.os_has_valid_job_counts(child_os, lead_os):
+            fallback, _ = self.crossover_os(lead_os, other_os)
+            return fallback
+
+        return child_os
+
+    def crossover_ms_supply_priority_local(
+        self,
+        lead_ms: List[str],
+        other_ms: List[str],
+        critical_buffers: Optional[List[str]] = None
+    ) -> List[str]:
+        if not critical_buffers:
+            critical_buffers = self.sample_local_buffer_ids(max_buffers=2)
+
+        supply_ops = self.get_buffer_supply_ops(critical_buffers)
+        child_ms = []
+        for idx, (job, op_idx) in enumerate(self.encoder.ms_index_order):
+            if (job, op_idx) in supply_ops:
+                child_ms.append(lead_ms[idx])
+            elif self.rng.random() < 0.5:
+                child_ms.append(lead_ms[idx])
+            else:
+                child_ms.append(other_ms[idx])
+        return child_ms
+
+    def crossover_local(self, p1: Individual, p2: Individual) -> Tuple[Individual, Individual]:
+        if p1.shortage is not None and p2.shortage is not None:
+            if (p1.shortage, p1.makespan or float("inf")) <= (p2.shortage, p2.makespan or float("inf")):
+                lead_parent, other_parent = p1, p2
+            else:
+                lead_parent, other_parent = p2, p1
+        else:
+            lead_parent, other_parent = p1, p2
+
+        critical_buffers = self.get_local_crossover_buffers(lead_parent, top_k=2)
+
+        child1_os = self.crossover_os_buffer_aware_local(lead_parent.OS, other_parent.OS, critical_buffers)
+        child2_os = self.crossover_os_buffer_aware_local(lead_parent.OS, other_parent.OS, critical_buffers)
+        child1_ms = self.crossover_ms_supply_priority_local(lead_parent.MS, other_parent.MS, critical_buffers)
+        child2_ms = self.crossover_ms_supply_priority_local(lead_parent.MS, other_parent.MS, critical_buffers)
+
+        child1 = Individual(OS=child1_os, MS=child1_ms, origin_task="local")
+        child2 = Individual(OS=child2_os, MS=child2_ms, origin_task="local")
+        self.reset_individual_evaluation(child1)
+        self.reset_individual_evaluation(child2)
+        return child1, child2
+
+    def get_local_mutation_buffers_from_parents(
+        self,
+        p1: Individual,
+        p2: Optional[Individual] = None,
+        top_k: int = 2
+    ) -> List[str]:
+        parents = [p for p in [p1, p2] if p is not None]
+        parents.sort(key=lambda ind: (
+            ind.shortage if ind.shortage is not None else float("inf"),
+            ind.makespan if ind.makespan is not None else float("inf")
+        ))
+
+        for parent in parents:
+            if parent.stats is None:
                 continue
-            key = (float(ind.makespan), float(ind.shortage))
-            if key not in unique_seed:
-                unique_seed[key] = ind
-        elites = list(unique_seed.values()) or seed_pool
+            buffers = self.get_critical_shortage_buffers_from_main(parent, top_k=top_k)
+            if buffers:
+                return buffers
 
-        local_candidates: List[Individual] = []
+        return self.sample_local_buffer_ids(max_buffers=top_k)
 
-        for ind in elites:
-            clone = ind.copy()
-            clone.origin_task = "local"
-            local_candidates.append(clone)
+    def mutate_local_shortage_guided(
+        self,
+        ind: Individual,
+        mutation_rate: Optional[float] = None,
+        critical_buffers: Optional[List[str]] = None
+    ) -> Individual:
+        if mutation_rate is None:
+            mutation_rate = self.local_os_mutation_rate
 
-            local_candidates.extend(self.generate_bscc_guided_neighbors(ind))
+        nei = ind.copy()
+        nei.origin_task = "local"
 
-        while len(local_candidates) < self.local_pop_size:
-            base = self.rng.choice(elites).copy()
+        if self.rng.random() >= mutation_rate:
+            self.reset_individual_evaluation(nei)
+            return nei
+
+        selected_buffers = critical_buffers[:] if critical_buffers else []
+        if not selected_buffers and ind.stats is not None:
+            selected_buffers = self.get_critical_shortage_buffers_from_main(ind, top_k=2)
+        if not selected_buffers:
+            selected_buffers = self.sample_local_buffer_ids(max_buffers=2)
+
+        actions = [
+            "supply_forward",
+            "consume_delay",
+            "supply_fast_machine",
+        ]
+        first = self.rng.choice(actions)
+        ordered_actions = [first] + [a for a in actions if a != first]
+        success = False
+
+        for action in ordered_actions:
+            if action == "supply_forward":
+                success = self._apply_local_supply_forward_action(nei, selected_buffers, max_shift=4)
+            elif action == "consume_delay":
+                success = self._apply_local_consume_delay_action(nei, selected_buffers, max_shift=4)
+            else:
+                success = self._apply_local_supply_fast_machine_action(nei, selected_buffers)
+
+            if success:
+                break
+
+        if not success:
             nei = self.mutate(
-                base,
-                os_mut_rate=self.local_os_mutation_rate,
-                ms_mut_rate=self.local_ms_mutation_rate
+                ind,
+                os_mut_rate=min(self.local_os_mutation_rate, 0.1),
+                ms_mut_rate=min(self.local_ms_mutation_rate, 0.1)
             )
             nei.origin_task = "local"
-            local_candidates.append(nei)
 
-        self.rng.shuffle(local_candidates)
-        return local_candidates[:self.local_pop_size]
+        self.reset_individual_evaluation(nei)
+        return nei
+
+    def generate_local_offspring(self) -> List[Individual]:
+        if self.local_pop_size <= 0:
+            return []
+
+        valid_local = [
+            ind for ind in self.local_population
+            if ind.makespan is not None and ind.shortage is not None
+        ]
+
+        if len(valid_local) < 2:
+            return [
+                self.initialize_local_individual(i)
+                for i in range(self.local_pop_size)
+            ]
+
+        offspring: List[Individual] = []
+
+        while len(offspring) < self.local_pop_size:
+            p1 = self.tournament_select_local(valid_local)
+            p2 = self.tournament_select_local(valid_local)
+            mutation_buffers = self.get_local_mutation_buffers_from_parents(p1, p2, top_k=2)
+
+            if self.rng.random() < self.crossover_rate:
+                c1, c2 = self.crossover_local(p1, p2)
+            else:
+                c1 = p1.copy()
+                c2 = p2.copy()
+                c1.origin_task = "local"
+                c2.origin_task = "local"
+                self.reset_individual_evaluation(c1)
+                self.reset_individual_evaluation(c2)
+
+            c1 = self.mutate_local_shortage_guided(
+                c1,
+                mutation_rate=self.local_os_mutation_rate,
+                critical_buffers=mutation_buffers
+            )
+            offspring.append(c1)
+
+            if len(offspring) < self.local_pop_size:
+                c2 = self.mutate_local_shortage_guided(
+                    c2,
+                    mutation_rate=self.local_os_mutation_rate,
+                    critical_buffers=mutation_buffers
+                )
+                offspring.append(c2)
+
+        return offspring[:self.local_pop_size]
 
     # =========================================================
     # Offspring 生成
