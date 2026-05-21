@@ -41,10 +41,10 @@ SNAPSHOT_INTERVAL = 1000
 
 # 只跑部分算例；None 表示全部
 # 例如 (11, 20) 表示只跑排序后第 12~20 个算例（Python 切片，右边不含）
-INSTANCE_INDEX_RANGE = (15, 20) 
+INSTANCE_INDEX_RANGE = (19, 20)
 
 # 并行进程数；None 表示自动取 cpu_count()
-N_PROCESSES = 15
+N_PROCESSES = 20
 
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
