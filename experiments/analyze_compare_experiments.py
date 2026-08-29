@@ -186,6 +186,44 @@ def compute_igd(pareto_front, reference_front, bounds):
     return sum(distances) / len(distances)
 
 
+def compute_hv(pareto_front, bounds, ref_point=(1.1, 1.1)):
+    """
+    计算二维归一化 hypervolume。
+    输入 pareto_front 为 run json 中的 pareto_front。
+    """
+    if not pareto_front:
+        return 0.0
+
+    points = []
+    for sol in pareto_front:
+        try:
+            p = normalize_point(
+                (float(sol["makespan"]), float(sol["shortage"])),
+                bounds
+            )
+            if p[0] <= ref_point[0] and p[1] <= ref_point[1]:
+                points.append(p)
+        except Exception:
+            continue
+
+    if not points:
+        return 0.0
+
+    points = filter_nondominated(points)
+    points.sort(key=lambda x: x[0])
+
+    hv = 0.0
+    prev_y = ref_point[1]
+
+    for x, y in points:
+        width = max(0.0, ref_point[0] - x)
+        height = max(0.0, prev_y - y)
+        hv += width * height
+        prev_y = min(prev_y, y)
+
+    return hv
+
+
 # =========================================
 # JSON 读取
 # =========================================
@@ -380,7 +418,7 @@ def plot_convergence_curves(instance_name, algo_to_curves, out_path):
 
 def plot_boxplot(instance_name, algo_to_values, metric_name, out_path):
     """
-    画箱线图，metric_name 可为 'GD' 或 'IGD'
+    画箱线图，metric_name 可为 'GD'、'IGD' 或 'HV'
     """
     algo_names = get_algo_display_order(list(algo_to_values.keys()))
     data = [algo_to_values[a] for a in algo_names]
@@ -408,11 +446,12 @@ def analyze_one_instance(instance_name, records):
     reference_front = build_reference_front(all_fronts)
     bounds = compute_normalization_bounds(reference_front)
 
-    # 2) 为每个 run 计算 GD / IGD
+    # 2) 为每个 run 计算 GD / IGD / HV
     for rec in records:
         front = rec.get("pareto_front", [])
         rec["_gd"] = compute_gd(front, reference_front, bounds)
         rec["_igd"] = compute_igd(front, reference_front, bounds)
+        rec["_hv"] = compute_hv(front, bounds)
         rec["_convergence_igd"] = compute_run_convergence_igd(rec, reference_front, bounds)
 
     # 3) 分算法汇总
@@ -421,14 +460,17 @@ def analyze_one_instance(instance_name, records):
     algo_summary = {}
     algo_to_gd_values = {}
     algo_to_igd_values = {}
+    algo_to_hv_values = {}
     algo_to_curves = {}
 
     for algo, recs in algo_groups.items():
         gd_values = [r["_gd"] for r in recs]
         igd_values = [r["_igd"] for r in recs]
+        hv_values = [r["_hv"] for r in recs]
 
         algo_to_gd_values[algo] = gd_values
         algo_to_igd_values[algo] = igd_values
+        algo_to_hv_values[algo] = hv_values
         algo_to_curves[algo] = [r["_convergence_igd"] for r in recs if r["_convergence_igd"]]
 
         rep_makespans = []
@@ -450,6 +492,8 @@ def analyze_one_instance(instance_name, records):
             "gd_std": safe_std(gd_values),
             "igd_mean": safe_mean(igd_values),
             "igd_std": safe_std(igd_values),
+            "hv_mean": safe_mean(hv_values),
+            "hv_std": safe_std(hv_values),
             "rep_makespan_mean": safe_mean(rep_makespans),
             "rep_shortage_mean": safe_mean(rep_shortages),
             "runtime_mean": safe_mean(runtimes),
@@ -465,6 +509,7 @@ def analyze_one_instance(instance_name, records):
         "algorithm_summary": algo_summary,
         "algo_to_gd_values": algo_to_gd_values,
         "algo_to_igd_values": algo_to_igd_values,
+        "algo_to_hv_values": algo_to_hv_values,
         "algo_to_curves": algo_to_curves,
     }
 
@@ -503,7 +548,7 @@ def save_excel_summary(all_instance_results):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "GD_IGD_Mean"
+    ws.title = "GD_IGD_HV_Mean"
 
     algo_names = get_algo_display_order(
         sorted({
@@ -513,13 +558,13 @@ def save_excel_summary(all_instance_results):
         })
     )
 
-    # 表头：Instance + 每个算法两列 GD/IGD
+    # 表头：Instance + 每个算法三列 GD/IGD/HV
     header1 = ["Instance"]
     header2 = [""]
 
     for algo in algo_names:
-        header1.extend([algo, ""])
-        header2.extend(["GD", "IGD"])
+        header1.extend([algo, "", ""])
+        header2.extend(["GD", "IGD", "HV"])
 
     ws.append(header1)
     ws.append(header2)
@@ -529,8 +574,8 @@ def save_excel_summary(all_instance_results):
 
     col = 2
     for algo in algo_names:
-        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 1)
-        col += 2
+        ws.merge_cells(start_row=1, start_column=col, end_row=1, end_column=col + 2)
+        col += 3
 
     # 写数据
     for res in sorted(all_instance_results, key=lambda x: x["instance_name"]):
@@ -543,28 +588,35 @@ def save_excel_summary(all_instance_results):
             s = algo_summary.get(algo, {})
             gd = s.get("gd_mean")
             igd = s.get("igd_mean")
+            hv = s.get("hv_mean")
 
             row.append(round(gd, 3) if gd is not None and math.isfinite(gd) else None)
             row.append(round(igd, 3) if igd is not None and math.isfinite(igd) else None)
+            row.append(round(hv, 3) if hv is not None and math.isfinite(hv) else None)
 
         ws.append(row)
 
-    # 高亮每个测试集上的最优 GD / IGD
+    # 高亮每个测试集上的最优 GD / IGD / HV
     for r in range(3, ws.max_row + 1):
         gd_cells = []
         igd_cells = []
+        hv_cells = []
 
         for i, algo in enumerate(algo_names):
-            gd_col = 2 + i * 2
+            gd_col = 2 + i * 3
             igd_col = gd_col + 1
+            hv_col = gd_col + 2
 
             gd_val = ws.cell(r, gd_col).value
             igd_val = ws.cell(r, igd_col).value
+            hv_val = ws.cell(r, hv_col).value
 
             if gd_val is not None:
                 gd_cells.append(ws.cell(r, gd_col))
             if igd_val is not None:
                 igd_cells.append(ws.cell(r, igd_col))
+            if hv_val is not None:
+                hv_cells.append(ws.cell(r, hv_col))
 
         if gd_cells:
             best_gd = min(c.value for c in gd_cells)
@@ -576,6 +628,12 @@ def save_excel_summary(all_instance_results):
             best_igd = min(c.value for c in igd_cells)
             for c in igd_cells:
                 if c.value == best_igd:
+                    c.font = Font(bold=True)
+
+        if hv_cells:
+            best_hv = max(c.value for c in hv_cells)
+            for c in hv_cells:
+                if c.value == best_hv:
                     c.font = Font(bold=True)
 
     # 格式
@@ -632,10 +690,20 @@ def generate_figures_for_instance(instance_result):
         out_path=igd_box_path
     )
 
+    # HV 箱线图
+    hv_box_path = os.path.join(FIG_DIR, f"{instance_name}_hv_boxplot.png")
+    plot_boxplot(
+        instance_name=instance_name,
+        algo_to_values=instance_result["algo_to_hv_values"],
+        metric_name="HV",
+        out_path=hv_box_path
+    )
+
     return {
         "igd_convergence": conv_path,
         "gd_boxplot": gd_box_path,
         "igd_boxplot": igd_box_path,
+        "hv_boxplot": hv_box_path,
     }
 
 
@@ -675,6 +743,7 @@ def main():
         print(f"  IGD convergence figure: {fig_paths['igd_convergence']}")
         print(f"  GD boxplot: {fig_paths['gd_boxplot']}")
         print(f"  IGD boxplot: {fig_paths['igd_boxplot']}")
+        print(f"  HV boxplot: {fig_paths['hv_boxplot']}")
 
         all_instance_results.append(instance_result)
 

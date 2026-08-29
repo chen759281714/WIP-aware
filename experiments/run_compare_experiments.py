@@ -381,7 +381,7 @@ def run_once(instance_path, seed, algo_name):
         "front_history": {
             "snapshot_interval": SNAPSHOT_INTERVAL,
             "x_axis": "evaluation_count",
-            "y_axis_for_future_analysis": ["gd", "igd"],
+            "y_axis_for_future_analysis": ["gd", "igd", "hv"],
             "snapshots": getattr(search, "history_fronts", []),
         },
 
