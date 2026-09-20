@@ -1,0 +1,77 @@
+{
+  "candidate_id": "WIPHFSP_S3_P1_B3_C040",
+  "cell_id": "S3_P1_B3",
+  "phase": "coarse",
+  "n_requested": 20,
+  "n_successful": 20,
+  "diagnostic_seed": 549429085,
+  "valid": true,
+  "errors": [],
+  "metrics": {
+    "makespan": {
+      "mean": 1876.3,
+      "median": 1876.5,
+      "std": 61.242223996194,
+      "q05": 1801.8500000000001,
+      "q95": 1964.25,
+      "non_zero_ratio": 1.0
+    },
+    "shortage": {
+      "mean": 6959.3,
+      "median": 7068.0,
+      "std": 1201.510761499871,
+      "q05": 4723.5,
+      "q95": 8604.75,
+      "non_zero_ratio": 1.0
+    },
+    "blocking": {
+      "mean": 6.15,
+      "median": 0.0,
+      "std": 14.036648460369733,
+      "q05": 0.0,
+      "q95": 39.35,
+      "non_zero_ratio": 0.2
+    },
+    "buffer_full_ratio": {
+      "mean": 0.0036361608556178342,
+      "median": 0.0,
+      "std": 0.006444411836612277,
+      "q05": 0.0,
+      "q95": 0.015772235956475453,
+      "non_zero_ratio": 0.4
+    },
+    "buffer_empty_ratio": {
+      "mean": 0.3227405828194948,
+      "median": 0.32795951000027446,
+      "std": 0.0437017431653662,
+      "q05": 0.21352854269303206,
+      "q95": 0.3810641747738522,
+      "non_zero_ratio": 1.0
+    },
+    "below_low_ratio": {
+      "mean": 0.653887488000666,
+      "median": 0.6602628951329093,
+      "std": 0.09393417263058422,
+      "q05": 0.5216119650620382,
+      "q95": 0.7909804584083865,
+      "non_zero_ratio": 1.0
+    },
+    "D_C": 0.08654409805488934,
+    "D_S": 0.5491298811544991,
+    "D_B": 0.9999999999999746,
+    "P_block": 0.2,
+    "P_short": 1.0,
+    "spearman_correlation": 0.38646616541353385,
+    "pairwise_conflict_ratio": 0.34210526315789475
+  },
+  "finite_buffer_relevance": {
+    "status": "not_run",
+    "reason": "Optional diagnostic interface reserved. No infinite-buffer relaxation is executed in this version, so the formal decoder remains unchanged."
+  },
+  "empirical_hardness": {
+    "status": "not_run",
+    "reason": "Reserved for a later small-budget versus larger-budget NSGA-II comparison on the top candidates only."
+  },
+  "coarse_pass": true,
+  "coarse_rejection_reasons": []
+}

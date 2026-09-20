@@ -56,6 +56,13 @@ class StageBufferWIPScheduler:
 
         # 收集所有可能用到的机器
         self.machines = self._collect_machines()
+        self._expected_operations = [
+            (job, op_idx)
+            for job, ops in self.operations.items()
+            for op_idx in range(len(ops))
+        ]
+        self._expected_operation_set = set(self._expected_operations)
+        self._buffer_active_start_cache: Dict[str, int] = {}
 
         # 运行时缓冲区（每次 decode 前重置）
         self.buffers: Dict[str, Buffer] = {}
@@ -92,14 +99,8 @@ class StageBufferWIPScheduler:
         2. 不能包含无效工序键
         3. 为每道工序指定的机器必须属于该工序的合法机器集合
         """
-        expected = []
-
-        for job, ops in self.operations.items():
-            for op_idx in range(len(ops)):
-                expected.append((job, op_idx))
-
         # 1) 检查缺失
-        missing = [key for key in expected if key not in ms_map]
+        missing = [key for key in self._expected_operations if key not in ms_map]
         if missing:
             raise ValueError(
                 f"ms_map 缺少以下工序的机器选择: "
@@ -107,7 +108,7 @@ class StageBufferWIPScheduler:
             )
 
         # 2) 检查多余键
-        extra = [key for key in ms_map.keys() if key not in expected]
+        extra = [key for key in ms_map if key not in self._expected_operation_set]
         if extra:
             raise ValueError(
                 f"ms_map 包含无效工序键: "
@@ -145,7 +146,6 @@ class StageBufferWIPScheduler:
             - 不允许自动切换到其他机器
         """
         op = self.operations[job][op_idx]
-        eligible = list(op["machines"].keys())
 
         # ---- MS 模式：严格按指定机器 ----
         if ms_map is not None:
@@ -161,21 +161,20 @@ class StageBufferWIPScheduler:
 
         # ---- 自动选机模式：从当前可启动的机器中选择 ----
         candidates = []
-        for m in eligible:
+        for m, processing_time in op["machines"].items():
             if blocked[m] is not None:
                 continue
             if machine_free_at[m] > t:
                 continue
 
-            pt = int(op["machines"][m])
+            pt = int(processing_time)
             candidates.append((machine_free_at[m], pt, m))
 
         if not candidates:
             return None
 
         # 按（最早可用时间、加工时间、机器编号）排序
-        candidates.sort(key=lambda x: (x[0], x[1], x[2]))
-        return candidates[0][2]
+        return min(candidates)[2]
 
     def _log_buffer_event(
         self,
@@ -232,6 +231,7 @@ class StageBufferWIPScheduler:
 
         # -------- 调度结果 --------
         schedule: List[Dict[str, Any]] = []
+        schedule_index: Dict[Tuple[str, int], Dict[str, Any]] = {}
 
         # -------- 缓冲区事件日志 --------
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]] = {}
@@ -253,9 +253,15 @@ class StageBufferWIPScheduler:
                 raise RuntimeError("超过最大迭代次数：可能存在死锁或时间推进逻辑错误")
 
             # (1) 处理所有在当前时刻 t 加工结束的事件
-            finished = [ev for ev in running if ev[0] == t]
+            finished = []
+            still_running = []
+            for event in running:
+                if event[0] == t:
+                    finished.append(event)
+                else:
+                    still_running.append(event)
             if finished:
-                running = [ev for ev in running if ev[0] != t]
+                running = still_running
                 for end_time, job, op_idx, m in finished:
                     self._finish_op_try_release(
                         t=t,
@@ -266,11 +272,14 @@ class StageBufferWIPScheduler:
                         machine_free_at=machine_free_at,
                         schedule=schedule,
                         job_done=job_done,
-                        buffer_trace=buffer_trace
+                        buffer_trace=buffer_trace,
+                        schedule_index=schedule_index,
                     )
 
             # (2) 尝试解除 blocking
-            self._release_blocked_if_possible(t, blocked, machine_free_at, schedule, buffer_trace)
+            self._release_blocked_if_possible(
+                t, blocked, machine_free_at, schedule, buffer_trace, schedule_index
+            )
 
             # (3) 在当前时刻尽可能多地启动可行工序
             started_any = True
@@ -300,14 +309,17 @@ class StageBufferWIPScheduler:
                     job_next=job_next,
                     schedule=schedule,
                     machine_free_at=machine_free_at,
-                    buffer_trace=buffer_trace
+                    buffer_trace=buffer_trace,
+                    schedule_index=schedule_index,
                 )
                 os_ptr = new_ptr
 
                 if ok:
                     running.append((end_time, job, op_idx, m))
                     # 启动后可能“取走 buffer_in”，立刻尝试解除上游 blocking
-                    self._release_blocked_if_possible(t, blocked, machine_free_at, schedule, buffer_trace)
+                    self._release_blocked_if_possible(
+                        t, blocked, machine_free_at, schedule, buffer_trace, schedule_index
+                    )
                     started_any = True
 
             # (4) 时间推进：跳到下一个加工完成事件时刻
@@ -349,9 +361,16 @@ class StageBufferWIPScheduler:
             return None
 
         n = len(os_seq)
+        seen_jobs = set()
         for k in range(n):
             idx = (os_ptr + k) % n
             job = os_seq[idx]
+
+            # During one scan no state changes, so later tokens of the same job
+            # cannot have different startability from its first encountered token.
+            if job in seen_jobs:
+                continue
+            seen_jobs.add(job)
 
             if job_done.get(job, False):
                 continue
@@ -361,20 +380,20 @@ class StageBufferWIPScheduler:
                 continue
 
             op = self.operations[job][op_idx]
-            m = self._choose_machine(
-                job=job,
-                op_idx=op_idx,
-                ms_map=ms_map,
-                t=t,
-                machine_free_at=machine_free_at,
-                blocked=blocked,
-            )
+            if ms_map is not None:
+                m = ms_map[(job, op_idx)]
+                if blocked[m] is not None or machine_free_at[m] > t:
+                    continue
+            else:
+                m = self._choose_machine(
+                    job=job,
+                    op_idx=op_idx,
+                    ms_map=None,
+                    t=t,
+                    machine_free_at=machine_free_at,
+                    blocked=blocked,
+                )
             if m is None:
-                continue
-
-            if blocked[m] is not None:
-                continue
-            if machine_free_at[m] > t:
                 continue
 
             buffer_in = op.get("buffer_in", None)
@@ -396,6 +415,7 @@ class StageBufferWIPScheduler:
         schedule: List[Dict[str, Any]],
         machine_free_at: Dict[str, int],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
+        schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
     ) -> Tuple[bool, int]:
         """
         在时刻 t 启动工序：
@@ -423,7 +443,7 @@ class StageBufferWIPScheduler:
         # 占用机器直到 end_time
         machine_free_at[machine] = end_time
 
-        schedule.append({
+        record = {
             "job": job,
             "op": op_idx,
             "machine": machine,
@@ -432,7 +452,10 @@ class StageBufferWIPScheduler:
             "release": end_time,
             "buffer_in": buffer_in,
             "buffer_out": buffer_out,
-        })
+        }
+        schedule.append(record)
+        if schedule_index is not None:
+            schedule_index[(job, op_idx)] = record
 
         job_next[job] += 1
         return True, end_time
@@ -448,6 +471,7 @@ class StageBufferWIPScheduler:
         schedule: List[Dict[str, Any]],
         job_done: Dict[str, bool],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
+        schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
     ):
         """
         工序加工结束时：
@@ -461,7 +485,7 @@ class StageBufferWIPScheduler:
 
         if buffer_out is None:
             machine_free_at[machine] = t
-            self._update_release_time(schedule, job, op_idx, t)
+            self._update_release_time(schedule, job, op_idx, t, schedule_index)
             job_done[job] = True
             return
 
@@ -472,7 +496,7 @@ class StageBufferWIPScheduler:
             self._log_buffer_event(buffer_trace, buffer_out, t, "put", job)
 
             machine_free_at[machine] = t
-            self._update_release_time(schedule, job, op_idx, t)
+            self._update_release_time(schedule, job, op_idx, t, schedule_index)
         else:
             blocked[machine] = (job, buffer_out, op_idx)
 
@@ -483,6 +507,7 @@ class StageBufferWIPScheduler:
         machine_free_at: Dict[str, int],
         schedule: List[Dict[str, Any]],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
+        schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
     ):
         """
         若某被阻塞机器对应的缓冲区出现空位，则立刻释放：
@@ -502,10 +527,23 @@ class StageBufferWIPScheduler:
 
                 blocked[m] = None
                 machine_free_at[m] = t
-                self._update_release_time(schedule, job, op_idx, t)
+                self._update_release_time(schedule, job, op_idx, t, schedule_index)
 
-    def _update_release_time(self, schedule: List[Dict[str, Any]], job: str, op_idx: int, release_t: int):
+    def _update_release_time(
+        self,
+        schedule: List[Dict[str, Any]],
+        job: str,
+        op_idx: int,
+        release_t: int,
+        schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
+    ):
         """更新某道工序的释放时间 release（用于表示 blocking 延迟）"""
+        if schedule_index is not None:
+            record = schedule_index.get((job, op_idx))
+            if record is None:
+                raise RuntimeError(f"未找到对应工序的调度记录：{job}-op{op_idx}")
+            record["release"] = release_t
+            return
         for rec in reversed(schedule):
             if rec["job"] == job and rec["op"] == op_idx:
                 rec["release"] = release_t
@@ -516,6 +554,37 @@ class StageBufferWIPScheduler:
         """推进到下一个加工完成事件时刻"""
         future = [ev[0] for ev in running if ev[0] > t]
         return min(future) if future else None
+
+    def _compute_buffer_active_start(self, bid: str) -> int:
+        """计算缓冲区在实例层面的理论最早可供给时刻。"""
+        cached = self._buffer_active_start_cache.get(bid)
+        if cached is not None:
+            return cached
+
+        init_content = self.buffers_def[bid].get("init_content", [])
+        if init_content:
+            self._buffer_active_start_cache[bid] = 0
+            return 0
+
+        earliest_arrivals: List[int] = []
+        for job, ops in self.operations.items():
+            for op_idx, op in enumerate(ops):
+                if op.get("buffer_out", None) != bid:
+                    continue
+
+                earliest = 0
+                for k in range(op_idx + 1):
+                    earliest += min(
+                        int(pt) for pt in self.operations[job][k]["machines"].values()
+                    )
+                earliest_arrivals.append(earliest)
+
+        if not earliest_arrivals:
+            raise ValueError(f"缓冲区 {bid} 找不到任何供给工序（buffer_out == {bid}）")
+
+        active_start = min(earliest_arrivals)
+        self._buffer_active_start_cache[bid] = active_start
+        return active_start
     
     def analyze(
         self,
@@ -628,6 +697,9 @@ class StageBufferWIPScheduler:
         per_buffer_shortage_area: Dict[str, float] = {}
         per_buffer_below_low_time: Dict[str, int] = {}
         per_buffer_below_low_ratio: Dict[str, float] = {}
+        per_buffer_active_start: Dict[str, int] = {}
+        per_buffer_active_end: Dict[str, int] = {}
+        per_buffer_active_horizon: Dict[str, int] = {}
 
         total_shortage_area = 0.0
         total_below_low_time = 0
@@ -640,6 +712,19 @@ class StageBufferWIPScheduler:
             cap = int(self.buffers_def[bid]["capacity"])
             low_wip = int(self.buffers_def[bid].get("low_wip", max(1, cap // 3)))
             per_buffer_low_wip[bid] = low_wip
+
+            active_start = self._compute_buffer_active_start(bid)
+            take_times = [int(t) for t, _, action, _ in events if action == "take"]
+            active_end = max(take_times) if take_times else active_start
+            active_horizon = max(0, active_end - active_start)
+
+            per_buffer_active_start[bid] = active_start
+            per_buffer_active_end[bid] = active_end
+            per_buffer_active_horizon[bid] = active_horizon
+
+            per_buffer_shortage_area[bid] = 0.0
+            per_buffer_below_low_time[bid] = 0
+            per_buffer_below_low_ratio[bid] = 0.0
 
             if T <= 0:
                 per_buffer_avg_level[bid] = 0.0
@@ -678,11 +763,14 @@ class StageBufferWIPScheduler:
                     if cur_level == 0:
                         empty_time += dt
 
-                    # ===== 新增：low WIP =====
-                    gap = max(0, low_wip - cur_level)
-                    shortage_area += gap * dt
-                    if cur_level < low_wip:
-                        below_low_time += dt
+                    shortage_seg_start = max(active_start, 0)
+                    shortage_seg_end = min(active_end, min(cur_t, T))
+                    shortage_dt = shortage_seg_end - shortage_seg_start
+                    if shortage_dt > 0:
+                        gap = max(0, low_wip - cur_level)
+                        shortage_area += gap * shortage_dt
+                        if cur_level < low_wip:
+                            below_low_time += shortage_dt
             # 再遍历事件段
             for i in range(len(events_sorted) - 1):
                 t_i = int(events_sorted[i][0])
@@ -702,11 +790,14 @@ class StageBufferWIPScheduler:
                 if level_i == 0:
                     empty_time += dt
 
-                # ===== 新增：low WIP =====
-                gap = max(0, low_wip - level_i)
-                shortage_area += gap * dt
-                if level_i < low_wip:
-                    below_low_time += dt
+                shortage_seg_start = max(active_start, seg_start)
+                shortage_seg_end = min(active_end, seg_end)
+                shortage_dt = shortage_seg_end - shortage_seg_start
+                if shortage_dt > 0:
+                    gap = max(0, low_wip - level_i)
+                    shortage_area += gap * shortage_dt
+                    if level_i < low_wip:
+                        below_low_time += shortage_dt
 
             # 最后一条事件之后，延续到 T
             last_t = int(events_sorted[-1][0])
@@ -719,11 +810,14 @@ class StageBufferWIPScheduler:
                 if last_level == 0:
                     empty_time += dt
 
-                # ===== 新增：low WIP =====
-                gap = max(0, low_wip - last_level)
-                shortage_area += gap * dt
-                if last_level < low_wip:
-                    below_low_time += dt
+                shortage_seg_start = max(active_start, last_t)
+                shortage_seg_end = min(active_end, T)
+                shortage_dt = shortage_seg_end - shortage_seg_start
+                if shortage_dt > 0:
+                    gap = max(0, low_wip - last_level)
+                    shortage_area += gap * shortage_dt
+                    if last_level < low_wip:
+                        below_low_time += shortage_dt
 
             per_buffer_avg_level[bid] = area / T
             per_buffer_full_ratio[bid] = full_time / T
@@ -734,7 +828,9 @@ class StageBufferWIPScheduler:
             # ===== 新增：low WIP =====
             per_buffer_shortage_area[bid] = shortage_area
             per_buffer_below_low_time[bid] = below_low_time
-            per_buffer_below_low_ratio[bid] = (below_low_time / T) if T > 0 else 0.0
+            per_buffer_below_low_ratio[bid] = (
+                below_low_time / active_horizon if active_horizon > 0 else 0.0
+            )
 
             total_shortage_area += shortage_area
             total_below_low_time += below_low_time
@@ -768,6 +864,9 @@ class StageBufferWIPScheduler:
                 "per_buffer_shortage_area": per_buffer_shortage_area,
                 "per_buffer_below_low_time": per_buffer_below_low_time,
                 "per_buffer_below_low_ratio": per_buffer_below_low_ratio,
+                "per_buffer_active_start": per_buffer_active_start,
+                "per_buffer_active_end": per_buffer_active_end,
+                "per_buffer_active_horizon": per_buffer_active_horizon,
             }
         }
         return stats

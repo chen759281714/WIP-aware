@@ -9,7 +9,6 @@ from multiprocessing import Pool, cpu_count
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
-from src.problem.instance_generator import load_instance_from_json
 from src.algorithms.baseline_nsga2 import BaselineNSGA2
 from src.algorithms.baseline_moead import BaselineMOEAD
 from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2

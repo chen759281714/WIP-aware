@@ -1,0 +1,75 @@
+{
+  "candidate_id": "WIPHFSP_S2_P2_B3_C081",
+  "cell_id": "S2_P2_B3",
+  "phase": "fine",
+  "n_requested": 200,
+  "n_successful": 200,
+  "diagnostic_seed": 966332278,
+  "valid": true,
+  "errors": [],
+  "metrics": {
+    "makespan": {
+      "mean": 1512.505,
+      "median": 1505.5,
+      "std": 96.59456493509353,
+      "q05": 1375.8999999999999,
+      "q95": 1674.0,
+      "non_zero_ratio": 1.0
+    },
+    "shortage": {
+      "mean": 13731.9,
+      "median": 13427.5,
+      "std": 1848.8528091765445,
+      "q05": 11337.900000000001,
+      "q95": 16689.099999999995,
+      "non_zero_ratio": 1.0
+    },
+    "blocking": {
+      "mean": 0.73,
+      "median": 0.0,
+      "std": 6.607351965802942,
+      "q05": 0.0,
+      "q95": 0.0,
+      "non_zero_ratio": 0.025
+    },
+    "buffer_full_ratio": {
+      "mean": 0.0002991828547789655,
+      "median": 0.0,
+      "std": 0.0020746541674001315,
+      "q05": 0.0,
+      "q95": 0.0,
+      "non_zero_ratio": 0.035
+    },
+    "buffer_empty_ratio": {
+      "mean": 0.6330454482845432,
+      "median": 0.6276188747731397,
+      "std": 0.05289847274413046,
+      "q05": 0.5508970873410806,
+      "q95": 0.7176213363349278,
+      "non_zero_ratio": 1.0
+    },
+    "below_low_ratio": {
+      "mean": 0.8977714105318805,
+      "median": 0.8976352043570482,
+      "std": 0.05289395104871293,
+      "q05": 0.7981920563452237,
+      "q95": 0.9823138443846366,
+      "non_zero_ratio": 1.0
+    },
+    "D_C": 0.19800730654267695,
+    "D_S": 0.3985254142617757,
+    "D_B": 0.0,
+    "P_block": 0.025,
+    "P_short": 1.0,
+    "spearman_correlation": 0.6594715131280801,
+    "pairwise_conflict_ratio": 0.2631472797862149
+  },
+  "finite_buffer_relevance": {
+    "status": "not_run",
+    "reason": "Optional diagnostic interface reserved. No infinite-buffer relaxation is executed in this version, so the formal decoder remains unchanged."
+  },
+  "empirical_hardness": {
+    "status": "not_run",
+    "reason": "Reserved for a later small-budget versus larger-budget NSGA-II comparison on the top candidates only."
+  }
+}

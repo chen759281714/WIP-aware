@@ -1,0 +1,75 @@
+{
+  "candidate_id": "WIPHFSP_S1_P1_B3_C068",
+  "cell_id": "S1_P1_B3",
+  "phase": "fine",
+  "n_requested": 200,
+  "n_successful": 200,
+  "diagnostic_seed": 1382601928,
+  "valid": true,
+  "errors": [],
+  "metrics": {
+    "makespan": {
+      "mean": 1237.07,
+      "median": 1223.0,
+      "std": 86.5666512001013,
+      "q05": 1112.95,
+      "q95": 1418.05,
+      "non_zero_ratio": 1.0
+    },
+    "shortage": {
+      "mean": 4303.64,
+      "median": 4310.5,
+      "std": 695.6977579380288,
+      "q05": 3260.05,
+      "q95": 5498.65,
+      "non_zero_ratio": 1.0
+    },
+    "blocking": {
+      "mean": 4.23,
+      "median": 0.0,
+      "std": 17.773212990340266,
+      "q05": 0.0,
+      "q95": 30.099999999999966,
+      "non_zero_ratio": 0.085
+    },
+    "buffer_full_ratio": {
+      "mean": 0.0032845406457906977,
+      "median": 0.0,
+      "std": 0.009613540767864172,
+      "q05": 0.0,
+      "q95": 0.02317668172591504,
+      "non_zero_ratio": 0.27
+    },
+    "buffer_empty_ratio": {
+      "mean": 0.4172869511151431,
+      "median": 0.4128812301718174,
+      "std": 0.04719401211364929,
+      "q05": 0.3524786075254242,
+      "q95": 0.49423794596208376,
+      "non_zero_ratio": 1.0
+    },
+    "below_low_ratio": {
+      "mean": 0.6771682011505331,
+      "median": 0.6763012812841273,
+      "std": 0.07921455859629974,
+      "q05": 0.547791408484282,
+      "q95": 0.8189188084871329,
+      "non_zero_ratio": 1.0
+    },
+    "D_C": 0.2494685200327064,
+    "D_S": 0.5193365038858598,
+    "D_B": 0.9999999999999668,
+    "P_block": 0.085,
+    "P_short": 1.0,
+    "spearman_correlation": 0.346111454091078,
+    "pairwise_conflict_ratio": 0.38096679786053084
+  },
+  "finite_buffer_relevance": {
+    "status": "not_run",
+    "reason": "Optional diagnostic interface reserved. No infinite-buffer relaxation is executed in this version, so the formal decoder remains unchanged."
+  },
+  "empirical_hardness": {
+    "status": "not_run",
+    "reason": "Reserved for a later small-budget versus larger-budget NSGA-II comparison on the top candidates only."
+  }
+}
