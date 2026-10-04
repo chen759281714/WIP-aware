@@ -1,0 +1,2449 @@
+{
+  "validation_type": "shortage_objective_validation",
+  "shortage_definition": "sum_buffer_integral_max_0_low_wip_minus_level",
+  "shortage_interpretation": "WIP supply insufficiency / flow-continuity risk proxy",
+  "internal_consistency_note": "below-low-time and below-low-ratio correlations are definition-linked internal consistency metrics, not independent validation evidence",
+  "cross_instance_note": "raw shortage is not normalized by capacity, active horizon, job count, or makespan and should not be compared as absolute quality across instances",
+  "low_wip_note": "the frozen low_wip is capacity-dependent, so tightness-level raw shortage differences are not pure capacity effects",
+  "master_seed": 20260921,
+  "samples_per_instance": 500,
+  "workers": 4,
+  "overall": {
+    "instance_count": 96,
+    "instances_with_no_near_makespan_pairs": 0,
+    "instances_with_D_S_zero_or_near_zero": 0,
+    "instances_with_positive_conflict_ratio": 96,
+    "instances_with_positive_supply_correlation": 96,
+    "instances_with_matched_supply_consistency_above_0_5": 96,
+    "metric_distributions": {
+      "D_C": {
+        "count": 96,
+        "mean": 0.2236459078456264,
+        "median": 0.2219424921272562,
+        "std": 0.044292675780271226,
+        "q05": 0.15678908500280786,
+        "q95": 0.3044997199482979,
+        "min": 0.1448555424528301,
+        "max": 0.3218749999999997
+      },
+      "D_S": {
+        "count": 96,
+        "mean": 0.8227882258933459,
+        "median": 0.7529815716488872,
+        "std": 0.26068771690275,
+        "q05": 0.4863156270586159,
+        "q95": 1.2863145325419736,
+        "min": 0.44148707130896203,
+        "max": 1.8274555297757118
+      },
+      "spearman_makespan_shortage": {
+        "count": 96,
+        "mean": 0.5198822374921336,
+        "median": 0.6168014614082298,
+        "std": 0.3042274413161303,
+        "q05": 0.0186133910676717,
+        "q95": 0.8881099109806991,
+        "min": -0.028279184626366544,
+        "max": 0.9169128025590164
+      },
+      "pairwise_conflict_ratio": {
+        "count": 96,
+        "mean": 0.30458674797625623,
+        "median": 0.2737907686019918,
+        "std": 0.12069617584276421,
+        "q05": 0.1437421836309835,
+        "q95": 0.49456250046168304,
+        "min": 0.12447336955213341,
+        "max": 0.5088653623374951
+      },
+      "median_near_makespan_shortage_diff": {
+        "count": 96,
+        "mean": 0.18600442405592466,
+        "median": 0.15856401178191343,
+        "std": 0.0901249240557595,
+        "q05": 0.08548868695578277,
+        "q95": 0.35436396191970576,
+        "min": 0.0736904761904762,
+        "max": 0.537058152793614
+      },
+      "within_band_shortage_spread": {
+        "count": 96,
+        "mean": 0.4746963173247089,
+        "median": 0.4180541936381429,
+        "std": 0.2064749208751972,
+        "q05": 0.2373134122252531,
+        "q95": 0.8948133806728473,
+        "min": 0.21284898514159414,
+        "max": 1.3111952251594712
+      },
+      "spearman_shortage_empty_ratio": {
+        "count": 96,
+        "mean": 0.7631934413437298,
+        "median": 0.8585550630458842,
+        "std": 0.23339302482281837,
+        "q05": 0.3047998373745278,
+        "q95": 0.9723622576408371,
+        "min": -0.040167991233255027,
+        "max": 0.9787338162172325
+      },
+      "spearman_shortage_empty_time": {
+        "count": 96,
+        "mean": 0.7548747128884989,
+        "median": 0.8458002196466233,
+        "std": 0.25953323691687974,
+        "q05": 0.23243738369183375,
+        "q95": 0.9888883411840832,
+        "min": -0.016851293781814564,
+        "max": 0.996553007482035
+      },
+      "spearman_shortage_empty_events": {
+        "count": 96,
+        "mean": 0.8635531473485697,
+        "median": 0.8665130849697508,
+        "std": 0.04736812800179235,
+        "q05": 0.7691569986636455,
+        "q95": 0.9283090908015501,
+        "min": 0.7426024496469521,
+        "max": 0.9418673636112092
+      },
+      "spearman_shortage_supply_exposure": {
+        "count": 96,
+        "mean": 0.930274283941663,
+        "median": 0.9556531228736351,
+        "std": 0.07860893678887401,
+        "q05": 0.7765656075030709,
+        "q95": 0.9981342366242263,
+        "min": 0.5579658074803217,
+        "max": 0.9994448531532073
+      },
+      "matched_pair_empty_ratio_consistency": {
+        "count": 96,
+        "mean": 0.9677083333333334,
+        "median": 1.0,
+        "std": 0.10944442241257533,
+        "q05": 0.8374999999999999,
+        "q95": 1.0,
+        "min": 0.35,
+        "max": 1.0
+      },
+      "matched_pair_empty_time_consistency": {
+        "count": 96,
+        "mean": 0.96875,
+        "median": 1.0,
+        "std": 0.10710440778355794,
+        "q05": 0.8,
+        "q95": 1.0,
+        "min": 0.4,
+        "max": 1.0
+      },
+      "matched_pair_empty_event_consistency": {
+        "count": 96,
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "q05": 1.0,
+        "q95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "matched_pair_supply_consistency": {
+        "count": 96,
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "q05": 1.0,
+        "q95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    }
+  },
+  "by_size": {
+    "S1": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.2910636495873744,
+          "median": 0.2893988050087663,
+          "std": 0.01978999270776725,
+          "q05": 0.26230312729408284,
+          "q95": 0.3197910156249997,
+          "min": 0.2584332533972818,
+          "max": 0.3218749999999997
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.8904934926201403,
+          "median": 0.7572691035848175,
+          "std": 0.2779949321396288,
+          "q05": 0.6762258732195878,
+          "q95": 1.4416449713856803,
+          "min": 0.6709799184659515,
+          "max": 1.58846801346801
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.41133276475820474,
+          "median": 0.4907541201531116,
+          "std": 0.305659246388365,
+          "q05": -0.012774909414704159,
+          "q95": 0.8057504839560434,
+          "min": -0.028279184626366544,
+          "max": 0.874671125782858
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.34738157161362454,
+          "median": 0.32512131447667636,
+          "std": 0.11706725262752324,
+          "q05": 0.18847116929984997,
+          "q95": 0.5041043481898754,
+          "min": 0.15133805477624057,
+          "max": 0.5088653623374951
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.22202154644046343,
+          "median": 0.20182389758018698,
+          "std": 0.09781301423398234,
+          "q05": 0.11730564611725361,
+          "q95": 0.38734564464897137,
+          "min": 0.09398907103825134,
+          "max": 0.4537165989991494
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.552320257031008,
+          "median": 0.4998116436153357,
+          "std": 0.22646576092066623,
+          "q05": 0.31035369297483895,
+          "q95": 0.9305103821712768,
+          "min": 0.2706498888672237,
+          "max": 1.1259901493686462
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7494354051918469,
+          "median": 0.8375291371941815,
+          "std": 0.19540721820331075,
+          "q05": 0.3699137624141656,
+          "q95": 0.9164981506071919,
+          "min": 0.31404652904217717,
+          "max": 0.9231140586461148
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.7227485087442904,
+          "median": 0.8323810845488471,
+          "std": 0.256754236008035,
+          "q05": 0.26485262497025025,
+          "q95": 0.9553903198746367,
+          "min": 0.24795087962430604,
+          "max": 0.9804887373734821
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8320145231515581,
+          "median": 0.8348033343236398,
+          "std": 0.03223855342995007,
+          "q05": 0.7819781220956876,
+          "q95": 0.8716935264867152,
+          "min": 0.7524949204524759,
+          "max": 0.8887665538340201
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.8821241851430864,
+          "median": 0.9256379016148617,
+          "std": 0.11928683828395023,
+          "q05": 0.6433899912224326,
+          "q95": 0.9803615763130629,
+          "min": 0.5579658074803217,
+          "max": 0.9889423738199299
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9958333333333332,
+          "median": 1.0,
+          "std": 0.013819269959814178,
+          "q05": 0.9775,
+          "q95": 1.0,
+          "min": 0.95,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9958333333333332,
+          "median": 1.0,
+          "std": 0.013819269959814178,
+          "q05": 0.9775,
+          "q95": 1.0,
+          "min": 0.95,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S2": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.23430827394303574,
+          "median": 0.23426593186467604,
+          "std": 0.01703801447069833,
+          "q05": 0.21475739708143843,
+          "q95": 0.2600638997445103,
+          "min": 0.20780165289256183,
+          "max": 0.2802092951677438
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.6290021868144077,
+          "median": 0.5644138017785066,
+          "std": 0.16971289930864425,
+          "q05": 0.46267323617586015,
+          "q95": 0.9089431788347927,
+          "min": 0.45996888299089317,
+          "max": 0.9755352480417747
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.4029704763851736,
+          "median": 0.519533782988622,
+          "std": 0.27170650701496957,
+          "q05": 0.016217732628113213,
+          "q95": 0.6829003751990725,
+          "min": -0.017967247090334298,
+          "max": 0.6976430171511345
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.35477731273033103,
+          "median": 0.31730276975885147,
+          "std": 0.09957552184962253,
+          "q05": 0.2475194796334852,
+          "q95": 0.49418398917205897,
+          "min": 0.2430967658931185,
+          "max": 0.5061084409008343
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.16475817687571218,
+          "median": 0.14995359627445395,
+          "std": 0.06232617236062942,
+          "q05": 0.08643274230186773,
+          "q95": 0.2767845825420684,
+          "min": 0.08558333333333332,
+          "max": 0.31007250720579926
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.4107040597710356,
+          "median": 0.3604430552127371,
+          "std": 0.13413565005669867,
+          "q05": 0.2489584520080565,
+          "q95": 0.6542448994891761,
+          "min": 0.22960133837235525,
+          "max": 0.7306173960629729
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7223399517893297,
+          "median": 0.7716534081694222,
+          "std": 0.1911608876332534,
+          "q05": 0.3729435310367823,
+          "q95": 0.9080176247787942,
+          "min": 0.3651713252301504,
+          "max": 0.9303161092823449
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.6804659391274739,
+          "median": 0.8109207977021081,
+          "std": 0.2602035523810078,
+          "q05": 0.2191254509848532,
+          "q95": 0.909009427969282,
+          "min": 0.16380781348828402,
+          "max": 0.9352507938351762
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.832877329890036,
+          "median": 0.8384306900965284,
+          "std": 0.03638494106016222,
+          "q05": 0.7687824422762316,
+          "q95": 0.8725101166310081,
+          "min": 0.7426024496469521,
+          "max": 0.8827352790382185
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9084203469944058,
+          "median": 0.939183347908358,
+          "std": 0.07337274038520253,
+          "q05": 0.7754296248973792,
+          "q95": 0.9831246430917702,
+          "min": 0.7718486268690747,
+          "max": 0.9881079924662718
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9958333333333332,
+          "median": 1.0,
+          "std": 0.013819269959814178,
+          "q05": 0.9775,
+          "q95": 1.0,
+          "min": 0.95,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9958333333333332,
+          "median": 1.0,
+          "std": 0.013819269959814178,
+          "q05": 0.9775,
+          "q95": 1.0,
+          "min": 0.95,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S3": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.26277974650585617,
+          "median": 0.25885538178105594,
+          "std": 0.024018282417866823,
+          "q05": 0.23145882511146956,
+          "q95": 0.30081112435283996,
+          "min": 0.2311804008908684,
+          "max": 0.3074170616113741
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 1.0893282314124397,
+          "median": 1.0053277330326367,
+          "std": 0.28254843117014494,
+          "q05": 0.809409211877665,
+          "q95": 1.5401746796312281,
+          "min": 0.8007750631844985,
+          "max": 1.8274555297757118
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.5269403750440564,
+          "median": 0.6447845326984293,
+          "std": 0.30602306341612573,
+          "q05": 0.012866424880552965,
+          "q95": 0.8581387922356596,
+          "min": 0.0016354044360391842,
+          "max": 0.8900079988064511
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.3031849149245362,
+          "median": 0.2652167635898638,
+          "std": 0.1190888091777202,
+          "q05": 0.162447109930677,
+          "q95": 0.4960025798386455,
+          "min": 0.14385970547142238,
+          "max": 0.4988672151166527
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.25617717958154834,
+          "median": 0.23621851762870064,
+          "std": 0.11917550642598797,
+          "q05": 0.12709881392828187,
+          "q95": 0.44574451700773626,
+          "min": 0.12325756632208243,
+          "max": 0.537058152793614
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.6285948035836832,
+          "median": 0.5732182316087486,
+          "std": 0.2755522620608722,
+          "q05": 0.35681333999448606,
+          "q95": 1.0915715539238007,
+          "min": 0.3301086776837313,
+          "max": 1.3111952251594712
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.8208475761711287,
+          "median": 0.8708248241686762,
+          "std": 0.17119882853912463,
+          "q05": 0.49774856761708297,
+          "q95": 0.9666145174172276,
+          "min": 0.37620072915757846,
+          "max": 0.9680546785849975
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.8113771146943446,
+          "median": 0.8618677319846014,
+          "std": 0.21388559018230222,
+          "q05": 0.3851028838388305,
+          "q95": 0.9852764785046467,
+          "min": 0.2563035774203685,
+          "max": 0.9936001907340345
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8614027752484464,
+          "median": 0.8714425088033323,
+          "std": 0.05028221229463805,
+          "q05": 0.7684321936286291,
+          "q95": 0.9203691448087779,
+          "min": 0.7649168490518268,
+          "max": 0.9212065180138861
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9314711172948295,
+          "median": 0.9464167345102437,
+          "std": 0.05951606491499574,
+          "q05": 0.8360464805129875,
+          "q95": 0.9900979427037311,
+          "min": 0.7781379343810696,
+          "max": 0.9919149018077207
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S4": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.22971684113414614,
+          "median": 0.2191435676479448,
+          "std": 0.031277940358181676,
+          "q05": 0.19451032922306832,
+          "q95": 0.28263569829651014,
+          "min": 0.18248076052512446,
+          "max": 0.3089087344805054
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.7686065808332357,
+          "median": 0.7203746178027208,
+          "std": 0.19407860624024284,
+          "q05": 0.5507898414792125,
+          "q95": 1.1316773110225422,
+          "min": 0.5451969798908572,
+          "max": 1.2800438062788992
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.5329901141739506,
+          "median": 0.7006551954715449,
+          "std": 0.3285129908158424,
+          "q05": 0.031116410128585067,
+          "q95": 0.8830170266349004,
+          "min": 0.00828723944703955,
+          "max": 0.8874772150387819
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.2969530849814274,
+          "median": 0.24075191196359308,
+          "std": 0.13115647330812935,
+          "q05": 0.14523297796185866,
+          "q95": 0.48939489937401803,
+          "min": 0.14338961810966694,
+          "max": 0.49727363983135914
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.16625665964936553,
+          "median": 0.1419824933571434,
+          "std": 0.08479324468274956,
+          "q05": 0.08577135683885503,
+          "q95": 0.3156626756997051,
+          "min": 0.08155273102026794,
+          "max": 0.392017162539144
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.4404007059698425,
+          "median": 0.38825363351856346,
+          "std": 0.19825940967310726,
+          "q05": 0.24761953020090294,
+          "q95": 0.7901636687860958,
+          "min": 0.22901810190763427,
+          "max": 0.9726580365373245
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7403143621105324,
+          "median": 0.8622719725823051,
+          "std": 0.277090667999708,
+          "q05": 0.2469605832680206,
+          "q95": 0.952955359608171,
+          "min": -0.040167991233255027,
+          "max": 0.9535484432416171
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.739464160029367,
+          "median": 0.8410377653788859,
+          "std": 0.2916493311089658,
+          "q05": 0.2113903948964267,
+          "q95": 0.9831721797864417,
+          "min": -0.016851293781814564,
+          "max": 0.9903156353171121
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8487503134699748,
+          "median": 0.8468532096240027,
+          "std": 0.06085851381252762,
+          "q05": 0.7538193037022594,
+          "q95": 0.92337065180673,
+          "min": 0.7458966485488498,
+          "max": 0.9312715066969048
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9317979263317141,
+          "median": 0.959563661244621,
+          "std": 0.0860290165042278,
+          "q05": 0.7680948738655493,
+          "q95": 0.9953225998061768,
+          "min": 0.6837935651191183,
+          "max": 0.9962987696445758
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9500000000000001,
+          "median": 1.0,
+          "std": 0.15138251770487457,
+          "q05": 0.725,
+          "q95": 1.0,
+          "min": 0.45,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9541666666666666,
+          "median": 1.0,
+          "std": 0.15201196955795582,
+          "q05": 0.7525000000000001,
+          "q95": 1.0,
+          "min": 0.45,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S5": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.20093166827171707,
+          "median": 0.19042873459326087,
+          "std": 0.02300919225836826,
+          "q05": 0.17256777917305402,
+          "q95": 0.23768972953230372,
+          "min": 0.16777944486121515,
+          "max": 0.23823041168658682
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.8573130017572069,
+          "median": 0.7961144092190762,
+          "std": 0.21155003982459653,
+          "q05": 0.6241975296743114,
+          "q95": 1.2119913177589676,
+          "min": 0.6166364798636265,
+          "max": 1.2247903625841499
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.537660494231815,
+          "median": 0.628736517071661,
+          "std": 0.2833306765726314,
+          "q05": 0.13156593043984666,
+          "q95": 0.8456079928257649,
+          "min": 0.10749389091619208,
+          "max": 0.8474794783135811
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.2982833901206839,
+          "median": 0.27101161001707863,
+          "std": 0.1127809938888198,
+          "q05": 0.1656455336136901,
+          "q95": 0.45532862514865907,
+          "min": 0.1636092133045384,
+          "max": 0.46345086765544324
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.18670228773467157,
+          "median": 0.18138115412547726,
+          "std": 0.07440723378990427,
+          "q05": 0.0953369835261942,
+          "q95": 0.3008055212514825,
+          "min": 0.0919420462439218,
+          "max": 0.3488074957410561
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.4823093247714009,
+          "median": 0.4683462021638046,
+          "std": 0.17665234340059413,
+          "q05": 0.26530603589412816,
+          "q95": 0.7409557806496629,
+          "min": 0.24648796072735263,
+          "max": 0.8891246878049849
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7453176389954096,
+          "median": 0.8770247739495737,
+          "std": 0.2733747679067428,
+          "q05": 0.269071443949388,
+          "q95": 0.9673956072572432,
+          "min": 0.0814421088606553,
+          "max": 0.9676596305775551
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.7520738520517168,
+          "median": 0.8782850258088725,
+          "std": 0.2740381545686538,
+          "q05": 0.273206730742626,
+          "q95": 0.9837546709295077,
+          "min": 0.10845453322760244,
+          "max": 0.9883323376480226
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8790849623036937,
+          "median": 0.8847231275808267,
+          "std": 0.035312143706144924,
+          "q05": 0.8229518540855103,
+          "q95": 0.9196074319215075,
+          "min": 0.8216586072201185,
+          "max": 0.9276492312235959
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9339086084506957,
+          "median": 0.9621595599256212,
+          "std": 0.07560520885160436,
+          "q05": 0.8070164797862904,
+          "q95": 0.9982426066260459,
+          "min": 0.7402193117224385,
+          "max": 0.9985406241310499
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9416666666666668,
+          "median": 1.0,
+          "std": 0.12720281268728123,
+          "q05": 0.7150000000000001,
+          "q95": 1.0,
+          "min": 0.55,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9458333333333333,
+          "median": 1.0,
+          "std": 0.12658714609136093,
+          "q05": 0.7150000000000001,
+          "q95": 1.0,
+          "min": 0.55,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S6": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.1746115262079794,
+          "median": 0.17136911034923616,
+          "std": 0.02219588154431737,
+          "q05": 0.15036756340848978,
+          "q95": 0.2109486165598012,
+          "min": 0.14571945999341426,
+          "max": 0.22393624798947181
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.6813025492578881,
+          "median": 0.7238810362706279,
+          "std": 0.14491454542511184,
+          "q05": 0.48257895458127686,
+          "q95": 0.904284750273464,
+          "min": 0.44148707130896203,
+          "max": 0.9109656579394763
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.5294517853197248,
+          "median": 0.564303175460799,
+          "std": 0.2800155645495517,
+          "q05": 0.13432546754800329,
+          "q95": 0.8817004138826323,
+          "min": 0.1320019860709491,
+          "max": 0.8990524974129764
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.30202920670198413,
+          "median": 0.29992578934940217,
+          "std": 0.1132395206755478,
+          "q05": 0.14542065099262355,
+          "q95": 0.45416085036312126,
+          "min": 0.13490993160581832,
+          "max": 0.45442061050923954
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.15345390394945022,
+          "median": 0.14740098349581565,
+          "std": 0.05721537857570423,
+          "q05": 0.08399785513488595,
+          "q95": 0.2404908252378481,
+          "min": 0.08181864467185988,
+          "max": 0.24955939372576658
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.39921279127698356,
+          "median": 0.3780765212570675,
+          "std": 0.12958943349202073,
+          "q05": 0.23639519861957087,
+          "q95": 0.5988498829457559,
+          "min": 0.21284898514159414,
+          "max": 0.619070021224968
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7413401930968658,
+          "median": 0.819286308122084,
+          "std": 0.24512818544261997,
+          "q05": 0.2892547774744816,
+          "q95": 0.95526318991669,
+          "min": 0.12467273453386507,
+          "max": 0.9641898287271516
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.7388442061713004,
+          "median": 0.8141279034975644,
+          "std": 0.24993952877877032,
+          "q05": 0.30477655979618773,
+          "q95": 0.9793805423358841,
+          "min": 0.18589689589441688,
+          "max": 0.9872659475896578
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8979827790736019,
+          "median": 0.9004023815318127,
+          "std": 0.034439402928706835,
+          "q05": 0.8398266530962549,
+          "q95": 0.9390927759902186,
+          "min": 0.8292365939001312,
+          "max": 0.9418673636112092
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9472143656564519,
+          "median": 0.9588854128474887,
+          "std": 0.05772801206434096,
+          "q05": 0.8313024320265439,
+          "q95": 0.9978613743957672,
+          "min": 0.8125758525307986,
+          "max": 0.9987118416725951
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9291666666666667,
+          "median": 1.0,
+          "std": 0.17965050947758415,
+          "q05": 0.625,
+          "q95": 1.0,
+          "min": 0.35,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9291666666666667,
+          "median": 1.0,
+          "std": 0.16889140166259367,
+          "q05": 0.6200000000000001,
+          "q95": 1.0,
+          "min": 0.4,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S7": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.21170423697149976,
+          "median": 0.2083257226790014,
+          "std": 0.029153007113052132,
+          "q05": 0.17835993887033746,
+          "q95": 0.257296138025329,
+          "min": 0.17575878064943673,
+          "max": 0.26795663830283223
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.9741931423211145,
+          "median": 0.8905338647822093,
+          "std": 0.2471486315945179,
+          "q05": 0.6837153456361904,
+          "q95": 1.3677515066835002,
+          "min": 0.6754218277577293,
+          "max": 1.5718185636287265
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.6126689615898168,
+          "median": 0.6958280480903898,
+          "std": 0.2795867608894949,
+          "q05": 0.15631212857169585,
+          "q95": 0.9051661640560925,
+          "min": 0.09354410451812918,
+          "max": 0.9076946043317378
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.2658362719002865,
+          "median": 0.24469747647671192,
+          "std": 0.11703311307631882,
+          "q05": 0.12959664016652134,
+          "q95": 0.4481019949368762,
+          "min": 0.12624989968702352,
+          "max": 0.46914908997445826
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.19843690488842147,
+          "median": 0.1945000459751823,
+          "std": 0.09083499768800159,
+          "q05": 0.09091702201327662,
+          "q95": 0.34017707656891466,
+          "min": 0.07594658284766731,
+          "max": 0.4178019981834694
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.5121374776990458,
+          "median": 0.5055813907800176,
+          "std": 0.20549636796890952,
+          "q05": 0.26318247735067657,
+          "q95": 0.8534888041743232,
+          "min": 0.2220068049449578,
+          "max": 0.9745692665827838
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.8018667327028437,
+          "median": 0.9321532434372367,
+          "std": 0.22608140273391722,
+          "q05": 0.40237022161412905,
+          "q95": 0.9785074093697785,
+          "min": 0.27705976237157975,
+          "max": 0.9787338162172325
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.8055452960495466,
+          "median": 0.9326397007624059,
+          "std": 0.23664922529914426,
+          "q05": 0.3874370802155617,
+          "q95": 0.9933220399687908,
+          "min": 0.2526904538647956,
+          "max": 0.996553007482035
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.873474270207883,
+          "median": 0.8894281588232995,
+          "std": 0.042299965569656484,
+          "q05": 0.8124738565107887,
+          "q95": 0.9236969213645227,
+          "min": 0.8060206583071438,
+          "max": 0.9302886695354129
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9553498049026871,
+          "median": 0.974675090070222,
+          "std": 0.050809008431497375,
+          "q05": 0.8724432577397145,
+          "q95": 0.997694488612626,
+          "min": 0.8220337760752083,
+          "max": 0.9977796290935426
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.975,
+          "median": 1.0,
+          "std": 0.055901699437494734,
+          "q05": 0.8825,
+          "q95": 1.0,
+          "min": 0.8,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.975,
+          "median": 1.0,
+          "std": 0.055901699437494734,
+          "q05": 0.8825,
+          "q95": 1.0,
+          "min": 0.8,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "S8": {
+      "instance_count": 12,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 12,
+      "instances_with_positive_supply_correlation": 12,
+      "instances_with_matched_supply_consistency_above_0_5": 12,
+      "metric_distributions": {
+        "D_C": {
+          "count": 12,
+          "mean": 0.1840513201434024,
+          "median": 0.18020686979248388,
+          "std": 0.026978366676272767,
+          "q05": 0.15331177270365973,
+          "q95": 0.23301094762788707,
+          "min": 0.1448555424528301,
+          "max": 0.23309622348680792
+        },
+        "D_S": {
+          "count": 12,
+          "mean": 0.6920666221303343,
+          "median": 0.7040647852599412,
+          "std": 0.12612225277450262,
+          "q05": 0.5048818701253327,
+          "q95": 0.8656444174761306,
+          "min": 0.45919984327724606,
+          "max": 0.9171754394701457
+        },
+        "spearman_makespan_shortage": {
+          "count": 12,
+          "mean": 0.6050429284343272,
+          "median": 0.7734385066894198,
+          "std": 0.3046566883564807,
+          "q05": 0.09040371986661255,
+          "q95": 0.897076840013816,
+          "min": 0.043181754799906234,
+          "max": 0.9169128025590164
+        },
+        "pairwise_conflict_ratio": {
+          "count": 12,
+          "mean": 0.26824823083717636,
+          "median": 0.2100431467160139,
+          "std": 0.12254698830545144,
+          "q05": 0.1352036587285391,
+          "q95": 0.4693328024191543,
+          "min": 0.12447336955213341,
+          "max": 0.4857748378395736
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 12,
+          "mean": 0.14022873332776434,
+          "median": 0.15041719683907911,
+          "std": 0.05197614598865403,
+          "q05": 0.0800233255884364,
+          "q95": 0.22521439895436915,
+          "min": 0.0736904761904762,
+          "max": 0.23797081908888157
+        },
+        "within_band_shortage_spread": {
+          "count": 12,
+          "mean": 0.37189111849467155,
+          "median": 0.4089519545306065,
+          "std": 0.1166364885442793,
+          "q05": 0.23038484322701644,
+          "q95": 0.5586765774403285,
+          "min": 0.21877463621502802,
+          "max": 0.5770006662965974
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 12,
+          "mean": 0.7840856706918817,
+          "median": 0.8993243418052934,
+          "std": 0.24615917076067195,
+          "q05": 0.34353913589998536,
+          "q95": 0.973047840517921,
+          "min": 0.10323874421000889,
+          "max": 0.9737109813799418
+        },
+        "spearman_shortage_empty_time": {
+          "count": 12,
+          "mean": 0.7884786262399524,
+          "median": 0.9119677552000742,
+          "std": 0.25864097115586915,
+          "q05": 0.3020533160628726,
+          "q95": 0.9866295565625463,
+          "min": 0.09104187267773324,
+          "max": 0.992391580088258
+        },
+        "spearman_shortage_empty_events": {
+          "count": 12,
+          "mean": 0.8828382254433625,
+          "median": 0.8899572581827495,
+          "std": 0.032801573017173194,
+          "q05": 0.8293815373948352,
+          "q95": 0.9192801786630242,
+          "min": 0.8104552814214708,
+          "max": 0.9210882483741106
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 12,
+          "mean": 0.9519079167594341,
+          "median": 0.9729336370808119,
+          "std": 0.055243821077536504,
+          "q05": 0.8547518708613437,
+          "q95": 0.9993823114090732,
+          "min": 0.8049713315662738,
+          "max": 0.9994448531532073
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 12,
+          "mean": 0.9541666666666666,
+          "median": 1.0,
+          "std": 0.1249305362547079,
+          "q05": 0.7425,
+          "q95": 1.0,
+          "min": 0.55,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 12,
+          "mean": 0.9541666666666666,
+          "median": 1.0,
+          "std": 0.1249305362547079,
+          "q05": 0.7425,
+          "q95": 1.0,
+          "min": 0.55,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 12,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    }
+  },
+  "by_profile": {
+    "P1": {
+      "instance_count": 24,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 24,
+      "instances_with_positive_supply_correlation": 24,
+      "instances_with_matched_supply_consistency_above_0_5": 24,
+      "metric_distributions": {
+        "D_C": {
+          "count": 24,
+          "mean": 0.20856045976454785,
+          "median": 0.20841348390011488,
+          "std": 0.04020945751806206,
+          "q05": 0.14698712456116214,
+          "q95": 0.2718342970521539,
+          "min": 0.1448555424528301,
+          "max": 0.2956204379562042
+        },
+        "D_S": {
+          "count": 24,
+          "mean": 0.8977956179154427,
+          "median": 0.8723587707075575,
+          "std": 0.2583386363046802,
+          "q05": 0.5022274319963722,
+          "q95": 1.2618917962401084,
+          "min": 0.4648858887817422,
+          "max": 1.3215170278637745
+        },
+        "spearman_makespan_shortage": {
+          "count": 24,
+          "mean": 0.46902388968756176,
+          "median": 0.477733874141267,
+          "std": 0.21147150000466133,
+          "q05": 0.09403169595272043,
+          "q95": 0.7848629848715658,
+          "min": 0.06576217796945394,
+          "max": 0.7952823843186846
+        },
+        "pairwise_conflict_ratio": {
+          "count": 24,
+          "mean": 0.330910795564022,
+          "median": 0.3301933906450595,
+          "std": 0.0814831500789894,
+          "q05": 0.20183895471405117,
+          "q95": 0.46830276421278483,
+          "min": 0.19294978810838578,
+          "max": 0.4775317931156449
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 24,
+          "mean": 0.21605966022825074,
+          "median": 0.20617231849049564,
+          "std": 0.05561553036396423,
+          "q05": 0.14759113436024437,
+          "q95": 0.31281661429504926,
+          "min": 0.1313731170336037,
+          "max": 0.3330421365442804
+        },
+        "within_band_shortage_spread": {
+          "count": 24,
+          "mean": 0.541050000345893,
+          "median": 0.5243433264868284,
+          "std": 0.1277582895515831,
+          "q05": 0.35928940256431974,
+          "q95": 0.7525754487047549,
+          "min": 0.33760227349820426,
+          "max": 0.7705723908279751
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 24,
+          "mean": 0.7605556816616009,
+          "median": 0.8531333412565649,
+          "std": 0.2123879130917491,
+          "q05": 0.38579517040917527,
+          "q95": 0.9715443368483421,
+          "min": 0.31404652904217717,
+          "max": 0.9783221674036796
+        },
+        "spearman_shortage_empty_time": {
+          "count": 24,
+          "mean": 0.7400993415008701,
+          "median": 0.8260854139763831,
+          "std": 0.23598471926964865,
+          "q05": 0.2844475749865329,
+          "q95": 0.9816292937138006,
+          "min": 0.24795087962430604,
+          "max": 0.9884125764730736
+        },
+        "spearman_shortage_empty_events": {
+          "count": 24,
+          "mean": 0.8845153205290998,
+          "median": 0.8826185723275157,
+          "std": 0.0357570009406197,
+          "q05": 0.826997755514876,
+          "q95": 0.9298927537886403,
+          "min": 0.8256718703223856,
+          "max": 0.9366766344159146
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 24,
+          "mean": 0.9182566402846867,
+          "median": 0.953801863430578,
+          "std": 0.0959739941343129,
+          "q05": 0.787165903308442,
+          "q95": 0.9979420702420609,
+          "min": 0.5579658074803217,
+          "max": 0.9988132182560412
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 24,
+          "mean": 0.9854166666666666,
+          "median": 1.0,
+          "std": 0.0420296687538167,
+          "q05": 0.865,
+          "q95": 1.0,
+          "min": 0.85,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 24,
+          "mean": 0.9833333333333334,
+          "median": 1.0,
+          "std": 0.049300664859163464,
+          "q05": 0.865,
+          "q95": 1.0,
+          "min": 0.8,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "P2": {
+      "instance_count": 24,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 24,
+      "instances_with_positive_supply_correlation": 24,
+      "instances_with_matched_supply_consistency_above_0_5": 24,
+      "metric_distributions": {
+        "D_C": {
+          "count": 24,
+          "mean": 0.24557566148678914,
+          "median": 0.24084231269008854,
+          "std": 0.03861393969240572,
+          "q05": 0.1881305476802416,
+          "q95": 0.3086849835501357,
+          "min": 0.15657104736490945,
+          "max": 0.3180859374999997
+        },
+        "D_S": {
+          "count": 24,
+          "mean": 0.7473192608317968,
+          "median": 0.7316248386969224,
+          "std": 0.1260518473986435,
+          "q05": 0.5672126128035349,
+          "q95": 0.900988738114628,
+          "min": 0.4811177300517322,
+          "max": 1.0547345043408025
+        },
+        "spearman_makespan_shortage": {
+          "count": 24,
+          "mean": 0.8065101067693888,
+          "median": 0.8457781278701119,
+          "std": 0.11159094386342211,
+          "q05": 0.6022742433728949,
+          "q95": 0.9070050297111072,
+          "min": 0.4924411126584745,
+          "max": 0.9169128025590164
+        },
+        "pairwise_conflict_ratio": {
+          "count": 24,
+          "mean": 0.18332615692346935,
+          "median": 0.1654604135855854,
+          "std": 0.05391603811650717,
+          "q05": 0.12716264709052294,
+          "q95": 0.27990253085511935,
+          "min": 0.12447336955213341,
+          "max": 0.32300180191775535
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 24,
+          "mean": 0.11102972831106499,
+          "median": 0.0960518652613342,
+          "std": 0.03181128705438217,
+          "q05": 0.08210053354069742,
+          "q95": 0.17691461303984238,
+          "min": 0.07594658284766731,
+          "max": 0.1987155270117113
+        },
+        "within_band_shortage_spread": {
+          "count": 24,
+          "mean": 0.3081277305086954,
+          "median": 0.28485953742785275,
+          "std": 0.06939125902913698,
+          "q05": 0.230648002147922,
+          "q95": 0.44225130885370556,
+          "min": 0.2220068049449578,
+          "max": 0.4887810803855867
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 24,
+          "mean": 0.9305715960527098,
+          "median": 0.9500600421969697,
+          "std": 0.04663099194787114,
+          "q05": 0.8483651548016297,
+          "q95": 0.9735301247812089,
+          "min": 0.7808796587876943,
+          "max": 0.9787338162172325
+        },
+        "spearman_shortage_empty_time": {
+          "count": 24,
+          "mean": 0.9475649068568336,
+          "median": 0.9630599532357325,
+          "std": 0.04565391850037489,
+          "q05": 0.8587748320989977,
+          "q95": 0.993418899137168,
+          "min": 0.8308499514741261,
+          "max": 0.996553007482035
+        },
+        "spearman_shortage_empty_events": {
+          "count": 24,
+          "mean": 0.8262727422840318,
+          "median": 0.8309075958045893,
+          "std": 0.04373445460085178,
+          "q05": 0.7543582097423785,
+          "q95": 0.8925306393354858,
+          "min": 0.7458966485488498,
+          "max": 0.9140882997480676
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 24,
+          "mean": 0.9704071737255031,
+          "median": 0.9781801166646455,
+          "std": 0.025834279553574604,
+          "q05": 0.9435934327032378,
+          "q95": 0.9986861590413634,
+          "min": 0.8887252023952548,
+          "max": 0.9993311408911454
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "P3": {
+      "instance_count": 24,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 24,
+      "instances_with_positive_supply_correlation": 24,
+      "instances_with_matched_supply_consistency_above_0_5": 24,
+      "metric_distributions": {
+        "D_C": {
+          "count": 24,
+          "mean": 0.21571521938347252,
+          "median": 0.21702599898354585,
+          "std": 0.04133068206330573,
+          "q05": 0.16037300674740004,
+          "q95": 0.28251485111174035,
+          "min": 0.15686176421544068,
+          "max": 0.3035272727272725
+        },
+        "D_S": {
+          "count": 24,
+          "mean": 0.7162977270981846,
+          "median": 0.70576809744889,
+          "std": 0.18130672417830573,
+          "q05": 0.45931519923429315,
+          "q95": 1.078779351323813,
+          "min": 0.44148707130896203,
+          "max": 1.1988735919899867
+        },
+        "spearman_makespan_shortage": {
+          "count": 24,
+          "mean": 0.7031083369744667,
+          "median": 0.7386687312837186,
+          "std": 0.10779957328071914,
+          "q05": 0.5009555476056098,
+          "q95": 0.8225747794474632,
+          "min": 0.440928886519322,
+          "max": 0.8715544219075283
+        },
+        "pairwise_conflict_ratio": {
+          "count": 24,
+          "mean": 0.23856157236831063,
+          "median": 0.2248913098137616,
+          "std": 0.04666825278562843,
+          "q05": 0.18178074061836053,
+          "q95": 0.3239233674007679,
+          "min": 0.15605864839053984,
+          "max": 0.34714988425925924
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 24,
+          "mean": 0.14209116365312532,
+          "median": 0.13708455172557463,
+          "std": 0.04996910145665155,
+          "q05": 0.08261500496249938,
+          "q95": 0.18987809464793512,
+          "min": 0.0736904761904762,
+          "max": 0.3349315138271264
+        },
+        "within_band_shortage_spread": {
+          "count": 24,
+          "mean": 0.3739604605979603,
+          "median": 0.36368440346459674,
+          "std": 0.10896355395036889,
+          "q05": 0.2203986415386271,
+          "q95": 0.4941632692324542,
+          "min": 0.21284898514159414,
+          "max": 0.7675434340763614
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 24,
+          "mean": 0.8283115988686683,
+          "median": 0.8506750572710301,
+          "std": 0.10707441805207105,
+          "q05": 0.6743373719138136,
+          "q95": 0.9541614015838706,
+          "min": 0.5332293936777012,
+          "max": 0.9745669408392204
+        },
+        "spearman_shortage_empty_time": {
+          "count": 24,
+          "mean": 0.8674269028547026,
+          "median": 0.8647992907984903,
+          "std": 0.09524268600546905,
+          "q05": 0.7163245045110366,
+          "q95": 0.977001590852234,
+          "min": 0.598130825645198,
+          "max": 0.9906785210943183
+        },
+        "spearman_shortage_empty_events": {
+          "count": 24,
+          "mean": 0.86565877647942,
+          "median": 0.8692864271170186,
+          "std": 0.04386650915805988,
+          "q05": 0.80739791886935,
+          "q95": 0.9211887775679197,
+          "min": 0.7426024496469521,
+          "max": 0.9368226588457718
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 24,
+          "mean": 0.9493892593094869,
+          "median": 0.9508900657701291,
+          "std": 0.035429607211058735,
+          "q05": 0.8882335454975665,
+          "q95": 0.9976478792017653,
+          "min": 0.8662874899136355,
+          "max": 0.9994448531532073
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 24,
+          "mean": 0.9916666666666667,
+          "median": 1.0,
+          "std": 0.023570226039551587,
+          "q05": 0.95,
+          "q95": 1.0,
+          "min": 0.9,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 24,
+          "mean": 0.9958333333333332,
+          "median": 1.0,
+          "std": 0.013819269959814178,
+          "q05": 0.9575,
+          "q95": 1.0,
+          "min": 0.95,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "P4": {
+      "instance_count": 24,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 24,
+      "instances_with_positive_supply_correlation": 24,
+      "instances_with_matched_supply_consistency_above_0_5": 24,
+      "metric_distributions": {
+        "D_C": {
+          "count": 24,
+          "mean": 0.22473229074769605,
+          "median": 0.21168370141852144,
+          "std": 0.04752621942631875,
+          "q05": 0.17368463910828502,
+          "q95": 0.3089791741180156,
+          "min": 0.16929337294923133,
+          "max": 0.3218749999999997
+        },
+        "D_S": {
+          "count": 24,
+          "mean": 0.9297402977279595,
+          "median": 0.8514862400477827,
+          "std": 0.34961643261502445,
+          "q05": 0.5419291047117476,
+          "q95": 1.5859705959921173,
+          "min": 0.48804825939424384,
+          "max": 1.8274555297757118
+        },
+        "spearman_makespan_shortage": {
+          "count": 24,
+          "mean": 0.10088661653711717,
+          "median": 0.10051899771716064,
+          "std": 0.08690581818360676,
+          "q05": -0.015285599026649391,
+          "q95": 0.22193104138621172,
+          "min": -0.028279184626366544,
+          "max": 0.3371922426285736
+        },
+        "pairwise_conflict_ratio": {
+          "count": 24,
+          "mean": 0.46554846704922315,
+          "median": 0.4662999788149508,
+          "std": 0.029678501922634215,
+          "q05": 0.42361906444765846,
+          "q95": 0.5052235207124371,
+          "min": 0.3843541238437821,
+          "max": 0.5088653623374951
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 24,
+          "mean": 0.27483714403125753,
+          "median": 0.25137510827842,
+          "std": 0.09769289964624174,
+          "q05": 0.15579045776454017,
+          "q95": 0.44832940887679734,
+          "min": 0.15309662108080221,
+          "max": 0.537058152793614
+        },
+        "within_band_shortage_spread": {
+          "count": 24,
+          "mean": 0.6756470778462869,
+          "median": 0.6193983480101385,
+          "std": 0.23418019127234843,
+          "q05": 0.41971259244130676,
+          "q95": 1.1032770169507664,
+          "min": 0.367403454157186,
+          "max": 1.3111952251594712
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 24,
+          "mean": 0.5333348887919402,
+          "median": 0.5481226952983077,
+          "std": 0.2721093108192147,
+          "q05": 0.08471160416305834,
+          "q95": 0.8713098844745338,
+          "min": -0.040167991233255027,
+          "max": 0.8796005352607531
+        },
+        "spearman_shortage_empty_time": {
+          "count": 24,
+          "mean": 0.4644077003415898,
+          "median": 0.4806715323351235,
+          "std": 0.2611491216185711,
+          "q05": 0.09365377176021361,
+          "q95": 0.8286727741054987,
+          "min": -0.016851293781814564,
+          "max": 0.8795454758183036
+        },
+        "spearman_shortage_empty_events": {
+          "count": 24,
+          "mean": 0.877765750101727,
+          "median": 0.8871207285634218,
+          "std": 0.04270537300011374,
+          "q05": 0.8086277539750992,
+          "q95": 0.9292509080272803,
+          "min": 0.7603014761005036,
+          "max": 0.9418673636112092
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 24,
+          "mean": 0.8830440624469754,
+          "median": 0.9086840979982016,
+          "std": 0.09608660909729196,
+          "q05": 0.7173230261726289,
+          "q95": 0.9932774649103342,
+          "min": 0.6837935651191183,
+          "max": 0.9974444889327415
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 24,
+          "mean": 0.8937499999999999,
+          "median": 1.0,
+          "std": 0.19542288547318776,
+          "q05": 0.465,
+          "q95": 1.0,
+          "min": 0.35,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 24,
+          "mean": 0.8958333333333334,
+          "median": 1.0,
+          "std": 0.18980069956550621,
+          "q05": 0.465,
+          "q95": 1.0,
+          "min": 0.4,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 24,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    }
+  },
+  "by_tightness": {
+    "B1": {
+      "instance_count": 32,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 32,
+      "instances_with_positive_supply_correlation": 32,
+      "instances_with_matched_supply_consistency_above_0_5": 32,
+      "metric_distributions": {
+        "D_C": {
+          "count": 32,
+          "mean": 0.2293058399495423,
+          "median": 0.22934980098079374,
+          "std": 0.04001786940296049,
+          "q05": 0.1763780746149744,
+          "q95": 0.30860687220821026,
+          "min": 0.15417055711173336,
+          "max": 0.3180859374999997
+        },
+        "D_S": {
+          "count": 32,
+          "mean": 0.9937326346033952,
+          "median": 0.8899336341789237,
+          "std": 0.28184330912522537,
+          "q05": 0.7227348681208146,
+          "q95": 1.5793108160564042,
+          "min": 0.706842999272021,
+          "max": 1.8274555297757118
+        },
+        "spearman_makespan_shortage": {
+          "count": 32,
+          "mean": 0.5926408239407458,
+          "median": 0.7479952837779053,
+          "std": 0.3043773100203929,
+          "q05": 0.0472714200473148,
+          "q95": 0.9008727216645274,
+          "min": -0.028279184626366544,
+          "max": 0.9169128025590164
+        },
+        "pairwise_conflict_ratio": {
+          "count": 32,
+          "mean": 0.27402461731095057,
+          "median": 0.21883990643907136,
+          "std": 0.12255959800250738,
+          "q05": 0.13375115945285887,
+          "q95": 0.4836141902590111,
+          "min": 0.12447336955213341,
+          "max": 0.5088653623374951
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 32,
+          "mean": 0.2163154367061426,
+          "median": 0.182628887544681,
+          "std": 0.11533561452004093,
+          "q05": 0.08971140012754186,
+          "q95": 0.43396356855052537,
+          "min": 0.08520474782313112,
+          "max": 0.537058152793614
+        },
+        "within_band_shortage_spread": {
+          "count": 32,
+          "mean": 0.5471159950106559,
+          "median": 0.44958850280595763,
+          "std": 0.2636841087763775,
+          "q05": 0.2639045659453986,
+          "q95": 1.0427086638364216,
+          "min": 0.23988410350955242,
+          "max": 1.3111952251594712
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 32,
+          "mean": 0.9144998638439806,
+          "median": 0.9415348342960648,
+          "std": 0.05892133889923603,
+          "q05": 0.8089620773571815,
+          "q95": 0.9762567927932271,
+          "min": 0.764117856735705,
+          "max": 0.9787338162172325
+        },
+        "spearman_shortage_empty_time": {
+          "count": 32,
+          "mean": 0.9138438077931151,
+          "median": 0.9653845517558879,
+          "std": 0.09471075237087585,
+          "q05": 0.7292227868548784,
+          "q95": 0.9929354548788575,
+          "min": 0.6528285534970186,
+          "max": 0.996553007482035
+        },
+        "spearman_shortage_empty_events": {
+          "count": 32,
+          "mean": 0.855045611962378,
+          "median": 0.8565196791530485,
+          "std": 0.04366304417620319,
+          "q05": 0.7709762833957206,
+          "q95": 0.9139669246794564,
+          "min": 0.7524949204524759,
+          "max": 0.9312715066969048
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 32,
+          "mean": 0.9870296744762813,
+          "median": 0.9934263105572596,
+          "std": 0.016593631271314767,
+          "q05": 0.9540055887011487,
+          "q95": 0.9990462834418381,
+          "min": 0.9290145787598074,
+          "max": 0.9994448531532073
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "B2": {
+      "instance_count": 32,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 32,
+      "instances_with_positive_supply_correlation": 32,
+      "instances_with_matched_supply_consistency_above_0_5": 32,
+      "metric_distributions": {
+        "D_C": {
+          "count": 32,
+          "mean": 0.2223220752404236,
+          "median": 0.21794566090758521,
+          "std": 0.04225550625411889,
+          "q05": 0.15923707323806013,
+          "q95": 0.29165795124100424,
+          "min": 0.1560771594400819,
+          "max": 0.3218749999999997
+        },
+        "D_S": {
+          "count": 32,
+          "mean": 0.8239959811749797,
+          "median": 0.7660930070162868,
+          "std": 0.21091844621652212,
+          "q05": 0.5352724570824968,
+          "q95": 1.1969712590028374,
+          "min": 0.49976175769875536,
+          "max": 1.3051267113311966
+        },
+        "spearman_makespan_shortage": {
+          "count": 32,
+          "mean": 0.5196274987628503,
+          "median": 0.5903933175334414,
+          "std": 0.28172334403983096,
+          "q05": 0.04477132650895287,
+          "q95": 0.8754303317889494,
+          "min": -0.017967247090334298,
+          "max": 0.8874772150387819
+        },
+        "pairwise_conflict_ratio": {
+          "count": 32,
+          "mean": 0.30627984571604483,
+          "median": 0.28783655994051,
+          "std": 0.11182056538998099,
+          "q05": 0.14870067580193322,
+          "q95": 0.48345033041386165,
+          "min": 0.14338961810966694,
+          "max": 0.5061084409008343
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 32,
+          "mean": 0.1900622271220577,
+          "median": 0.19230123009324662,
+          "std": 0.07661294919068833,
+          "q05": 0.0914862777512625,
+          "q95": 0.31707549727656004,
+          "min": 0.08632609867645503,
+          "max": 0.3710333604556547
+        },
+        "within_band_shortage_spread": {
+          "count": 32,
+          "mean": 0.48203685413475805,
+          "median": 0.4822422530438847,
+          "std": 0.17041293528059734,
+          "q05": 0.26926614666159654,
+          "q95": 0.7382072402563076,
+          "min": 0.2524889674400285,
+          "max": 0.9118794592764343
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 32,
+          "mean": 0.7866513055998412,
+          "median": 0.8422911697864115,
+          "std": 0.16601123897295925,
+          "q05": 0.5230596404901118,
+          "q95": 0.9695708462641651,
+          "min": 0.3651713252301504,
+          "max": 0.9725052707217223
+        },
+        "spearman_shortage_empty_time": {
+          "count": 32,
+          "mean": 0.7646197670677174,
+          "median": 0.8452536315293101,
+          "std": 0.21445596188060237,
+          "q05": 0.41127876868399804,
+          "q95": 0.9757089512545123,
+          "min": 0.16380781348828402,
+          "max": 0.9769710063008975
+        },
+        "spearman_shortage_empty_events": {
+          "count": 32,
+          "mean": 0.892078496910027,
+          "median": 0.9069408490424659,
+          "std": 0.03571938181395286,
+          "q05": 0.8285483355317523,
+          "q95": 0.9367423454093504,
+          "min": 0.8256718703223856,
+          "max": 0.9418673636112092
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 32,
+          "mean": 0.9433632107754327,
+          "median": 0.9534489937342967,
+          "std": 0.03736048662925896,
+          "q05": 0.8850625436126011,
+          "q95": 0.9841914809386252,
+          "min": 0.8142713285256885,
+          "max": 0.9865134755803988
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 32,
+          "mean": 0.9921875,
+          "median": 1.0,
+          "std": 0.02204177496822795,
+          "q05": 0.95,
+          "q95": 1.0,
+          "min": 0.9,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 32,
+          "mean": 0.9921875,
+          "median": 1.0,
+          "std": 0.02204177496822795,
+          "q05": 0.95,
+          "q95": 1.0,
+          "min": 0.9,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    },
+    "B3": {
+      "instance_count": 32,
+      "instances_with_no_near_makespan_pairs": 0,
+      "instances_with_D_S_zero_or_near_zero": 0,
+      "instances_with_positive_conflict_ratio": 32,
+      "instances_with_positive_supply_correlation": 32,
+      "instances_with_matched_supply_consistency_above_0_5": 32,
+      "metric_distributions": {
+        "D_C": {
+          "count": 32,
+          "mean": 0.21930980834691324,
+          "median": 0.22600507554843832,
+          "std": 0.04945681530319272,
+          "q05": 0.15168783304773661,
+          "q95": 0.298872996072217,
+          "min": 0.1448555424528301,
+          "max": 0.3089087344805054
+        },
+        "D_S": {
+          "count": 32,
+          "mean": 0.6506360619016629,
+          "median": 0.6643410053137915,
+          "std": 0.14523153331762265,
+          "q05": 0.459622815119752,
+          "q95": 0.8814466393384427,
+          "min": 0.44148707130896203,
+          "max": 1.0887022900763352
+        },
+        "spearman_makespan_shortage": {
+          "count": 32,
+          "mean": 0.4473783897728047,
+          "median": 0.5091747437109642,
+          "std": 0.3083808262345684,
+          "q05": 0.015859750635503128,
+          "q95": 0.8313278085869296,
+          "min": -8.959333243493573e-05,
+          "max": 0.9076946043317378
+        },
+        "pairwise_conflict_ratio": {
+          "count": 32,
+          "mean": 0.3334557809017734,
+          "median": 0.3181220339440123,
+          "std": 0.1200319757802764,
+          "q05": 0.17619812348365524,
+          "q95": 0.4952854709602633,
+          "min": 0.12624989968702352,
+          "max": 0.5002089729781865
+        },
+        "median_near_makespan_shortage_diff": {
+          "count": 32,
+          "mean": 0.15163560833957362,
+          "median": 0.15255547258158286,
+          "std": 0.05549071183909159,
+          "q05": 0.07902996434259765,
+          "q95": 0.2577927589636203,
+          "min": 0.0736904761904762,
+          "max": 0.2897447275650936
+        },
+        "within_band_shortage_spread": {
+          "count": 32,
+          "mean": 0.3949361028287127,
+          "median": 0.39809783340215726,
+          "std": 0.13291206155150795,
+          "q05": 0.2205523290164894,
+          "q95": 0.6335872097281117,
+          "min": 0.21284898514159414,
+          "max": 0.754422971294674
+        },
+        "spearman_shortage_empty_ratio": {
+          "count": 32,
+          "mean": 0.5884291545873677,
+          "median": 0.6570863451470162,
+          "std": 0.27999820651939183,
+          "q05": 0.09343025830279977,
+          "q95": 0.9287603718099087,
+          "min": -0.040167991233255027,
+          "max": 0.9521605080494452
+        },
+        "spearman_shortage_empty_time": {
+          "count": 32,
+          "mean": 0.5861605638046644,
+          "median": 0.6772715655606967,
+          "std": 0.30541842393024826,
+          "q05": 0.1006188359801613,
+          "q95": 0.9398240374211346,
+          "min": -0.016851293781814564,
+          "max": 0.9616962308834613
+        },
+        "spearman_shortage_empty_events": {
+          "count": 32,
+          "mean": 0.8435353331733036,
+          "median": 0.8415236563390821,
+          "std": 0.04756150099578874,
+          "q05": 0.7538193037022594,
+          "q95": 0.9115566165787667,
+          "min": 0.7426024496469521,
+          "max": 0.9183036728610673
+        },
+        "spearman_shortage_supply_exposure": {
+          "count": 32,
+          "mean": 0.8604299665732751,
+          "median": 0.8866963627504282,
+          "std": 0.09271578743792917,
+          "q05": 0.7000124821598911,
+          "q95": 0.9554927149665879,
+          "min": 0.5579658074803217,
+          "max": 0.9675157986747045
+        },
+        "matched_pair_empty_ratio_consistency": {
+          "count": 32,
+          "mean": 0.9109375,
+          "median": 1.0,
+          "std": 0.17488137720680838,
+          "q05": 0.505,
+          "q95": 1.0,
+          "min": 0.35,
+          "max": 1.0
+        },
+        "matched_pair_empty_time_consistency": {
+          "count": 32,
+          "mean": 0.9140625,
+          "median": 1.0,
+          "std": 0.1714981664442801,
+          "q05": 0.505,
+          "q95": 1.0,
+          "min": 0.4,
+          "max": 1.0
+        },
+        "matched_pair_empty_event_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "matched_pair_supply_consistency": {
+          "count": 32,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "q05": 1.0,
+          "q95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
+      }
+    }
+  },
+  "representative_instances": [
+    {
+      "instance_id": "WIPHFSP_S1_P4_B1",
+      "reason": "lowest_makespan_shortage_spearman",
+      "selection_metric": "spearman_makespan_shortage"
+    },
+    {
+      "instance_id": "WIPHFSP_S8_P2_B1",
+      "reason": "highest_makespan_shortage_spearman",
+      "selection_metric": "spearman_makespan_shortage"
+    },
+    {
+      "instance_id": "WIPHFSP_S2_P4_B2",
+      "reason": "highest_pairwise_conflict",
+      "selection_metric": "pairwise_conflict_ratio"
+    },
+    {
+      "instance_id": "WIPHFSP_S8_P3_B1",
+      "reason": "highest_supply_exposure_spearman",
+      "selection_metric": "spearman_shortage_supply_exposure"
+    },
+    {
+      "instance_id": "WIPHFSP_S1_P1_B1",
+      "reason": "lowest_matched_supply_consistency",
+      "selection_metric": "matched_pair_supply_consistency"
+    },
+    {
+      "instance_id": "WIPHFSP_S1_P1_B2",
+      "reason": "highest_matched_supply_consistency",
+      "selection_metric": "matched_pair_supply_consistency"
+    }
+  ]
+}

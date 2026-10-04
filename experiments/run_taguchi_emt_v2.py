@@ -4,7 +4,6 @@ import json
 import time
 import math
 import statistics
-from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime
 
@@ -13,8 +12,6 @@ import matplotlib.pyplot as plt
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
-from src.problem.instance_generator import load_instance_from_json
-from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
 
 
 # =====================================
@@ -214,60 +211,10 @@ def build_trial_configs():
 # =====================================
 
 def run_one_trial_seed(instance_path, trial_config, seed):
-    _, operations, buffers, _ = load_instance_from_json(instance_path)
-
-    for bid in buffers:
-        if "low_wip" not in buffers[bid]:
-            buffers[bid]["low_wip"] = 1
-
-    algo_params = deepcopy(trial_config["algorithm_params"])
-    algo_params["seed"] = seed
-
-    search = EMTGLocalGAV2(
-        operations=operations,
-        buffers=buffers,
-        **algo_params
+    raise RuntimeError(
+        "Historical Taguchi factors target the removed EMTGLocalGAV2 and cannot "
+        "be applied to WIPGraphDualPopulation."
     )
-
-    t0 = time.time()
-    best = search.run(
-        store_stats_init=True,
-        store_stats_generations=False,
-        verbose=False
-    )
-    runtime = time.time() - t0
-
-    pareto_front = search.get_pareto_front()
-
-    pareto_solutions = []
-    for ind in pareto_front:
-        pareto_solutions.append({
-            "makespan": ind.makespan,
-            "shortage": ind.shortage,
-            "OS": ind.OS,
-            "MS": ind.MS,
-        })
-
-    result = {
-        "run_timestamp": datetime.now().isoformat(timespec="seconds"),
-        "instance_name": os.path.splitext(os.path.basename(instance_path))[0],
-        "instance_path": instance_path,
-        "trial_id": trial_config["trial_id"],
-        "seed": seed,
-        "factor_levels": trial_config["factor_levels"],
-        "algorithm": "EMTGLocalGAV2",
-        "algorithm_parameters": algo_params,
-        "representative_result": {
-            "makespan": best.makespan,
-            "shortage": best.shortage,
-            "runtime": runtime,
-            "n_evaluations": search.n_evaluations,
-        },
-        "pareto_front": pareto_solutions,
-        "igd": None,
-    }
-
-    return result
 
 
 # =====================================

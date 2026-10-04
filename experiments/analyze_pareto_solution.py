@@ -7,12 +7,10 @@ import json
 from typing import Dict, Any, List, Tuple
 
 import matplotlib.pyplot as plt
-from openpyxl import Workbook
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
-from src.problem.instance_generator import load_instance_from_json
 from src.solution.encoder import Encoder
 from src.solution.decoder import StageBufferWIPScheduler
 
@@ -109,7 +107,7 @@ def evaluate_solution(
 ) -> Dict[str, Any]:
     scheduler = StageBufferWIPScheduler(operations, buffers)
 
-    os_seq = sol["OS"]
+    os_seq = [tuple(gene) if isinstance(gene, list) else gene for gene in sol["OS"]]
     ms_list = sol["MS"]
     ms_map = build_ms_map_from_solution(operations, ms_list)
 
@@ -230,6 +228,8 @@ def save_comparison_excel(
     buffers: Dict[str, Dict[str, Any]],
     operations: Dict[str, List[Dict[str, Any]]],
 ) -> None:
+    from openpyxl import Workbook
+
     wb = Workbook()
     ws = wb.active
     ws.title = "ABC_Comparison"
@@ -610,12 +610,10 @@ def main():
         raise ValueError("run json 中没有 pareto_front")
 
     # 2) 读取实例
-    spec, operations, buffers, _ = load_instance_from_json(INSTANCE_JSON_PATH)
-
-    # 若 instance 中没有 low_wip，则与实验脚本保持一致，默认补 1
-    for bid in buffers:
-        if "low_wip" not in buffers[bid]:
-            buffers[bid]["low_wip"] = 1
+    with open(INSTANCE_JSON_PATH, "r", encoding="utf-8") as handle:
+        instance = json.load(handle)
+    operations = instance["operations"]
+    buffers = instance["buffers"]
 
     target_buffer_id = pick_target_buffer(buffers, TARGET_BUFFER_ID)
 

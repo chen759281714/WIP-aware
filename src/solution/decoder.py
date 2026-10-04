@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Any, Set
 
 
@@ -15,26 +15,92 @@ class Buffer:
     content: Set[str]
 
 
+OpKey = Tuple[str, int]
+
+
+@dataclass(frozen=True)
+class ProvenanceEvent:
+    event_id: int
+    time: int
+    kind: str
+    job: str
+    op_idx: int
+    machine: str
+
+
+@dataclass(frozen=True)
+class ActiveDependency:
+    src_event_id: int
+    dst_event_id: int
+    kind: str
+    machine: Optional[str] = None
+    buffer_id: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class BufferStateEvent:
+    event_id: int
+    time: int
+    buffer_id: str
+    action: str
+    job: Optional[str]
+    level_before: int
+    level_after: int
+    cause_event_id: Optional[int] = None
+
+
+@dataclass
+class DecodeProvenance:
+    events: Dict[int, ProvenanceEvent] = field(default_factory=dict)
+    op_events: Dict[OpKey, Dict[str, int]] = field(default_factory=dict)
+    active_dependencies: List[ActiveDependency] = field(default_factory=list)
+    buffer_events: Dict[str, List[BufferStateEvent]] = field(default_factory=dict)
+    _next_id: int = field(default=0, repr=False)
+    _machine_release: Dict[str, int] = field(default_factory=dict, repr=False)
+    _item_source: Dict[Tuple[str, str], int] = field(default_factory=dict, repr=False)
+
+    def next_id(self) -> int:
+        self._next_id += 1
+        return self._next_id
+
+    def operation_event(self, time: int, kind: str, job: str, op_idx: int, machine: str) -> int:
+        event_id = self.next_id()
+        self.events[event_id] = ProvenanceEvent(event_id, time, kind, job, op_idx, machine)
+        self.op_events.setdefault((job, op_idx), {})[kind] = event_id
+        return event_id
+
+    def edge(self, src: int, dst: int, kind: str, machine: Optional[str] = None,
+             buffer_id: Optional[str] = None) -> None:
+        self.active_dependencies.append(ActiveDependency(src, dst, kind, machine, buffer_id))
+
+
+@dataclass(frozen=True)
+class BlockedOperation:
+    job: str
+    buffer_out: str
+    op_idx: int
+    machine: str
+    complete_event_id: Optional[int] = None
+
+
 class StageBufferWIPScheduler:
-    """
-    工段间 WIP（有限缓冲）调度器，支持 blocking / starving 机制。
+    """Finite-buffer WIP scheduler with blocking and starving.
 
-    【OS 编码方案 A】
-    - os_seq 是 job_id 的序列
-    - 每出现一次 job_id，表示“尝试调度该 job 的下一道工序”
-    - 调度器会从 os_ptr 开始循环扫描 os_seq，找到当前时刻可启动的工序就启动
+    OS is a precedence-preserving explicit operation-priority sequence:
+    - every gene is a unique ``(job_id, op_idx)`` tuple;
+    - every operation appears exactly once;
+    - operations of the same job appear in technological order;
+    - gene position is a static priority, not an actual start-time order.
 
-    【核心机制】
-    - starving：某道工序需要 buffer_in，但 buffer_in 中没有该 job 的半成品 -> 不能开工
-    - blocking：某道工序加工结束后要放入 buffer_out，但 buffer_out 已满 -> 不能释放，机器被占用直到有空位
+    At each decision point the decoder checks only each job's next operation
+    and starts the feasible operation with the smallest static priority rank.
+    Actual start times are jointly determined by precedence, machine
+    availability, exact-job buffer availability, and finite-buffer blocking.
+    No cyclic OS pointer is used.
 
-    【返回三元组】
-    - makespan
-    - schedule：每条记录包含 job/op/machine/start/end/release/buffer_in/buffer_out
-    - buffer_trace：事件日志格式：
-        buffer_trace[bid] = [(t, level, action, job), ...]
-        action ∈ {"init","put","take"}
-        level 为事件发生后的 level（len(content)）
+    The decoder returns ``(makespan, schedule, buffer_trace)``. Schedule
+    records retain job/op/machine/start/end/release/buffer_in/buffer_out, and
+    buffer traces retain ordered ``(time, level, action, job)`` events.
     """
 
     def __init__(self, operations: Dict[str, List[Dict[str, Any]]], buffers: Dict[str, Dict[str, Any]]):
@@ -123,6 +189,56 @@ class StageBufferWIPScheduler:
                     f"ms_map 为 {(job, op_idx)} 指定了非法机器 {m}"
                 )
 
+    def _validate_os(
+        self, os_seq: List[Tuple[str, int]]
+    ) -> Dict[Tuple[str, int], int]:
+        """Validate explicit OS genes and return their static priority ranks."""
+        if not isinstance(os_seq, list):
+            raise ValueError("OS must be a list")
+        if len(os_seq) != len(self._expected_operations):
+            raise ValueError(
+                f"Invalid OS length: expected {len(self._expected_operations)}, "
+                f"got {len(os_seq)}"
+            )
+
+        seen = set()
+        for position, gene in enumerate(os_seq):
+            if not isinstance(gene, tuple) or len(gene) != 2:
+                raise ValueError(
+                    f"OS gene {position} must be a (job_id, op_idx) tuple: {gene!r}"
+                )
+            job, op_idx = gene
+            if job not in self.operations:
+                raise ValueError(f"OS gene {position} has an unknown job: {job!r}")
+            if not isinstance(op_idx, int) or isinstance(op_idx, bool):
+                raise ValueError(
+                    f"OS gene {position} has a non-integer op_idx: {gene!r}"
+                )
+            if op_idx < 0 or op_idx >= len(self.operations[job]):
+                raise ValueError(
+                    f"OS gene {position} is not a valid operation: {gene!r}"
+                )
+            if gene in seen:
+                raise ValueError(f"OS contains a duplicate operation: {gene!r}")
+            seen.add(gene)
+
+        missing = [key for key in self._expected_operations if key not in seen]
+        if missing:
+            suffix = "..." if len(missing) > 10 else ""
+            raise ValueError(f"OS is missing operations: {missing[:10]}{suffix}")
+
+        next_expected = {job: 0 for job in self.operations}
+        for position, (job, op_idx) in enumerate(os_seq):
+            expected_op_idx = next_expected[job]
+            if op_idx != expected_op_idx:
+                raise ValueError(
+                    f"OS violates precedence for {job} at position {position}: "
+                    f"got {(job, op_idx)!r}, expected {(job, expected_op_idx)!r}"
+                )
+            next_expected[job] += 1
+
+        return {op_key: position for position, op_key in enumerate(os_seq)}
+
     def _choose_machine(
         self,
         job: str,
@@ -130,7 +246,7 @@ class StageBufferWIPScheduler:
         ms_map: Optional[Dict[Tuple[str, int], str]],
         t: int,
         machine_free_at: Dict[str, int],
-        blocked: Dict[str, Optional[Tuple[str, str, int]]],
+        blocked: Dict[str, Optional[BlockedOperation]],
     ) -> Optional[str]:
         """
         选择加工该工序的机器（支持阶段内多机）：
@@ -183,6 +299,9 @@ class StageBufferWIPScheduler:
         t: int,
         action: str,
         job: Optional[str],
+        provenance: Optional[DecodeProvenance] = None,
+        cause_event_id: Optional[int] = None,
+        level_before: Optional[int] = None,
     ):
         """
         记录缓冲区事件日志（事件发生后立刻记录）：
@@ -193,15 +312,27 @@ class StageBufferWIPScheduler:
         """
         level = len(self.buffers[bid].content)
         buffer_trace[bid].append((t, level, action, job))
+        if provenance is not None:
+            if level_before is None:
+                level_before = level
+            event_id = provenance.next_id()
+            provenance.buffer_events[bid].append(BufferStateEvent(
+                event_id, t, bid, action, job, level_before, level, cause_event_id
+            ))
 
     # =========================
     # 关键：解码主过程
     # =========================
 
-    def decode(self, os_seq: List[str], ms_map: Optional[Dict[Tuple[str, int], str]] = None):
+    def decode(
+        self,
+        os_seq: List[Tuple[str, int]],
+        ms_map: Optional[Dict[Tuple[str, int], str]] = None,
+        return_provenance: bool = False,
+    ):
         """
-        解码函数：给定 OS/MS，生成可执行调度并返回三元组：
-          (makespan, schedule, buffer_trace)
+        解码函数：给定 OS/MS，生成可执行调度。默认返回三元组；
+        return_provenance=True 时追加事实事件与 active dependency 记录。
 
         - makespan: 最大完工（release）时间
         - schedule: 调度记录列表，每条记录包含：
@@ -210,11 +341,14 @@ class StageBufferWIPScheduler:
         - buffer_trace: dict[buffer_id] = [(t, level, action, job), ...]
         """
         
-        # 若提供了 ms_map，则必须是完整且合法的机器选择映射
+        # Validate the complete static priority sequence before runtime setup.
+        priority_rank = self._validate_os(os_seq)
+
         if ms_map is not None:
             self._validate_ms_map(ms_map)
         
         self._reset_buffers()
+        provenance = DecodeProvenance() if return_provenance else None
 
         # -------- 工件状态 --------
         job_next = {j: 0 for j in self.operations}      # 每个 job 下一道待加工工序编号
@@ -222,7 +356,7 @@ class StageBufferWIPScheduler:
 
         # -------- 机器状态 --------
         machine_free_at = {m: 0 for m in self.machines}  # 机器最早可启动新工序的时间
-        blocked: Dict[str, Optional[Tuple[str, str, int]]] = {m: None for m in self.machines}
+        blocked: Dict[str, Optional[BlockedOperation]] = {m: None for m in self.machines}
         # blocked[m] = (job_id, buffer_out, op_idx)
 
         # -------- 正在加工事件 --------
@@ -237,12 +371,13 @@ class StageBufferWIPScheduler:
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]] = {}
         for bid in self.buffers.keys():
             buffer_trace[bid] = []
+            if provenance is not None:
+                provenance.buffer_events[bid] = []
             # 记录初始状态
-            self._log_buffer_event(buffer_trace, bid, 0, "init", None)
+            self._log_buffer_event(buffer_trace, bid, 0, "init", None, provenance)
 
         # -------- 主循环控制 --------
         t = 0
-        os_ptr = 0
         safety_iter = 0
         max_iter = 200000
 
@@ -274,11 +409,13 @@ class StageBufferWIPScheduler:
                         job_done=job_done,
                         buffer_trace=buffer_trace,
                         schedule_index=schedule_index,
+                        provenance=provenance,
                     )
 
             # (2) 尝试解除 blocking
             self._release_blocked_if_possible(
-                t, blocked, machine_free_at, schedule, buffer_trace, schedule_index
+                t, blocked, machine_free_at, schedule, buffer_trace, schedule_index,
+                provenance=provenance,
             )
 
             # (3) 在当前时刻尽可能多地启动可行工序
@@ -287,8 +424,7 @@ class StageBufferWIPScheduler:
                 started_any = False
 
                 cand = self._select_startable(
-                    os_seq=os_seq,
-                    os_ptr=os_ptr,
+                    priority_rank=priority_rank,
                     t=t,
                     job_next=job_next,
                     job_done=job_done,
@@ -300,7 +436,7 @@ class StageBufferWIPScheduler:
                 if cand is None:
                     break
 
-                job, op_idx, m, new_ptr = cand
+                job, op_idx, m = cand
                 ok, end_time = self._try_start(
                     job=job,
                     op_idx=op_idx,
@@ -311,14 +447,19 @@ class StageBufferWIPScheduler:
                     machine_free_at=machine_free_at,
                     buffer_trace=buffer_trace,
                     schedule_index=schedule_index,
+                    provenance=provenance,
                 )
-                os_ptr = new_ptr
-
                 if ok:
                     running.append((end_time, job, op_idx, m))
                     # 启动后可能“取走 buffer_in”，立刻尝试解除上游 blocking
                     self._release_blocked_if_possible(
-                        t, blocked, machine_free_at, schedule, buffer_trace, schedule_index
+                        t, blocked, machine_free_at, schedule, buffer_trace, schedule_index,
+                        provenance=provenance,
+                        trigger_start_event_id=(
+                            provenance.op_events[(job, op_idx)]["start"]
+                            if provenance is not None else None
+                        ),
+                        trigger_buffer_id=self.operations[job][op_idx].get("buffer_in"),
                     )
                     started_any = True
 
@@ -332,6 +473,8 @@ class StageBufferWIPScheduler:
             t = t_next
 
         makespan = max(rec["release"] for rec in schedule) if schedule else 0
+        if provenance is not None:
+            return makespan, schedule, buffer_trace, provenance
         return makespan, schedule, buffer_trace
 
     # =========================
@@ -340,38 +483,23 @@ class StageBufferWIPScheduler:
 
     def _select_startable(
         self,
-        os_seq: List[str],
-        os_ptr: int,
+        priority_rank: Dict[Tuple[str, int], int],
         t: int,
         job_next: Dict[str, int],
         job_done: Dict[str, bool],
         machine_free_at: Dict[str, int],
-        blocked: Dict[str, Optional[Tuple[str, str, int]]],
+        blocked: Dict[str, Optional[BlockedOperation]],
         ms_map: Optional[Dict[Tuple[str, int], str]],
-    ) -> Optional[Tuple[str, int, str, int]]:
+    ) -> Optional[Tuple[str, int, str]]:
+        """Select the highest-priority feasible next operation.
+
+        At most one next operation per unfinished job is inspected. A candidate
+        must have an available selected machine and, when applicable, its exact
+        job item in the input buffer.
         """
-        根据 OS 编码，从 os_ptr 开始循环扫描，选择当前时刻可启动的工序：
-        可启动需要满足：
-        - job 未完成
-        - 对应下一道工序存在
-        - 选定机器未被阻塞 且 machine_free_at <= t
-        - 若 buffer_in 不为空，则 buffer_in 中存在该 job 的半成品（否则 starving）
-        """
-        if not os_seq:
-            return None
-
-        n = len(os_seq)
-        seen_jobs = set()
-        for k in range(n):
-            idx = (os_ptr + k) % n
-            job = os_seq[idx]
-
-            # During one scan no state changes, so later tokens of the same job
-            # cannot have different startability from its first encountered token.
-            if job in seen_jobs:
-                continue
-            seen_jobs.add(job)
-
+        best_candidate: Optional[Tuple[str, int, str]] = None
+        best_rank = float("inf")
+        for job in self.operations:
             if job_done.get(job, False):
                 continue
 
@@ -379,13 +507,14 @@ class StageBufferWIPScheduler:
             if op_idx >= len(self.operations[job]):
                 continue
 
+            op_key = (job, op_idx)
             op = self.operations[job][op_idx]
             if ms_map is not None:
-                m = ms_map[(job, op_idx)]
-                if blocked[m] is not None or machine_free_at[m] > t:
+                machine = ms_map[op_key]
+                if blocked[machine] is not None or machine_free_at[machine] > t:
                     continue
             else:
-                m = self._choose_machine(
+                machine = self._choose_machine(
                     job=job,
                     op_idx=op_idx,
                     ms_map=None,
@@ -393,17 +522,19 @@ class StageBufferWIPScheduler:
                     machine_free_at=machine_free_at,
                     blocked=blocked,
                 )
-            if m is None:
+            if machine is None:
                 continue
 
             buffer_in = op.get("buffer_in", None)
             if buffer_in is not None and job not in self.buffers[buffer_in].content:
                 continue
 
-            new_ptr = (idx + 1) % n
-            return job, op_idx, m, new_ptr
+            rank = priority_rank[op_key]
+            if rank < best_rank:
+                best_rank = rank
+                best_candidate = (job, op_idx, machine)
 
-        return None
+        return best_candidate
 
     def _try_start(
         self,
@@ -416,6 +547,7 @@ class StageBufferWIPScheduler:
         machine_free_at: Dict[str, int],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
         schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
+        provenance: Optional[DecodeProvenance] = None,
     ) -> Tuple[bool, int]:
         """
         在时刻 t 启动工序：
@@ -433,9 +565,23 @@ class StageBufferWIPScheduler:
         if buffer_in is not None:
             if job not in self.buffers[buffer_in].content:
                 return False, t
+        start_event_id = None
+        if provenance is not None:
+            start_event_id = provenance.operation_event(t, "start", job, op_idx, machine)
+            prior_release = provenance._machine_release.get(machine)
+            if prior_release is not None and provenance.events[prior_release].time == t:
+                provenance.edge(prior_release, start_event_id, "machine", machine=machine)
+            if buffer_in is not None:
+                source = provenance._item_source.pop((buffer_in, job), None)
+                if source is not None and provenance.events[source].time == t:
+                    provenance.edge(source, start_event_id, "wip", buffer_id=buffer_in)
+
+        if buffer_in is not None:
+            level_before = len(self.buffers[buffer_in].content)
             self.buffers[buffer_in].content.remove(job)
             # 记录 take 事件
-            self._log_buffer_event(buffer_trace, buffer_in, t, "take", job)
+            self._log_buffer_event(buffer_trace, buffer_in, t, "take", job, provenance,
+                                   start_event_id, level_before)
 
         pt = op["machines"][machine]
         end_time = t + int(pt)
@@ -466,12 +612,13 @@ class StageBufferWIPScheduler:
         job: str,
         op_idx: int,
         machine: str,
-        blocked: Dict[str, Optional[Tuple[str, str, int]]],
+        blocked: Dict[str, Optional[BlockedOperation]],
         machine_free_at: Dict[str, int],
         schedule: List[Dict[str, Any]],
         job_done: Dict[str, bool],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
         schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
+        provenance: Optional[DecodeProvenance] = None,
     ):
         """
         工序加工结束时：
@@ -482,32 +629,60 @@ class StageBufferWIPScheduler:
         """
         op = self.operations[job][op_idx]
         buffer_out = op.get("buffer_out", None)
-
+        complete_id = None
+        if provenance is not None:
+            complete_id = provenance.operation_event(t, "complete", job, op_idx, machine)
+            provenance.edge(provenance.op_events[(job, op_idx)]["start"],
+                            complete_id, "processing")
         if buffer_out is None:
             machine_free_at[machine] = t
             self._update_release_time(schedule, job, op_idx, t, schedule_index)
+            self._record_release(provenance, t, job, op_idx, machine)
             job_done[job] = True
             return
 
         buf = self.buffers[buffer_out]
         if len(buf.content) < buf.capacity:
+            release_id = self._record_release(provenance, t, job, op_idx, machine)
+            level_before = len(buf.content)
             buf.content.add(job)
             # 记录 put 事件
-            self._log_buffer_event(buffer_trace, buffer_out, t, "put", job)
+            self._log_buffer_event(buffer_trace, buffer_out, t, "put", job, provenance,
+                                   release_id, level_before)
+            if provenance is not None:
+                provenance._item_source[(buffer_out, job)] = release_id
 
             machine_free_at[machine] = t
             self._update_release_time(schedule, job, op_idx, t, schedule_index)
         else:
-            blocked[machine] = (job, buffer_out, op_idx)
+            blocked[machine] = BlockedOperation(job, buffer_out, op_idx, machine, complete_id)
+
+    def _record_release(self, provenance: Optional[DecodeProvenance], t: int,
+                        job: str, op_idx: int, machine: str,
+                        trigger_start_event_id: Optional[int] = None,
+                        trigger_buffer_id: Optional[str] = None) -> Optional[int]:
+        if provenance is None:
+            return None
+        release_id = provenance.operation_event(t, "release", job, op_idx, machine)
+        provenance.edge(provenance.op_events[(job, op_idx)]["complete"],
+                        release_id, "completion_release")
+        if trigger_start_event_id is not None:
+            provenance.edge(trigger_start_event_id, release_id, "unblocking",
+                            buffer_id=trigger_buffer_id)
+        provenance._machine_release[machine] = release_id
+        return release_id
 
     def _release_blocked_if_possible(
         self,
         t: int,
-        blocked: Dict[str, Optional[Tuple[str, str, int]]],
+        blocked: Dict[str, Optional[BlockedOperation]],
         machine_free_at: Dict[str, int],
         schedule: List[Dict[str, Any]],
         buffer_trace: Dict[str, List[Tuple[int, int, str, Optional[str]]]],
         schedule_index: Optional[Dict[Tuple[str, int], Dict[str, Any]]] = None,
+        provenance: Optional[DecodeProvenance] = None,
+        trigger_start_event_id: Optional[int] = None,
+        trigger_buffer_id: Optional[str] = None,
     ):
         """
         若某被阻塞机器对应的缓冲区出现空位，则立刻释放：
@@ -518,12 +693,19 @@ class StageBufferWIPScheduler:
         for m, blk in list(blocked.items()):
             if blk is None:
                 continue
-            job, buffer_out, op_idx = blk
+            job, buffer_out, op_idx = blk.job, blk.buffer_out, blk.op_idx
             buf = self.buffers[buffer_out]
             if len(buf.content) < buf.capacity:
+                actual_trigger = (trigger_start_event_id if trigger_buffer_id == buffer_out else None)
+                release_id = self._record_release(provenance, t, job, op_idx, m,
+                                                  actual_trigger, buffer_out)
+                level_before = len(buf.content)
                 buf.content.add(job)
                 # 记录 put 事件（解除阻塞放入缓冲区）
-                self._log_buffer_event(buffer_trace, buffer_out, t, "put", job)
+                self._log_buffer_event(buffer_trace, buffer_out, t, "put", job, provenance,
+                                       release_id, level_before)
+                if provenance is not None:
+                    provenance._item_source[(buffer_out, job)] = release_id
 
                 blocked[m] = None
                 machine_free_at[m] = t
@@ -710,7 +892,7 @@ class StageBufferWIPScheduler:
             per_buffer_horizon[bid] = T
 
             cap = int(self.buffers_def[bid]["capacity"])
-            low_wip = int(self.buffers_def[bid].get("low_wip", max(1, cap // 3)))
+            low_wip = int(self.buffers_def[bid].get("low_wip", max(1, (cap + 2) // 3)))
             per_buffer_low_wip[bid] = low_wip
 
             active_start = self._compute_buffer_active_start(bid)

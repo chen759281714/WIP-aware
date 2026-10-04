@@ -20,6 +20,7 @@ FIG_DIR = os.path.join(ANALYSIS_DIR, "figures")
 
 # 如果你想固定算法显示顺序，可以在这里写
 ALGO_ORDER = [
+    "WIPGraphDualPopulation",
     "EMTGLocalGAV2",
     "BaselineNSGA2",
     "BaselineMOEAD",

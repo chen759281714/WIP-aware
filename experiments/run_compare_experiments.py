@@ -11,9 +11,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from src.algorithms.baseline_nsga2 import BaselineNSGA2
 from src.algorithms.baseline_moead import BaselineMOEAD
-from src.algorithms.emt_glocal_ga_v2 import EMTGLocalGAV2
-from src.algorithms.emt_glocal_ga_v2_no_gat import EMTGLocalGAV2_NoGAT
-from src.algorithms.emt_glocal_ga_v2_no_lat import EMTGLocalGAV2_NoLAT
+from src.algorithms.wip_graph_dual_population import WIPGraphDualPopulation
 from src.algorithms.baseline_spea2 import BaselineSPEA2
 
 # =========================
@@ -21,16 +19,14 @@ from src.algorithms.baseline_spea2 import BaselineSPEA2
 # =========================
 
 ALGORITHMS = {
-    "EMTGLocalGAV2": EMTGLocalGAV2,
-    "NoGAT": EMTGLocalGAV2_NoGAT,
-    "NoLAT": EMTGLocalGAV2_NoLAT,
+    "WIPGraphDualPopulation": WIPGraphDualPopulation,
     #"BaselineNSGA2": BaselineNSGA2,
     #"BaselineMOEAD": BaselineMOEAD,
     #"BaselineSPEA2": BaselineSPEA2,
 }
 SEEDS = list(range(1, 11))
 
-INSTANCE_DIR = "data/instances/WIP-FMS"
+INSTANCE_DIR = "data/final_benchmark/instances"
 RUN_RESULT_DIR = "experiments/results/runs"
 
 
@@ -48,17 +44,9 @@ N_PROCESSES = 20
 # 是否跳过已经存在的 run json
 SKIP_EXISTING = True
 
-# EMT 三个种群的规模分配（总和应等于 POP_SIZE）
-EMT_MAIN_POP_SIZE = POP_SIZE//2
-EMT_GLOBAL_POP_SIZE = POP_SIZE//4
-EMT_LOCAL_POP_SIZE = POP_SIZE - EMT_MAIN_POP_SIZE - EMT_GLOBAL_POP_SIZE
-
 def validate_experiment_config():
-    if EMT_MAIN_POP_SIZE + EMT_GLOBAL_POP_SIZE + EMT_LOCAL_POP_SIZE != POP_SIZE:
-        raise ValueError(
-            "EMT_MAIN_POP_SIZE + EMT_GLOBAL_POP_SIZE + EMT_LOCAL_POP_SIZE "
-            "必须等于 POP_SIZE"
-        )
+    if POP_SIZE < 2 or MAX_EVALUATIONS < POP_SIZE:
+        raise ValueError("POP_SIZE >= 2 and MAX_EVALUATIONS >= POP_SIZE are required")
     
 # =========================
 # 获取实例
@@ -109,12 +97,11 @@ def to_jsonable(obj):
 
 
 def run_once(instance_path, seed, algo_name):
-    spec, operations, buffers, _ = load_instance_from_json(instance_path)
-
-    # 保证 low_wip 字段存在，避免后续分析脚本还要回头补
-    for bid in buffers:
-        if "low_wip" not in buffers[bid]:
-            buffers[bid]["low_wip"] = 1
+    with open(instance_path, "r", encoding="utf-8") as handle:
+        instance = json.load(handle)
+    spec = instance["spec"]
+    operations = instance["operations"]
+    buffers = instance["buffers"]
 
     AlgoClass = ALGORITHMS[algo_name]
 
@@ -180,70 +167,33 @@ def run_once(instance_path, seed, algo_name):
             **algo_params
         )
 
-    elif algo_name in ["EMTGLocalGAV2", "NoGAT", "NoLAT"]:
-
-        if algo_name == "EMTGLocalGAV2":
-            main = EMT_MAIN_POP_SIZE
-            global_ = EMT_GLOBAL_POP_SIZE
-            local = EMT_LOCAL_POP_SIZE
-
-        elif algo_name == "NoGAT":
-            # 把 global 的资源分给 main + local
-            main = EMT_MAIN_POP_SIZE
-            global_ = 0
-            local = EMT_LOCAL_POP_SIZE
-
-        elif algo_name == "NoLAT":
-            # 把 local 的资源分给 main + global
-            main = EMT_MAIN_POP_SIZE
-            global_ = EMT_GLOBAL_POP_SIZE
-            local = 0
-
+    elif algo_name == "WIPGraphDualPopulation":
         algo_params = {
-            "main_pop_size": main,
-            "global_pop_size": global_,
-            "local_pop_size": local,
-            "max_evaluations": MAX_EVALUATIONS,
-            "snapshot_interval": SNAPSHOT_INTERVAL,
+            "N": POP_SIZE // 2,
+            "N_A": POP_SIZE,
+            "rho": 0.8,
+            "eta": 0.3,
+            "p_mut": 0.1,
+            "T_coop": 10,
+            "gamma_A": 0.2,
+            "FE_max": MAX_EVALUATIONS,
             "seed": seed,
-            "crossover_rate": 0.7,
-            "os_mutation_rate": 0.1,
-            "ms_mutation_rate": 0.1,
-            "tournament_size": 2,
-            "local_elite_count": 12,
-            "local_neighbors_per_elite": 6,
-            "local_os_mutation_rate": 0.2,
-            "local_ms_mutation_rate": 0.2,
         }
-
-        search = AlgoClass(
-            operations=operations,
-            buffers=buffers,
-            pop_size=main,
-            global_pop_size=global_,
-            local_pop_size=local,
-            max_evaluations=MAX_EVALUATIONS,
-            snapshot_interval=SNAPSHOT_INTERVAL,
-            seed=seed,
-            crossover_rate=0.7,
-            os_mutation_rate=0.1,
-            ms_mutation_rate=0.1,
-            tournament_size=2,
-            local_elite_count=12,
-            local_neighbors_per_elite=6,
-            local_os_mutation_rate=0.2,
-            local_ms_mutation_rate=0.2,
-        )
+        search = AlgoClass(operations=operations, buffers=buffers, **algo_params)
 
     else:
         raise ValueError(f"未知算法: {algo_name}")
 
     t0 = time.time()
-    best = search.run(
-        store_stats_init=True,
-        store_stats_generations=False,
-        verbose=False
-    )
+    if algo_name == "WIPGraphDualPopulation":
+        archive = search.run()
+        best = min(archive, key=lambda ind: (ind.makespan, ind.shortage))
+    else:
+        best = search.run(
+            store_stats_init=True,
+            store_stats_generations=False,
+            verbose=False
+        )
     runtime = time.time() - t0
 
     if best.stats is None:
@@ -347,9 +297,7 @@ def run_once(instance_path, seed, algo_name):
             "pop_size_global": POP_SIZE,
             "max_evaluations": MAX_EVALUATIONS,
             "snapshot_interval": SNAPSHOT_INTERVAL,
-            "emt_main_pop_size": EMT_MAIN_POP_SIZE,
-            "emt_global_pop_size": EMT_GLOBAL_POP_SIZE,
-            "emt_local_pop_size": EMT_LOCAL_POP_SIZE,
+            "dual_population_N": POP_SIZE // 2,
         },
         
         "representative_result": {
