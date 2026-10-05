@@ -304,7 +304,7 @@ class PSRelinkingTests(unittest.TestCase):
         ops, buffers, _, _ = fixture()
         def run():
             search = WIPGraphDualPopulation(ops, buffers, N=3, N_A=8, FE_max=80,
-                                            seed=31, T_coop=2, gamma_A=0.4)
+                                            seed=31, T_coop=2)
             evaluated = []
             original = search.evaluate
             def record(ind):

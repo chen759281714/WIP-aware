@@ -61,7 +61,6 @@ P_MU = 0.1
 RHO = 0.8
 ETA = 0.3
 T_COOP = 10
-GAMMA_A = 0.2
 
 USE_MULTIPROCESSING = True
 N_WORKERS = 5
@@ -95,19 +94,18 @@ class Settings:
     rho: float
     eta: float
     t_coop: int
-    gamma_a: float
 
     def algorithm_parameters(self, seed: int) -> dict:
         return {
             "N": self.n, "N_A": self.n_a, "p_mut": self.p_mu,
             "rho": self.rho, "eta": self.eta, "T_coop": self.t_coop,
-            "gamma_A": self.gamma_a, "FE_max": self.fe_max, "seed": seed,
+            "FE_max": self.fe_max, "seed": seed,
         }
 
 
 def current_settings() -> Settings:
     return Settings(INSTANCE_DIR, OUTPUT_ROOT, FE_MAX, N, N_A, P_MU,
-                    RHO, ETA, T_COOP, GAMMA_A)
+                    RHO, ETA, T_COOP)
 
 
 def validate_configuration(settings: Settings) -> None:

@@ -93,16 +93,16 @@ class WIPGraphDualPopulation:
     def __init__(self, operations: Dict[str, list], buffers: Dict[str, dict],
                  N: int = 50, N_A: int = 100, rho: float = 0.8,
                  eta: float = 0.3, p_mut: float = 0.1, T_coop: int = 10,
-                 gamma_A: float = 0.2, FE_max: int = 10000,
+                 FE_max: int = 10000,
                  seed: Optional[int] = None):
         if N < 1 or N_A < 2 or FE_max < 2 * N or T_coop < 1:
             raise ValueError("Require N>=1, N_A>=2, FE_max>=2N, T_coop>=1")
-        if not (0 < rho <= 1 and 0 < eta <= 1 and 0 <= p_mut <= 1 and 0 <= gamma_A <= 1):
-            raise ValueError("Invalid rho, eta, p_mut, or gamma_A")
+        if not (0 < rho <= 1 and 0 < eta <= 1 and 0 <= p_mut <= 1):
+            raise ValueError("Invalid rho, eta, or p_mut")
         self.operations, self.buffers = operations, buffers
         self.N, self.N_A = N, N_A
         self.rho, self.eta, self.p_mut = rho, eta, p_mut
-        self.T_coop, self.gamma_A, self.FE_max = T_coop, gamma_A, FE_max
+        self.T_coop, self.FE_max = T_coop, FE_max
         self.rng = random.Random(seed)
         self.encoder = Encoder(operations, rng=self.rng)
         self.decoder = StageBufferWIPScheduler(operations, buffers)
@@ -477,10 +477,16 @@ class WIPGraphDualPopulation:
         if self.rng.random() < self.p_mut:
             self._last_pm_move_kind = "basic_mutation"
             return self.basic_mutation(seed)
+        child = self._vary_makespan_specialized(seed)
+        return child if child is not None else self.basic_mutation(seed)
+
+    def _vary_makespan_specialized(self, seed: Individual) -> Optional[Individual]:
+        self._last_pm_selected_tags = {"unblocking": False, "wip": False}
+        self._last_pm_selected_action = None
         actions = self.makespan_actions(seed)
         if not actions:
             self._last_pm_move_kind = "fallback_basic_mutation"
-            return self.basic_mutation(seed)
+            return None
         counts = {kind: sum(action.kind == kind for action in actions)
                   for kind in self.diagnostics["pm_selected_depths"]}
         self.diagnostics["pm_action_sets"].append({**counts, "total_actions": len(actions)})
@@ -506,13 +512,38 @@ class WIPGraphDualPopulation:
                     abs(seed.os_seq.index(moved_key) - child.os_seq.index(moved_key)))
                 return child
             self._last_pm_move_kind = "fallback_basic_mutation"
-            return self.basic_mutation(seed)
+            return None
         self._last_pm_move_kind = "machine_reassign"
         child = Individual(seed.os_seq[:], seed.ms_map.copy(), operation_order=seed.operation_order)
         machines = [m for m in self.operations[action.key[0]][action.key[1]]["machines"]
                     if m != seed.ms_map[action.key]]
         child.ms_map[action.key] = self.rng.choice(machines)
         return child
+
+    def _generate_pm_child(self, cooperation: bool) -> Tuple[Individual, Individual, str]:
+        self._last_pm_selected_tags = {"unblocking": False, "wip": False}
+        self._last_pm_selected_action = None
+        if self.pm_specialized_kind == "BasicMutation":
+            seed = self.tournament(self.P_M, "makespan")
+            return seed, self.vary_makespan(seed), "P_M_self"
+        if self.rng.random() < self.p_mut:
+            seed = self.tournament(self.P_M, "makespan")
+            self._last_pm_move_kind = "basic_mutation"
+            return seed, self.basic_mutation(seed), "P_M_self"
+        archive_pick = None
+        if cooperation and self.pm_archive_guidance_enabled:
+            counts = self.diagnostics["cooperation"]
+            counts["pm_attempts"] += 1
+            archive_pick = self.archive_guide()
+            counts["pm_usable" if archive_pick is not None else "pm_fallback_self"] += 1
+        seed = archive_pick if archive_pick is not None else self.tournament(self.P_M, "makespan")
+        child = self._vary_makespan_specialized(seed)
+        if child is None:
+            # Even an unsuccessful archive-assisted MGS falls back to a specialist parent.
+            if archive_pick is not None:
+                seed = self.tournament(self.P_M, "makespan")
+            return seed, self.basic_mutation(seed), "P_M_self"
+        return seed, child, "P_M_archive" if archive_pick is not None else "P_M_self"
 
     def diagnose_shortage(self, ind: Individual) -> ShortageDiagnosis:
         self.diagnostics["shortage_diagnosis"]["calls"] += 1
@@ -530,7 +561,9 @@ class WIPGraphDualPopulation:
             low = stats["per_buffer_low_wip"][bid]
             ordered = sorted(events, key=lambda ev: (ev.time, ev.event_id))
             times = sorted({start, end} | {ev.time for ev in ordered if start <= ev.time <= end})
-            level = ordered[0].level_after if ordered else 0
+            # Match decoder._reset_buffers; future events must not seed the state.
+            initial_content = self.buffers[bid].get("init_content") or []
+            level = len(set(initial_content))
             event_index = 0
             while event_index < len(ordered) and ordered[event_index].time < start:
                 level = ordered[event_index].level_after
@@ -572,12 +605,6 @@ class WIPGraphDualPopulation:
                             anchors.add(ev.cause_event_id)
                         elif after < before and left < ev.time <= right:
                             anchors.add(ev.cause_event_id)
-                    if not anchors:
-                        context = [ev for ev in ordered
-                                   if (ev.time, ev.event_id) <= opening_boundary
-                                   and ev.cause_event_id is not None]
-                        if context:
-                            anchors.add(context[-1].cause_event_id)
                     nodes, edges, _ = self._backtrace(prov, anchors)
                     ops = {(prov.events[node].job, prov.events[node].op_idx)
                            for node in nodes if node in prov.events}
@@ -749,6 +776,7 @@ class WIPGraphDualPopulation:
         if coverage + 1e-12 < self.rho:
             hs_stats["coverage_violations"] += 1
         if archive_assisted:
+            self.diagnostics["cooperation"]["ps_attempts"] += 1
             self.diagnostics["cooperation"]["ps_probes"] += 1
         guide = (self.choose_archive_guide_for_shortage(x, diagnosis, high, evidence)
                  if archive_assisted else None)
@@ -861,25 +889,13 @@ class WIPGraphDualPopulation:
             cooperation = self.round % self.T_coop == 0
             offspring = []
             for side, count in (("M", m_count), ("S", s_count)):
-                assisted = min(count, round(count * self.gamma_A)) if cooperation else 0
-                for i in range(count):
+                for _ in range(count):
                     if side == "M":
-                        if i < assisted:
-                            self.diagnostics["cooperation"]["pm_attempts"] += 1
-                        archive_pick = self.archive_guide() if i < assisted else None
-                        if i < assisted:
-                            key = "pm_usable" if archive_pick is not None else "pm_fallback_self"
-                            self.diagnostics["cooperation"][key] += 1
-                        seed = archive_pick or self.tournament(self.P_M, "makespan")
-                        child = self.vary_makespan(seed)
-                        source = "P_M_archive" if archive_pick is not None else "P_M_self"
+                        seed, child, source = self._generate_pm_child(cooperation)
                     else:
-                        if i < assisted:
-                            self.diagnostics["cooperation"]["ps_attempts"] += 1
-                        positive = [z for z in self.P_S if z.shortage > 0]
-                        seed = self.tournament(positive, "shortage") if positive else self.tournament(self.P_S, "shortage")
+                        seed = self.tournament(self.P_S, "shortage")
                         child = self.vary_shortage(seed, self.P_S,
-                                                   archive_assisted=i < assisted)
+                                                   archive_assisted=cooperation and self.ps_archive_guidance_enabled)
                         source = ("P_S_archive" if self._last_ps_guide_source == "archive"
                                   else "P_S_self")
                     self.evaluate(child)

@@ -223,7 +223,7 @@ class SearchTests(unittest.TestCase):
     def setUp(self):
         ops, buffers, _, _ = fixture()
         self.search = WIPGraphDualPopulation(ops, buffers, N=3, N_A=4,
-                                              FE_max=13, T_coop=1, gamma_A=0.5, seed=3)
+                                              FE_max=13, T_coop=1, seed=3)
 
     def test_shortage_mass_h_and_unanchored_diagnostic(self):
         self.search.initialize()
@@ -615,7 +615,7 @@ class SearchTests(unittest.TestCase):
         self.assertEqual([z.shortage for z in selected], [10, 11, 12])
         self.assertEqual(selected[-1].makespan, 99)
 
-    def test_opening_context_respects_same_time_event_id(self):
+    def test_opening_without_cause_rejects_earlier_and_same_time_context(self):
         p = DecodeProvenance(
             events={1: ProvenanceEvent(1, 0, "release", "J0", 0, "M0"),
                     4: ProvenanceEvent(4, 2, "start", "J1", 0, "M1")},
@@ -629,9 +629,12 @@ class SearchTests(unittest.TestCase):
                                            "per_buffer_active_end": {"B": 10},
                                            "per_buffer_low_wip": {"B": 1}}},
                        provenance=p)
-        diagnosis = self.search.diagnose_shortage(x)
-        self.assertEqual(diagnosis.unanchored_intervals, 0)
-        self.assertIn(1, diagnosis.influence_events)
+        with warnings.catch_warnings(record=True) as captured:
+            diagnosis = self.search.diagnose_shortage(x)
+        self.assertTrue(captured)
+        self.assertEqual(diagnosis.unanchored_intervals, 1)
+        self.assertEqual(diagnosis.phi, {})
+        self.assertNotIn(1, diagnosis.influence_events)
         self.assertNotIn(4, diagnosis.influence_events)
 
     def test_active_start_positive_context_excludes_same_time_future(self):

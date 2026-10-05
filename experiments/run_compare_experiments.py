@@ -187,7 +187,6 @@ def run_once(instance_path, seed, algo_name):
             "eta": 0.3,
             "p_mut": 0.1,
             "T_coop": 10,
-            "gamma_A": 0.2,
             "FE_max": MAX_EVALUATIONS,
             "seed": seed,
         }

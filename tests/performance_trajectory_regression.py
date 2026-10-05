@@ -88,7 +88,7 @@ def finish_result(search, trace, elapsed):
 def run_case(module, operations, buffers, seed, fe_max, trace_enabled=True):
     search = module.WIPGraphDualPopulation(
         operations, buffers, N=3, N_A=12, FE_max=fe_max, seed=seed,
-        T_coop=2, gamma_A=0.4)
+        T_coop=2)
     if not trace_enabled:
         start = time.perf_counter()
         search.run()
@@ -222,7 +222,7 @@ def main():
                   f"baseline={old[4]:.3f}s optimized={new[4]:.3f}s "
                   f"speedup={old[4] / new[4]:.3f}x", flush=True)
             results.append({"variant": args.variant, "size": size, "seed": seed,
-                            "FE": args.fe, "N": 3, "N_A": 12, "T_coop": 2, "gamma_A": 0.4,
+                            "FE": args.fe, "N": 3, "N_A": 12, "T_coop": 2,
                             "trajectory_equal": None if args.timing_only else True,
                             "final_state_equal": True, "instrumented": not args.timing_only,
                             "baseline_seconds": old[4],

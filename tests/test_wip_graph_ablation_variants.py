@@ -24,7 +24,7 @@ class AblationVariantTests(unittest.TestCase):
 
     def make(self, cls):
         return cls(self.operations, self.buffers, N=3, N_A=4, FE_max=60,
-                   T_coop=2, gamma_A=0.5, seed=1)
+                   T_coop=2, seed=1)
 
     def test_full_read_only_metadata_does_not_change_trajectory(self):
         baseline = self.make(WIPGraphDualPopulation)
@@ -52,7 +52,7 @@ class AblationVariantTests(unittest.TestCase):
              patch.object(search, "choose_archive_guide_for_shortage",
                           wraps=search.choose_archive_guide_for_shortage) as ps_guide:
             search.run()
-        self.assertGreater(archive_seed.call_count, 0)
+        self.assertEqual(archive_seed.call_count, 0)
         self.assertGreater(ps_guide.call_count, 0)
         self.assertEqual(len(search.diagnostics["pm_action_sets"]), 0)
         self.assertEqual(search.diagnostics["cooperation"]["pm_usable"], 0)
