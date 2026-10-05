@@ -499,16 +499,19 @@ class StageBufferWIPScheduler:
         """
         best_candidate: Optional[Tuple[str, int, str]] = None
         best_rank = float("inf")
-        for job in self.operations:
+        operations = self.operations
+        buffers = self.buffers
+        for job in operations:
             if job_done.get(job, False):
                 continue
 
             op_idx = job_next[job]
-            if op_idx >= len(self.operations[job]):
+            job_ops = operations[job]
+            if op_idx >= len(job_ops):
                 continue
 
             op_key = (job, op_idx)
-            op = self.operations[job][op_idx]
+            op = job_ops[op_idx]
             if ms_map is not None:
                 machine = ms_map[op_key]
                 if blocked[machine] is not None or machine_free_at[machine] > t:
@@ -526,7 +529,7 @@ class StageBufferWIPScheduler:
                 continue
 
             buffer_in = op.get("buffer_in", None)
-            if buffer_in is not None and job not in self.buffers[buffer_in].content:
+            if buffer_in is not None and job not in buffers[buffer_in].content:
                 continue
 
             rank = priority_rank[op_key]

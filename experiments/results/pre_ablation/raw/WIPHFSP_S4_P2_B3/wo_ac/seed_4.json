@@ -1,0 +1,178 @@
+{
+  "instance": "WIPHFSP_S4_P2_B3",
+  "variant": "wo_ac",
+  "seed": 4,
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "runtime_seconds": 3308.2828082089836,
+  "final_archive_size": 24,
+  "best_makespan": 1890.0,
+  "best_shortage": 11376.0,
+  "final_archive": [
+    {
+      "makespan": 2072.0,
+      "shortage": 12617.0
+    },
+    {
+      "makespan": 2072.0,
+      "shortage": 12617.0
+    },
+    {
+      "makespan": 2043.0,
+      "shortage": 13175.0
+    },
+    {
+      "makespan": 2081.0,
+      "shortage": 12445.0
+    },
+    {
+      "makespan": 2043.0,
+      "shortage": 13175.0
+    },
+    {
+      "makespan": 2054.0,
+      "shortage": 12972.0
+    },
+    {
+      "makespan": 2100.0,
+      "shortage": 11986.0
+    },
+    {
+      "makespan": 2120.0,
+      "shortage": 11809.0
+    },
+    {
+      "makespan": 2120.0,
+      "shortage": 11809.0
+    },
+    {
+      "makespan": 1967.0,
+      "shortage": 14114.0
+    },
+    {
+      "makespan": 1896.0,
+      "shortage": 15544.0
+    },
+    {
+      "makespan": 2136.0,
+      "shortage": 11652.0
+    },
+    {
+      "makespan": 2035.0,
+      "shortage": 13342.0
+    },
+    {
+      "makespan": 1904.0,
+      "shortage": 15352.0
+    },
+    {
+      "makespan": 1928.0,
+      "shortage": 15033.0
+    },
+    {
+      "makespan": 1937.0,
+      "shortage": 14714.0
+    },
+    {
+      "makespan": 1981.0,
+      "shortage": 13441.0
+    },
+    {
+      "makespan": 1931.0,
+      "shortage": 14949.0
+    },
+    {
+      "makespan": 1932.0,
+      "shortage": 14795.0
+    },
+    {
+      "makespan": 1919.0,
+      "shortage": 15142.0
+    },
+    {
+      "makespan": 1971.0,
+      "shortage": 13733.0
+    },
+    {
+      "makespan": 1949.0,
+      "shortage": 14186.0
+    },
+    {
+      "makespan": 1890.0,
+      "shortage": 15645.0
+    },
+    {
+      "makespan": 2141.0,
+      "shortage": 11376.0
+    }
+  ],
+  "algorithm_parameters": {
+    "N": 100,
+    "N_A": 200,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "eta": 0.3,
+    "T_coop": 10,
+    "gamma_A": 0.2,
+    "FE_max": 10000,
+    "seed": 4
+  },
+  "timestamp_utc": "2026-10-04T13:39:55.527079+00:00",
+  "diagnostics": {
+    "algorithm_variant": "wo_ac",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "SIS",
+    "pm_archive_guidance_enabled": false,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1596,
+        "accepted": 81
+      },
+      "machine_reassign": {
+        "generated": 2826,
+        "accepted": 826
+      },
+      "basic_mutation": {
+        "generated": 478,
+        "accepted": 17
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "shortage_relink": {
+        "generated": 4326,
+        "accepted": 83
+      },
+      "basic_mutation": {
+        "generated": 486,
+        "accepted": 125
+      },
+      "fallback_basic_mutation_phi_invalid": {
+        "generated": 0,
+        "accepted": 0
+      },
+      "fallback_basic_mutation_no_guide": {
+        "generated": 88,
+        "accepted": 12
+      },
+      "fallback_basic_mutation_zero_shortage": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 80,
+      "pm_usable": 0,
+      "pm_fallback_self": 80,
+      "ps_attempts": 80,
+      "ps_probes": 0,
+      "ps_valid_guide": 0,
+      "ps_fallback_self": 0,
+      "ps_fallback_basic": 0
+    }
+  }
+}

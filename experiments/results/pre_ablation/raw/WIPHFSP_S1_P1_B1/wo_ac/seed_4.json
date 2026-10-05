@@ -1,0 +1,178 @@
+{
+  "instance": "WIPHFSP_S1_P1_B1",
+  "variant": "wo_ac",
+  "seed": 4,
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "runtime_seconds": 337.26754104101565,
+  "final_archive_size": 24,
+  "best_makespan": 912.0,
+  "best_shortage": 127.0,
+  "final_archive": [
+    {
+      "makespan": 1040.0,
+      "shortage": 307.0
+    },
+    {
+      "makespan": 1106.0,
+      "shortage": 190.0
+    },
+    {
+      "makespan": 1106.0,
+      "shortage": 190.0
+    },
+    {
+      "makespan": 912.0,
+      "shortage": 981.0
+    },
+    {
+      "makespan": 978.0,
+      "shortage": 328.0
+    },
+    {
+      "makespan": 978.0,
+      "shortage": 328.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 977.0,
+      "shortage": 332.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 937.0,
+      "shortage": 533.0
+    },
+    {
+      "makespan": 937.0,
+      "shortage": 533.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 1051.0,
+      "shortage": 304.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 937.0,
+      "shortage": 533.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 916.0,
+      "shortage": 968.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 1149.0,
+      "shortage": 127.0
+    },
+    {
+      "makespan": 938.0,
+      "shortage": 461.0
+    },
+    {
+      "makespan": 931.0,
+      "shortage": 607.0
+    },
+    {
+      "makespan": 945.0,
+      "shortage": 356.0
+    },
+    {
+      "makespan": 975.0,
+      "shortage": 350.0
+    },
+    {
+      "makespan": 1149.0,
+      "shortage": 127.0
+    }
+  ],
+  "algorithm_parameters": {
+    "N": 100,
+    "N_A": 200,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "eta": 0.3,
+    "T_coop": 10,
+    "gamma_A": 0.2,
+    "FE_max": 10000,
+    "seed": 4
+  },
+  "timestamp_utc": "2026-10-04T07:43:06.244633+00:00",
+  "diagnostics": {
+    "algorithm_variant": "wo_ac",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "SIS",
+    "pm_archive_guidance_enabled": false,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1513,
+        "accepted": 127
+      },
+      "machine_reassign": {
+        "generated": 2891,
+        "accepted": 664
+      },
+      "basic_mutation": {
+        "generated": 496,
+        "accepted": 20
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "shortage_relink": {
+        "generated": 4308,
+        "accepted": 102
+      },
+      "basic_mutation": {
+        "generated": 508,
+        "accepted": 70
+      },
+      "fallback_basic_mutation_phi_invalid": {
+        "generated": 0,
+        "accepted": 0
+      },
+      "fallback_basic_mutation_no_guide": {
+        "generated": 84,
+        "accepted": 5
+      },
+      "fallback_basic_mutation_zero_shortage": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 80,
+      "pm_usable": 0,
+      "pm_fallback_self": 80,
+      "ps_attempts": 80,
+      "ps_probes": 0,
+      "ps_valid_guide": 0,
+      "ps_fallback_self": 0,
+      "ps_fallback_basic": 0
+    }
+  }
+}

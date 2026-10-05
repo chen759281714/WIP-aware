@@ -83,12 +83,64 @@ def assert_search_invariants(algo: WIPGraphDualPopulation) -> None:
             assert machine in algo.operations[job][op_idx]["machines"]
         assert 0.0 <= algo.structural_distance(ind, ind) <= 1.0
     for record in algo.diagnostics["relinking"]:
-        assert record["executed"] <= record["requested"]
+        assert record["applied_unit_count"] <= record["K"]
         assert record["fe_before"] == record["fe_after"]
-        assert record["os_moves"] + record["ms_moves"] == record["executed"]
+        assert record["applied_os_units"] + record["applied_ms_units"] == record["applied_unit_count"]
+        assert record["K"] == max(1, math.ceil(algo.eta * record["initial_unit_count"]))
+    assert not any(sis_violation_counts(algo).values())
     generated = sum(item["generated"] for group in ("pm_moves", "ps_moves")
                     for item in algo.diagnostics[group].values())
     assert generated == algo.n_evaluations - 2 * algo.N
+
+
+def sis_violation_counts(algo: WIPGraphDualPopulation) -> Dict[str, int]:
+    violations = dict.fromkeys(("non_h_target", "unit_not_initial", "repeated_unit",
+                               "non_strict_os_reduction", "illegal_os_insertion",
+                               "missing_machine_evidence", "ms_not_guide", "over_k",
+                               "intermediate_decode", "os_discrepancy_mismatch",
+                               "final_os_mismatch", "duplicate_initial_units"), 0)
+    for record in algo.diagnostics["relinking"]:
+        initial = set(record["initial_units"])
+        high = set(record["high_operations"])
+        evidence = set(record["machine_evidence"])
+        guide_ms, final_ms = dict(record["guide_ms"]), dict(record["final_ms"])
+        used = set()
+        seq = record["seed_os"][:]
+        guide_positions = {op: i for i, op in enumerate(record["guide_os"])}
+
+        def discrepancy(os_seq, key):
+            positions = {op: i for i, op in enumerate(os_seq)}
+            return sum((positions[key] < positions[other]) !=
+                       (guide_positions[key] < guide_positions[other])
+                       for other in os_seq if other[0] != key[0])
+
+        violations["duplicate_initial_units"] += len(initial) != record["initial_unit_count"]
+        for item in record["applied_units"]:
+            key, kind = item["key"], item["kind"]
+            unit = (key, kind)
+            violations["non_h_target"] += key not in high
+            violations["unit_not_initial"] += unit not in initial
+            violations["repeated_unit"] += unit in used
+            used.add(unit)
+            if kind == "OS":
+                before = discrepancy(seq, key)
+                seq.remove(key)
+                seq.insert(item["target_index"], key)
+                after = discrepancy(seq, key)
+                violations["non_strict_os_reduction"] += after >= before
+                violations["os_discrepancy_mismatch"] += (before, after) != (item["d_before"], item["d_after"])
+                try:
+                    algo.encoder.validate_os(seq)
+                except ValueError:
+                    violations["illegal_os_insertion"] += 1
+            else:
+                violations["missing_machine_evidence"] += key not in evidence
+                violations["ms_not_guide"] += (item["machine"] != guide_ms[key]
+                                               or final_ms[key] != guide_ms[key])
+        violations["over_k"] += len(record["applied_units"]) > record["K"]
+        violations["intermediate_decode"] += record["fe_before"] != record["fe_after"]
+        violations["final_os_mismatch"] += seq != record["final_os"]
+    return violations
 
 
 def summarize_run(algo: WIPGraphDualPopulation, checkpoints: Dict[str, dict],
@@ -130,7 +182,18 @@ def summarize_run(algo: WIPGraphDualPopulation, checkpoints: Dict[str, dict],
           "coverage_violations": diag["hs"]["coverage_violations"]}
     relinks = diag["relinking"]
     relinking = {name: numeric_summary([record[name] for record in relinks])
-                 for name in ("D0", "requested", "executed", "os_moves", "ms_moves")}
+                 for name in ("initial_unit_count", "initial_os_unit_count", "initial_ms_unit_count",
+                              "K", "applied_unit_count", "applied_os_units", "applied_ms_units",
+                              "skipped_unactionable_units", "total_os_discrepancy_reduction")}
+    os_applied = [item for record in relinks for item in record["applied_units"] if item["kind"] == "OS"]
+    relinking["d_before"] = numeric_summary([item["d_before"] for item in os_applied])
+    relinking["d_after"] = numeric_summary([item["d_after"] for item in os_applied])
+    relinking["totals"] = {
+        "applied_os_units": sum(record["applied_os_units"] for record in relinks),
+        "applied_ms_units": sum(record["applied_ms_units"] for record in relinks),
+        "total_os_discrepancy_reduction": sum(record["total_os_discrepancy_reduction"] for record in relinks),
+    }
+    relinking["violations"] = sis_violation_counts(algo)
     cooperation = dict(diag["cooperation"])
     cooperation["valid_archive_guide_rate"] = rate(cooperation["ps_valid_guide"], cooperation["ps_probes"])
     cooperation["self_fallback_rate"] = rate(cooperation["ps_fallback_self"], cooperation["ps_probes"])
@@ -254,11 +317,11 @@ def print_summary(result: Dict[str, Any]) -> None:
           f"mean ratio={result['hs']['ratio']['mean']} "
           f"size min/max={result['hs']['size']['min']}/{result['hs']['size']['max']} "
           f"coverage violations={result['hs']['coverage_violations']}")
-    print(f"Relinking: mean D0={result['relinking']['D0']['mean']} "
-          f"requested={result['relinking']['requested']['mean']} "
-          f"executed={result['relinking']['executed']['mean']} "
-          f"OS moves={result['relinking']['os_moves']['mean']} "
-          f"MS moves={result['relinking']['ms_moves']['mean']}")
+    print(f"Relinking: mean initial units={result['relinking']['initial_unit_count']['mean']} "
+          f"K={result['relinking']['K']['mean']} "
+          f"applied={result['relinking']['applied_unit_count']['mean']} "
+          f"totals={result['relinking']['totals']} "
+          f"violations={result['relinking']['violations']}")
     print(f"Archive cooperation: {result['archive_cooperation']}")
     for name, snap in result["diversity_checkpoints"].items():
         print(f"  {name}: FE={snap['fe']} PM NN={snap['pm_nearest_distance']['mean']} "

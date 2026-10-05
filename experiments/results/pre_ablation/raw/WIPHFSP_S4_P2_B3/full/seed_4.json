@@ -1,0 +1,146 @@
+{
+  "instance": "WIPHFSP_S4_P2_B3",
+  "variant": "full",
+  "seed": 4,
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "runtime_seconds": 2882.2914572089794,
+  "final_archive_size": 16,
+  "best_makespan": 1870.0,
+  "best_shortage": 10879.0,
+  "final_archive": [
+    {
+      "makespan": 1940.0,
+      "shortage": 12520.0
+    },
+    {
+      "makespan": 1914.0,
+      "shortage": 12649.0
+    },
+    {
+      "makespan": 1875.0,
+      "shortage": 14641.0
+    },
+    {
+      "makespan": 1962.0,
+      "shortage": 12425.0
+    },
+    {
+      "makespan": 2131.0,
+      "shortage": 11470.0
+    },
+    {
+      "makespan": 1870.0,
+      "shortage": 14741.0
+    },
+    {
+      "makespan": 1870.0,
+      "shortage": 14741.0
+    },
+    {
+      "makespan": 1978.0,
+      "shortage": 11983.0
+    },
+    {
+      "makespan": 1870.0,
+      "shortage": 14741.0
+    },
+    {
+      "makespan": 1999.0,
+      "shortage": 11801.0
+    },
+    {
+      "makespan": 2135.0,
+      "shortage": 10879.0
+    },
+    {
+      "makespan": 1886.0,
+      "shortage": 14636.0
+    },
+    {
+      "makespan": 1870.0,
+      "shortage": 14741.0
+    },
+    {
+      "makespan": 1870.0,
+      "shortage": 14741.0
+    },
+    {
+      "makespan": 2135.0,
+      "shortage": 10879.0
+    },
+    {
+      "makespan": 1887.0,
+      "shortage": 14483.0
+    }
+  ],
+  "algorithm_parameters": {
+    "N": 100,
+    "N_A": 200,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "eta": 0.3,
+    "T_coop": 10,
+    "gamma_A": 0.2,
+    "FE_max": 10000,
+    "seed": 4
+  },
+  "timestamp_utc": "2026-10-04T11:43:02.950657+00:00",
+  "diagnostics": {
+    "algorithm_variant": "full",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "SIS",
+    "pm_archive_guidance_enabled": true,
+    "ps_archive_guidance_enabled": true,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1675,
+        "accepted": 87
+      },
+      "machine_reassign": {
+        "generated": 2729,
+        "accepted": 772
+      },
+      "basic_mutation": {
+        "generated": 496,
+        "accepted": 17
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "shortage_relink": {
+        "generated": 4346,
+        "accepted": 80
+      },
+      "basic_mutation": {
+        "generated": 473,
+        "accepted": 123
+      },
+      "fallback_basic_mutation_phi_invalid": {
+        "generated": 0,
+        "accepted": 0
+      },
+      "fallback_basic_mutation_no_guide": {
+        "generated": 81,
+        "accepted": 13
+      },
+      "fallback_basic_mutation_zero_shortage": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 80,
+      "pm_usable": 80,
+      "pm_fallback_self": 0,
+      "ps_attempts": 80,
+      "ps_probes": 70,
+      "ps_valid_guide": 70,
+      "ps_fallback_self": 0,
+      "ps_fallback_basic": 0
+    }
+  }
+}

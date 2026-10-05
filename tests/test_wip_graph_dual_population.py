@@ -7,6 +7,7 @@ import unittest
 import warnings
 import json
 import tempfile
+from itertools import combinations
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,7 +15,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from src.algorithms.wip_graph_dual_population import (Individual, Move,
+from src.algorithms.wip_graph_dual_population import (Individual, Move, RelinkUnit,
                                                        ShortageDiagnosis, WIPGraphDualPopulation)
 from src.solution.decoder import (BufferStateEvent, DecodeProvenance, ProvenanceEvent,
                                   StageBufferWIPScheduler)
@@ -41,6 +42,101 @@ def fixture():
               ("J0", 1), ("J1", 1), ("J2", 1)]
     ms = Encoder(operations).build_ms_map(["M0", "M2", "M1", "M2", "M3", "M2"])
     return operations, buffers, os_seq, ms
+
+
+class StructuralDistanceTests(unittest.TestCase):
+    def setUp(self):
+        self.operations = {
+            job: [{"machines": {"M0": 1, "M1": 2}, "buffer_in": None,
+                   "buffer_out": None} for _ in range(2)]
+            for job in ("A", "B")
+        }
+        self.search = WIPGraphDualPopulation(self.operations, {}, N=1, N_A=2,
+                                              FE_max=2, seed=0)
+        self.ms = {key: "M0" for key in self.search.encoder.ms_index_order}
+        self.x = Individual([("A", 0), ("A", 1), ("B", 0), ("B", 1)],
+                            self.ms.copy())
+        self.y = Individual([("A", 0), ("B", 0), ("A", 1), ("B", 1)],
+                            self.ms.copy())
+
+    def test_cross_stage_cross_job_reversal(self):
+        self.search.encoder.validate_os(self.x.os_seq)
+        self.search.encoder.validate_os(self.y.os_seq)
+        self.assertEqual(4 * 3 // 2 - 2 * (2 * 1 // 2), 4)
+        self.assertEqual(self.search.structural_distance(self.x, self.y),
+                         0.5 * (1 / 4 + 0))
+
+    def test_same_job_precedence_pairs_are_excluded(self):
+        pairs = [(a, b) for a, b in combinations(self.search.encoder.ms_index_order, 2)
+                 if a[0] != b[0]]
+        self.assertEqual(len(pairs), 4)
+        self.assertNotIn((("A", 0), ("A", 1)), pairs)
+        self.assertNotIn((("B", 0), ("B", 1)), pairs)
+        with self.assertRaises(ValueError):
+            self.search.encoder.validate_os(
+                [("A", 1), ("A", 0), ("B", 0), ("B", 1)])
+
+        only_a = WIPGraphDualPopulation({"A": self.operations["A"]}, {},
+                                        N=1, N_A=2, FE_max=2, seed=0)
+        single_os = [("A", 0), ("A", 1)]
+        single_ms = {key: "M0" for key in single_os}
+        changed_ms = {**single_ms, ("A", 0): "M1"}
+        self.assertEqual(only_a.structural_distance(
+            Individual(single_os, single_ms), Individual(single_os, changed_ms)),
+            0.5 * (0 + 1 / 2))
+
+    def test_multiple_cross_stage_cross_job_reversals(self):
+        operations = {job: [{"machines": {"M0": 1}} for _ in range(3)]
+                      for job in ("A", "B")}
+        search = WIPGraphDualPopulation(operations, {}, N=1, N_A=2, FE_max=2, seed=0)
+        ms = {key: "M0" for key in search.encoder.ms_index_order}
+        x = Individual([("A", 0), ("A", 1), ("A", 2),
+                        ("B", 0), ("B", 1), ("B", 2)], ms.copy())
+        y = Individual([("A", 0), ("B", 0), ("A", 1),
+                        ("B", 1), ("A", 2), ("B", 2)], ms.copy())
+        rank_y = {key: index for index, key in enumerate(y.os_seq)}
+        reversed_pairs = {(a, b) for a, b in combinations(x.os_seq, 2)
+                          if a[0] != b[0] and rank_y[a] > rank_y[b]}
+        self.assertEqual(reversed_pairs, {
+            (("A", 1), ("B", 0)),
+            (("A", 2), ("B", 0)),
+            (("A", 2), ("B", 1)),
+        })
+        self.assertEqual(search.structural_distance(x, y), 0.5 * (3 / 9))
+
+    def test_identical_individuals_have_zero_distance(self):
+        self.assertEqual(self.search.structural_distance(self.x, self.x), 0.0)
+
+    def test_distance_is_symmetric(self):
+        self.assertEqual(self.search.structural_distance(self.x, self.y),
+                         self.search.structural_distance(self.y, self.x))
+
+    def test_distance_is_bounded(self):
+        for _ in range(20):
+            a = Individual(self.search.encoder.generate_random_os(), self.ms.copy())
+            b = Individual(self.search.encoder.generate_random_os(), self.ms.copy())
+            distance = self.search.structural_distance(a, b)
+            self.assertGreaterEqual(distance, 0.0)
+            self.assertLessEqual(distance, 1.0)
+
+    def test_ms_only_difference(self):
+        changed = Individual(self.x.os_seq[:], {**self.ms, ("A", 0): "M1"})
+        self.assertEqual(self.search.structural_distance(self.x, changed),
+                         0.5 * (0 + 1 / 4))
+
+    def test_matches_explicit_incomparable_pair_enumeration(self):
+        changed = Individual(self.y.os_seq[:], {**self.ms, ("B", 1): "M1"})
+        pairs = [(a, b) for a, b in combinations(self.search.encoder.ms_index_order, 2)
+                 if a[0] != b[0]]
+        rank_x = {key: index for index, key in enumerate(self.x.os_seq)}
+        rank_y = {key: index for index, key in enumerate(changed.os_seq)}
+        discordant = sum((rank_x[a] < rank_x[b]) != (rank_y[a] < rank_y[b])
+                         for a, b in pairs)
+        ms_differences = sum(self.x.ms_map[key] != changed.ms_map[key]
+                             for key in self.search.encoder.ms_index_order)
+        expected = 0.5 * (discordant / len(pairs) + ms_differences / 4)
+        self.assertEqual((discordant, ms_differences), (1, 1))
+        self.assertEqual(self.search.structural_distance(self.x, changed), expected)
 
 
 class DecoderProvenanceTests(unittest.TestCase):
@@ -159,11 +255,13 @@ class SearchTests(unittest.TestCase):
         self.search.initialize()
         x = self.search.P_M[0]
         self.assertEqual(self.search.structural_distance(x, x), 0)
-        y = Individual(list(reversed(x.os_seq)), x.ms_map.copy())
-        # Stage-wise distance is defined over permutations, independently of full OS positions.
+        y_os = [(job, op_idx) for job in reversed(tuple(self.search.operations))
+                for op_idx in range(len(self.search.operations[job]))]
+        self.search.encoder.validate_os(y_os)
+        y = Individual(y_os, x.ms_map.copy())
         a = Individual([("J0", 0), ("J0", 1), ("J1", 0), ("J1", 1), ("J2", 0), ("J2", 1)], x.ms_map.copy())
         b = Individual([("J0", 0), ("J1", 0), ("J2", 0), ("J0", 1), ("J1", 1), ("J2", 1)], x.ms_map.copy())
-        self.assertEqual(self.search.structural_distance(a, b), 0)
+        self.assertEqual(self.search.structural_distance(a, b), 0.125)
         d = self.search.structural_distance(x, y)
         self.assertGreaterEqual(d, 0)
         self.assertLessEqual(d, 1)
@@ -178,9 +276,8 @@ class SearchTests(unittest.TestCase):
         diagnosis = self.search.diagnose_shortage(x)
         high = self.search.high_influence_set(x, diagnosis)
         guide = min(self.search.P_S, key=lambda ind: ind.shortage)
-        actions = self.search.relinking_actions(x, guide, high, diagnosis)
-        self.assertTrue(all(a.key in high or (a.other in high if a.other else False)
-                            for a in actions))
+        units = self.search._build_relink_units(x, guide, high, diagnosis)
+        self.assertTrue(all(unit.key in high for unit in units))
         before = self.search.n_evaluations
         child = self.search.vary_shortage(x, [guide])
         self.assertEqual(self.search.n_evaluations, before)
@@ -427,22 +524,23 @@ class SearchTests(unittest.TestCase):
         fake_crowd = {id(extreme_m): math.inf, id(invalid_sparse): 100.0,
                       id(valid): 1.0, id(extreme_s): math.inf}
         with patch.object(self.search, "_crowding", return_value=fake_crowd), \
-             patch.object(self.search, "relinking_actions",
-                          side_effect=lambda _, y, _h, _d: [Move("os", ("J0", 0))] if y is valid else []):
+             patch.object(self.search, "_build_relink_units",
+                          side_effect=lambda _, y, _h, _d, _e: (RelinkUnit(("J0", 0), "OS"),)
+                          if y is valid else ()):
             self.assertIs(self.search.choose_archive_guide_for_shortage(x, diagnosis, high), valid)
 
         second_valid = make(35, 4)
         self.search.A.insert(-1, second_valid)
         fake_crowd[id(second_valid)] = 2.0
         with patch.object(self.search, "_crowding", return_value=fake_crowd), \
-             patch.object(self.search, "relinking_actions",
-                          side_effect=lambda _, y, _h, _d: [Move("os", ("J0", 0))]
-                          if y is valid or y is second_valid else []), \
+             patch.object(self.search, "_build_relink_units",
+                          side_effect=lambda _, y, _h, _d, _e: (RelinkUnit(("J0", 0), "OS"),)
+                          if y is valid or y is second_valid else ()), \
              patch.object(self.search.rng, "sample", return_value=[valid, second_valid]):
             self.assertIs(self.search.choose_archive_guide_for_shortage(x, diagnosis, high),
                           second_valid)
 
-        with patch.object(self.search, "relinking_actions", return_value=[]):
+        with patch.object(self.search, "_build_relink_units", return_value=()):
             self.assertIsNone(self.search.choose_archive_guide_for_shortage(x, diagnosis, high))
 
         self.search.p_mut = 0.0

@@ -1,0 +1,114 @@
+{
+  "instance": "WIPHFSP_S1_P4_B1",
+  "variant": "wo_ac",
+  "seed": 3,
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "runtime_seconds": 331.7374321670213,
+  "final_archive_size": 8,
+  "best_makespan": 1014.0,
+  "best_shortage": 168.0,
+  "final_archive": [
+    {
+      "makespan": 1275.0,
+      "shortage": 176.0
+    },
+    {
+      "makespan": 1014.0,
+      "shortage": 430.0
+    },
+    {
+      "makespan": 1142.0,
+      "shortage": 257.0
+    },
+    {
+      "makespan": 1337.0,
+      "shortage": 168.0
+    },
+    {
+      "makespan": 1100.0,
+      "shortage": 278.0
+    },
+    {
+      "makespan": 1058.0,
+      "shortage": 306.0
+    },
+    {
+      "makespan": 1054.0,
+      "shortage": 412.0
+    },
+    {
+      "makespan": 1041.0,
+      "shortage": 415.0
+    }
+  ],
+  "algorithm_parameters": {
+    "N": 100,
+    "N_A": 200,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "eta": 0.3,
+    "T_coop": 10,
+    "gamma_A": 0.2,
+    "FE_max": 10000,
+    "seed": 3
+  },
+  "timestamp_utc": "2026-10-04T09:01:27.750940+00:00",
+  "diagnostics": {
+    "algorithm_variant": "wo_ac",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "SIS",
+    "pm_archive_guidance_enabled": false,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1418,
+        "accepted": 75
+      },
+      "machine_reassign": {
+        "generated": 2940,
+        "accepted": 617
+      },
+      "basic_mutation": {
+        "generated": 542,
+        "accepted": 38
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "shortage_relink": {
+        "generated": 4320,
+        "accepted": 111
+      },
+      "basic_mutation": {
+        "generated": 500,
+        "accepted": 63
+      },
+      "fallback_basic_mutation_phi_invalid": {
+        "generated": 0,
+        "accepted": 0
+      },
+      "fallback_basic_mutation_no_guide": {
+        "generated": 80,
+        "accepted": 3
+      },
+      "fallback_basic_mutation_zero_shortage": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 80,
+      "pm_usable": 0,
+      "pm_fallback_self": 80,
+      "ps_attempts": 80,
+      "ps_probes": 0,
+      "ps_valid_guide": 0,
+      "ps_fallback_self": 0,
+      "ps_fallback_basic": 0
+    }
+  }
+}

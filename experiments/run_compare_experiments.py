@@ -12,6 +12,9 @@ sys.path.insert(0, PROJECT_ROOT)
 from src.algorithms.baseline_nsga2 import BaselineNSGA2
 from src.algorithms.baseline_moead import BaselineMOEAD
 from src.algorithms.wip_graph_dual_population import WIPGraphDualPopulation
+from src.algorithms.wip_graph_dual_population_wo_mgs import WIPGraphDualPopulationWithoutMGS
+from src.algorithms.wip_graph_dual_population_wo_sis import WIPGraphDualPopulationWithoutSIS
+from src.algorithms.wip_graph_dual_population_wo_ac import WIPGraphDualPopulationWithoutAC
 from src.algorithms.baseline_spea2 import BaselineSPEA2
 
 # =========================
@@ -20,10 +23,19 @@ from src.algorithms.baseline_spea2 import BaselineSPEA2
 
 ALGORITHMS = {
     "WIPGraphDualPopulation": WIPGraphDualPopulation,
+    "WIPGraphDualPopulationWithoutMGS": WIPGraphDualPopulationWithoutMGS,
+    "WIPGraphDualPopulationWithoutSIS": WIPGraphDualPopulationWithoutSIS,
+    "WIPGraphDualPopulationWithoutAC": WIPGraphDualPopulationWithoutAC,
     #"BaselineNSGA2": BaselineNSGA2,
     #"BaselineMOEAD": BaselineMOEAD,
     #"BaselineSPEA2": BaselineSPEA2,
 }
+WIP_GRAPH_ALGORITHM_NAMES = frozenset({
+    "WIPGraphDualPopulation",
+    "WIPGraphDualPopulationWithoutMGS",
+    "WIPGraphDualPopulationWithoutSIS",
+    "WIPGraphDualPopulationWithoutAC",
+})
 SEEDS = list(range(1, 11))
 
 INSTANCE_DIR = "data/final_benchmark/instances"
@@ -167,7 +179,7 @@ def run_once(instance_path, seed, algo_name):
             **algo_params
         )
 
-    elif algo_name == "WIPGraphDualPopulation":
+    elif algo_name in WIP_GRAPH_ALGORITHM_NAMES:
         algo_params = {
             "N": POP_SIZE // 2,
             "N_A": POP_SIZE,
@@ -185,7 +197,7 @@ def run_once(instance_path, seed, algo_name):
         raise ValueError(f"未知算法: {algo_name}")
 
     t0 = time.time()
-    if algo_name == "WIPGraphDualPopulation":
+    if algo_name in WIP_GRAPH_ALGORITHM_NAMES:
         archive = search.run()
         best = min(archive, key=lambda ind: (ind.makespan, ind.shortage))
     else:

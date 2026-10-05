@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 import random
 import warnings
+from bisect import bisect_right, insort
 from collections import deque
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
@@ -56,6 +57,21 @@ class Move:
     depth: int = 0
 
 
+@dataclass(frozen=True)
+class RelinkUnit:
+    key: OpKey
+    kind: str
+
+
+@dataclass(frozen=True)
+class OSRelinkAction:
+    key: OpKey
+    target_index: int
+    d_before: int
+    d_after: int
+    displacement: int
+
+
 @dataclass
 class ShortageDiagnosis:
     intervals: List[Tuple[str, int, int, float, Set[OpKey]]]
@@ -67,6 +83,12 @@ class ShortageDiagnosis:
 
 class WIPGraphDualPopulation:
     """Makespan/shortage steady-state search with a shared Pareto archive."""
+
+    algorithm_variant = "full"
+    pm_specialized_kind = "MGS"
+    ps_specialized_kind = "SIS"
+    pm_archive_guidance_enabled = True
+    ps_archive_guidance_enabled = True
 
     def __init__(self, operations: Dict[str, list], buffers: Dict[str, dict],
                  N: int = 50, N_A: int = 100, rho: float = 0.8,
@@ -84,6 +106,11 @@ class WIPGraphDualPopulation:
         self.rng = random.Random(seed)
         self.encoder = Encoder(operations, rng=self.rng)
         self.decoder = StageBufferWIPScheduler(operations, buffers)
+        self._distance_keys = tuple(self.encoder.ms_index_order)
+        n_operations = len(self._distance_keys)
+        self._distance_pair_count = (n_operations * (n_operations - 1) // 2
+                                     - sum(len(ops) * (len(ops) - 1) // 2
+                                           for ops in operations.values()))
         self.P_M: List[Individual] = []
         self.P_S: List[Individual] = []
         self.A: List[Individual] = []
@@ -99,6 +126,11 @@ class WIPGraphDualPopulation:
                     "fallback_basic_mutation_no_guide",
                     "fallback_basic_mutation_zero_shortage")
         self.diagnostics = {
+            "algorithm_variant": self.algorithm_variant,
+            "pm_specialized_kind": self.pm_specialized_kind,
+            "ps_specialized_kind": self.ps_specialized_kind,
+            "pm_archive_guidance_enabled": self.pm_archive_guidance_enabled,
+            "ps_archive_guidance_enabled": self.ps_archive_guidance_enabled,
             "pm_moves": {kind: {"generated": 0, "accepted": 0} for kind in pm_kinds},
             "pm_action_sets": [],
             "pm_selected_depths": {kind: [] for kind in pm_kinds[:2]},
@@ -159,37 +191,31 @@ class WIPGraphDualPopulation:
         return (a.makespan <= b.makespan and a.shortage <= b.shortage and
                 (a.makespan < b.makespan or a.shortage < b.shortage))
 
-    @staticmethod
-    def _inversions(values: List[int]) -> int:
-        def rec(seq: List[int]) -> Tuple[List[int], int]:
-            if len(seq) < 2:
-                return seq, 0
-            left, a = rec(seq[:len(seq)//2])
-            right, b = rec(seq[len(seq)//2:])
-            merged, i, j, count = [], 0, 0, a + b
-            while i < len(left) and j < len(right):
-                if left[i] <= right[j]:
-                    merged.append(left[i]); i += 1
-                else:
-                    merged.append(right[j]); j += 1
-                    count += len(left) - i
-            return merged + left[i:] + right[j:], count
-        return rec(values)[1]
-
     def structural_distance(self, x: Individual, y: Individual) -> float:
-        stages = {op for _, op in self.encoder.ms_index_order}
-        ds = []
-        for stage in stages:
-            left = [key for key in x.os_seq if key[1] == stage]
-            right = [key for key in y.os_seq if key[1] == stage]
-            if len(left) >= 2:
-                rank = {key: i for i, key in enumerate(right)}
-                ds.append(self._inversions([rank[key] for key in left]) /
-                          (len(left) * (len(left) - 1) / 2))
-            else:
-                ds.append(0.0)
-        d_os = sum(ds) / len(ds) if ds else 0.0
-        keys = self.encoder.ms_index_order
+        keys = self._distance_keys
+        rank_y = {key: position for position, key in enumerate(y.os_seq)}
+        tree = [0] * (len(keys) + 1)
+        job_ranks: Dict[str, List[int]] = {}
+        discordant = 0
+        for seen, key in enumerate(x.os_seq):
+            rank = rank_y[key]
+            cursor = rank + 1
+            not_greater = 0
+            while cursor:
+                not_greater += tree[cursor]
+                cursor -= cursor & -cursor
+            discordant += seen - not_greater
+
+            same_job = job_ranks.setdefault(key[0], [])
+            discordant -= len(same_job) - bisect_right(same_job, rank)
+            insort(same_job, rank)
+
+            cursor = rank + 1
+            while cursor < len(tree):
+                tree[cursor] += 1
+                cursor += cursor & -cursor
+
+        d_os = discordant / self._distance_pair_count if self._distance_pair_count else 0.0
         d_ms = sum(x.ms_map[k] != y.ms_map[k] for k in keys) / len(keys) if keys else 0.0
         return 0.5 * (d_os + d_ms)
 
@@ -588,64 +614,110 @@ class WIPGraphDualPopulation:
                 break
         return selected
 
-    def relinking_actions(self, current: Individual, guide: Individual,
-                          high: Set[OpKey], diagnosis: ShortageDiagnosis) -> List[Move]:
-        actions = []
-        for stage in {key[1] for key in self.encoder.ms_index_order}:
-            projection = [key for key in current.os_seq if key[1] == stage]
-            guide_rank = {key: i for i, key in enumerate(guide.os_seq) if key[1] == stage}
-            for first, second in zip(projection, projection[1:]):
-                if guide_rank[first] < guide_rank[second] or not ({first, second} & high):
-                    continue
-                preferred = sorted((first, second),
-                                   key=lambda k: (k not in high, -diagnosis.phi.get(k, 0), k))
-                for key in preferred:
-                    candidate = (self._move_after(current, first, second) if key == first else
-                                 self._move_before(current, second, first))
-                    if candidate is not None:
-                        actions.append(Move("os", key, second if key == first else first))
-                        break
+    def _machine_shortage_evidence(self, seed: Individual,
+                                   diagnosis: ShortageDiagnosis) -> frozenset:
         machine_ops = set()
         for edge in diagnosis.influence_dependencies:
             if edge.kind == "machine":
                 for node in (edge.src_event_id, edge.dst_event_id):
-                    ev = current.provenance.events[node]
+                    ev = seed.provenance.events[node]
                     machine_ops.add((ev.job, ev.op_idx))
-        for key in high & machine_ops:
-            if current.ms_map[key] != guide.ms_map[key]:
-                actions.append(Move("ms", key, machine=guide.ms_map[key]))
-        return actions
+        return frozenset(machine_ops)
+
+    def _os_discrepancy(self, current: Individual, guide: Individual,
+                        key: OpKey, positions=None, guide_positions=None) -> int:
+        if positions is None:
+            positions = {op: i for i, op in enumerate(current.os_seq)}
+        if guide_positions is None:
+            guide_positions = {op: i for i, op in enumerate(guide.os_seq)}
+        return sum((positions[key] < positions[other]) !=
+                   (guide_positions[key] < guide_positions[other])
+                   for other in current.os_seq if other[0] != key[0])
+
+    def _legal_os_insertion_bounds(self, seq: List[OpKey], key: OpKey,
+                                    positions) -> Tuple[int, int]:
+        old = positions[key]
+        lower, upper = 0, len(seq) - 1
+        if key[1] > 0:
+            predecessor = positions[(key[0], key[1] - 1)]
+            lower = predecessor - (predecessor > old) + 1
+        if key[1] + 1 < len(self.operations[key[0]]):
+            successor = positions[(key[0], key[1] + 1)]
+            upper = successor - (successor > old)
+        return lower, upper
+
+    def _best_os_relink_action(self, current: Individual, guide: Individual,
+                               key: OpKey, positions=None,
+                               guide_positions=None) -> Optional[OSRelinkAction]:
+        if positions is None:
+            positions = {op: i for i, op in enumerate(current.os_seq)}
+        if guide_positions is None:
+            guide_positions = {op: i for i, op in enumerate(guide.os_seq)}
+        before = self._os_discrepancy(current, guide, key, positions, guide_positions)
+        if before == 0:
+            return None
+        old = positions[key]
+        shortened = current.os_seq[:old] + current.os_seq[old + 1:]
+        lower, upper = self._legal_os_insertion_bounds(current.os_seq, key, positions)
+        # Sweep every global gap. Crossing one incomparable operation changes D by one.
+        distance = sum(guide_positions[key] > guide_positions[other]
+                       for other in shortened if other[0] != key[0])
+        best = None
+        for gap in range(len(shortened) + 1):
+            if lower <= gap <= upper:
+                score = (distance, abs(gap - old), gap)
+                if best is None or score < best:
+                    best = score
+            if gap < len(shortened):
+                other = shortened[gap]
+                if other[0] != key[0]:
+                    distance += (1 if guide_positions[key] < guide_positions[other] else -1)
+        after, displacement, target = best
+        if after >= before:
+            return None
+        return OSRelinkAction(key, target, before, after, displacement)
+
+    def _build_relink_units(self, seed: Individual, guide: Individual,
+                            high: Set[OpKey], diagnosis: ShortageDiagnosis,
+                            evidence=None) -> Tuple[RelinkUnit, ...]:
+        if evidence is None:
+            evidence = self._machine_shortage_evidence(seed, diagnosis)
+        positions = {op: i for i, op in enumerate(seed.os_seq)}
+        guide_positions = {op: i for i, op in enumerate(guide.os_seq)}
+        units = []
+        for key in sorted(high):
+            if self._best_os_relink_action(seed, guide, key, positions, guide_positions) is not None:
+                units.append(RelinkUnit(key, "OS"))
+            if key in evidence and seed.ms_map[key] != guide.ms_map[key]:
+                units.append(RelinkUnit(key, "MS"))
+        # Fixed unit priority: phi descending, operation key, then OS before MS.
+        return tuple(sorted(units, key=lambda u: (-diagnosis.phi.get(u.key, 0.0),
+                                                 u.key, 0 if u.kind == "OS" else 1)))
 
     def choose_guide(self, x: Individual, pool: Sequence[Individual],
-                     high: Set[OpKey], diagnosis: ShortageDiagnosis) -> Optional[Individual]:
+                     high: Set[OpKey], diagnosis: ShortageDiagnosis,
+                     evidence=None) -> Optional[Individual]:
         eligible = []
         for y in pool:
             if y is x or y.shortage > x.shortage:
                 continue
-            actions = self.relinking_actions(x, y, high, diagnosis)
-            if actions:
-                eligible.append((y, len(actions)))
-        better = [item for item in eligible if item[0].shortage < x.shortage]
-        if better:
-            eligible = better
-        if not eligible:
-            return None
-        maximum = max(score for _, score in eligible)
-        return self.rng.choice([y for y, score in eligible if score == maximum])
+            if self._build_relink_units(x, y, high, diagnosis, evidence):
+                eligible.append(y)
+        better = [y for y in eligible if y.shortage < x.shortage]
+        candidates = better or eligible
+        # Preserve population order within the preferred shortage eligibility group.
+        return candidates[0] if candidates else None
 
     def choose_archive_guide_for_shortage(self, x: Individual,
                                           diagnosis: ShortageDiagnosis,
-                                          high: Set[OpKey]) -> Optional[Individual]:
+                                          high: Set[OpKey], evidence=None) -> Optional[Individual]:
         if len(self.A) < 3:
             return None
         extremes = {id(min(self.A, key=lambda z: z.makespan)),
                     id(min(self.A, key=lambda z: z.shortage))}
         valid = [y for y in self.A
-                 if id(y) not in extremes and y is not x and y.shortage <= x.shortage
-                 and self.relinking_actions(x, y, high, diagnosis)]
-        better = [y for y in valid if y.shortage < x.shortage]
-        if better:
-            valid = better
+                 if id(y) not in extremes and y is not x
+                 and self._build_relink_units(x, y, high, diagnosis, evidence)]
         return self._sparse_tournament(valid) if valid else None
 
     def vary_shortage(self, x: Individual, guide_pool: Sequence[Individual],
@@ -667,6 +739,7 @@ class WIPGraphDualPopulation:
             self._last_ps_move_kind = "fallback_basic_mutation_phi_invalid"
             return self.basic_mutation(x)
         high = self.high_influence_set(x, diagnosis)
+        evidence = self._machine_shortage_evidence(x, diagnosis)
         hs_stats = self.diagnostics["hs"]
         size = len(high)
         coverage = sum(diagnosis.phi[key] for key in high) / x.shortage
@@ -677,7 +750,7 @@ class WIPGraphDualPopulation:
             hs_stats["coverage_violations"] += 1
         if archive_assisted:
             self.diagnostics["cooperation"]["ps_probes"] += 1
-        guide = (self.choose_archive_guide_for_shortage(x, diagnosis, high)
+        guide = (self.choose_archive_guide_for_shortage(x, diagnosis, high, evidence)
                  if archive_assisted else None)
         if archive_assisted:
             if guide is None:
@@ -686,42 +759,73 @@ class WIPGraphDualPopulation:
                 self.diagnostics["cooperation"]["ps_valid_guide"] += 1
                 self._last_ps_guide_source = "archive"
         if guide is None:
-            guide = self.choose_guide(x, guide_pool, high, diagnosis)
+            guide = self.choose_guide(x, guide_pool, high, diagnosis, evidence)
         if guide is None:
             if archive_assisted:
                 self.diagnostics["cooperation"]["ps_fallback_basic"] += 1
             self._last_ps_move_kind = "fallback_basic_mutation_no_guide"
             return self.basic_mutation(x)
+        initial_units = self._build_relink_units(x, guide, high, diagnosis, evidence)
+        if not initial_units:
+            self._last_ps_move_kind = "fallback_basic_mutation_no_guide"
+            return self.basic_mutation(x)
         self._last_ps_move_kind = "shortage_relink"
-        first = self.relinking_actions(x, guide, high, diagnosis)
-        steps = max(1, math.ceil(self.eta * len(first)))
+        steps = max(1, math.ceil(self.eta * len(initial_units)))
         fe_before = self.n_evaluations
-        executed = os_moves = ms_moves = 0
         child = Individual(x.os_seq[:], x.ms_map.copy(), operation_order=x.operation_order)
-        # Only initiating-solution provenance is used; intermediate states are never decoded.
-        child.provenance = x.provenance
-        for _ in range(steps):
-            actions = self.relinking_actions(child, guide, high, diagnosis)
-            if not actions:
+        used_units = set()
+        applied = []
+        skipped = []
+        guide_positions = {op: i for i, op in enumerate(guide.os_seq)}
+        while len(used_units) < steps:
+            positions = {op: i for i, op in enumerate(child.os_seq)}
+            for unit in initial_units:
+                if unit in used_units:
+                    continue
+                if unit.kind == "OS":
+                    action = self._best_os_relink_action(child, guide, unit.key, positions, guide_positions)
+                    if action is None:
+                        skipped.append((unit.key, unit.kind))
+                        continue
+                    child.os_seq = self._insert(child.os_seq, unit.key, action.target_index)
+                    applied.append({"key": unit.key, "kind": unit.kind,
+                                    "target_index": action.target_index,
+                                    "d_before": action.d_before, "d_after": action.d_after,
+                                    "displacement": action.displacement})
+                else:
+                    machine = guide.ms_map[unit.key]
+                    if child.ms_map[unit.key] == machine:
+                        skipped.append((unit.key, unit.kind))
+                        continue
+                    if machine not in self.operations[unit.key[0]][unit.key[1]]["machines"]:
+                        raise ValueError(f"Illegal guide machine for {unit.key}: {machine}")
+                    child.ms_map[unit.key] = machine
+                    applied.append({"key": unit.key, "kind": unit.kind, "machine": machine})
+                used_units.add(unit)
                 break
-            peak = max(diagnosis.phi.get(action.key, 0.0) for action in actions)
-            action = self.rng.choice([a for a in actions if diagnosis.phi.get(a.key, 0.0) == peak])
-            if action.kind == "ms":
-                child.ms_map[action.key] = action.machine
-                ms_moves += 1
-            elif child.os_seq.index(action.key) < child.os_seq.index(action.other):
-                child = self._move_after(child, action.key, action.other)
-                os_moves += 1
             else:
-                child = self._move_before(child, action.key, action.other)
-                os_moves += 1
-            executed += 1
-            child.provenance = x.provenance
-        child.provenance = None
-        self.diagnostics["relinking"].append({"D0": len(first), "requested": steps,
-                                              "executed": executed, "os_moves": os_moves,
-                                              "ms_moves": ms_moves, "fe_before": fe_before,
-                                              "fe_after": self.n_evaluations})
+                break
+        os_applied = [item for item in applied if item["kind"] == "OS"]
+        self.diagnostics["relinking"].append({
+            "seed_os": x.os_seq[:], "guide_os": guide.os_seq[:], "final_os": child.os_seq[:],
+            "guide_ms": [(key, guide.ms_map[key]) for key in sorted(high)],
+            "final_ms": [(key, child.ms_map[key]) for key in sorted(high)],
+            "high_operations": sorted(high), "high_count": len(high),
+            "fixed_phi": [(key, diagnosis.phi[key]) for key in sorted(diagnosis.phi)],
+            "machine_evidence": sorted(evidence),
+            "initial_units": [(unit.key, unit.kind) for unit in initial_units],
+            "initial_unit_count": len(initial_units),
+            "initial_os_unit_count": sum(unit.kind == "OS" for unit in initial_units),
+            "initial_ms_unit_count": sum(unit.kind == "MS" for unit in initial_units),
+            "K": steps, "applied_unit_count": len(applied),
+            "applied_os_units": len(os_applied),
+            "applied_ms_units": len(applied) - len(os_applied),
+            "skipped_unactionable_units": len(skipped), "skipped_units": skipped,
+            "applied_units": applied,
+            "total_os_discrepancy_reduction": sum(item["d_before"] - item["d_after"]
+                                                  for item in os_applied),
+            "fe_before": fe_before, "fe_after": self.n_evaluations,
+        })
         return child
 
     def tournament(self, population: Sequence[Individual], objective: str) -> Individual:
