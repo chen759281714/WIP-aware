@@ -1,0 +1,222 @@
+{
+  "instance": "WIPHFSP_S4_P4_B2",
+  "variant": "wo_hlns",
+  "seed": 4,
+  "algorithm_variant": "HLNS_WO_HLNS",
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "algorithm_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 4
+  },
+  "constructor_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 4
+  },
+  "population_sizes": {
+    "P_M": 50,
+    "P_S": 50
+  },
+  "runtime_seconds": 558.3834059319925,
+  "final_archive": [
+    {
+      "makespan": 1831.0,
+      "shortage": 1888.0
+    },
+    {
+      "makespan": 1911.0,
+      "shortage": 1803.0
+    },
+    {
+      "makespan": 1577.0,
+      "shortage": 3702.0
+    },
+    {
+      "makespan": 1831.0,
+      "shortage": 1888.0
+    },
+    {
+      "makespan": 1609.0,
+      "shortage": 3241.0
+    },
+    {
+      "makespan": 1618.0,
+      "shortage": 2493.0
+    },
+    {
+      "makespan": 1831.0,
+      "shortage": 1888.0
+    },
+    {
+      "makespan": 1629.0,
+      "shortage": 2246.0
+    },
+    {
+      "makespan": 1609.0,
+      "shortage": 3241.0
+    },
+    {
+      "makespan": 1618.0,
+      "shortage": 2493.0
+    },
+    {
+      "makespan": 1794.0,
+      "shortage": 1978.0
+    },
+    {
+      "makespan": 1808.0,
+      "shortage": 1894.0
+    },
+    {
+      "makespan": 1788.0,
+      "shortage": 2123.0
+    },
+    {
+      "makespan": 1619.0,
+      "shortage": 2403.0
+    },
+    {
+      "makespan": 1868.0,
+      "shortage": 1812.0
+    },
+    {
+      "makespan": 1955.0,
+      "shortage": 1730.0
+    },
+    {
+      "makespan": 1583.0,
+      "shortage": 3498.0
+    },
+    {
+      "makespan": 1941.0,
+      "shortage": 1778.0
+    },
+    {
+      "makespan": 1730.0,
+      "shortage": 2241.0
+    },
+    {
+      "makespan": 1985.0,
+      "shortage": 1714.0
+    },
+    {
+      "makespan": 1985.0,
+      "shortage": 1714.0
+    }
+  ],
+  "final_archive_size": 21,
+  "best_makespan": 1577.0,
+  "best_shortage": 1714.0,
+  "diagnostics": {
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "BasicMutation",
+    "pm_archive_guidance_enabled": true,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1359,
+        "accepted": 44
+      },
+      "machine_reassign": {
+        "generated": 3086,
+        "accepted": 525
+      },
+      "basic_mutation": {
+        "generated": 505,
+        "accepted": 23
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "basic_mutation": {
+        "generated": 4950,
+        "accepted": 556
+      },
+      "hlns_joint": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 411,
+      "pm_usable": 411,
+      "pm_fallback_self": 0
+    },
+    "shortage_diagnosis": {
+      "calls": 0,
+      "complete_phi_calls": 0,
+      "incomplete_phi_calls": 0
+    },
+    "source_generated": {
+      "P_M_self": 4539,
+      "P_S_self": 4950,
+      "P_M_archive": 411
+    },
+    "hlns": {
+      "hlns_calls": 0,
+      "hlns_normal_children": 0,
+      "hlns_same_genotype_fallbacks": 0,
+      "hlns_global_fallbacks": 0,
+      "hlns_unchanged_children": 0,
+      "hlns_diagnosis_errors": 0,
+      "hlns_os_changed_children": 0,
+      "hlns_ms_changed_children": 0,
+      "hlns_both_changed_children": 0,
+      "hlns_parent_shortage_improvement_count": 0,
+      "hlns_population_replacement_count": 0,
+      "H_count": 0,
+      "H_size_total": 0,
+      "H_ratio_total": 0,
+      "normal_repair_both_changed_children": 0,
+      "fallback_reasons": {},
+      "diagnosis_error_reasons": {},
+      "normal_repair_ms_changes": [],
+      "normal_repair_os_pair_changes": [],
+      "mean_H_size": 0.0,
+      "mean_H_ratio": 0.0,
+      "same_genotype_fallback_ratio": 0.0
+    }
+  },
+  "timestamp_utc": "2026-10-19T11:36:01.555575+00:00",
+  "source": {
+    "schema": "hlns-pre-ablation-v1",
+    "instance": "WIPHFSP_S4_P4_B2",
+    "variant": "wo_hlns",
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "seed": 4,
+    "algorithm_parameters": {
+      "N": 50,
+      "N_A": 100,
+      "p_mut": 0.1,
+      "rho": 0.8,
+      "T_coop": 10,
+      "FE_max": 10000,
+      "seed": 4
+    },
+    "python_hash_seed": "0",
+    "sources": {
+      "src/algorithms/wip_graph_dual_population.py": "7608999874111e71885a6691a675a934880e5369fdad842b2bd9ba235d72e5b3",
+      "src/algorithms/wip_graph_dual_population_wo_mgs.py": "c845ea0e0947790eae1e5c5de74b890a2bbd858f279206e05790d3208179be10",
+      "src/algorithms/wip_graph_dual_population_wo_hlns.py": "eea41234ad6cb0782acf58f01a21ee652ce973bddb93ae24b97670db8e9d1497",
+      "src/algorithms/wip_graph_dual_population_wo_ac.py": "6fa2e81ceccd670ae75662a55ca09f574155cce25a22635ab03039e080c01194",
+      "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+      "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+    },
+    "instance_sha256": "edce7b31dc801129fc029f7072a7dce7bf338eccf50f12ebedbe8a01ad241893"
+  },
+  "fingerprint": "d728334763846a8e5851dad36c27fb8f141efe7847e4384debf62aee4d0c93dc"
+}

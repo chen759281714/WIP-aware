@@ -1,0 +1,254 @@
+{
+  "instance": "WIPHFSP_S4_P4_B2",
+  "variant": "wo_hlns",
+  "seed": 3,
+  "algorithm_variant": "HLNS_WO_HLNS",
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "algorithm_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 3
+  },
+  "constructor_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 3
+  },
+  "population_sizes": {
+    "P_M": 50,
+    "P_S": 50
+  },
+  "runtime_seconds": 562.8106863279827,
+  "final_archive": [
+    {
+      "makespan": 1757.0,
+      "shortage": 2169.0
+    },
+    {
+      "makespan": 1736.0,
+      "shortage": 2258.0
+    },
+    {
+      "makespan": 1590.0,
+      "shortage": 3052.0
+    },
+    {
+      "makespan": 1757.0,
+      "shortage": 2169.0
+    },
+    {
+      "makespan": 1589.0,
+      "shortage": 3344.0
+    },
+    {
+      "makespan": 1649.0,
+      "shortage": 2399.0
+    },
+    {
+      "makespan": 1757.0,
+      "shortage": 2169.0
+    },
+    {
+      "makespan": 1649.0,
+      "shortage": 2399.0
+    },
+    {
+      "makespan": 1631.0,
+      "shortage": 2499.0
+    },
+    {
+      "makespan": 1723.0,
+      "shortage": 2374.0
+    },
+    {
+      "makespan": 1762.0,
+      "shortage": 1993.0
+    },
+    {
+      "makespan": 1610.0,
+      "shortage": 2559.0
+    },
+    {
+      "makespan": 1761.0,
+      "shortage": 2147.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1915.0,
+      "shortage": 1886.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1915.0,
+      "shortage": 1886.0
+    },
+    {
+      "makespan": 1915.0,
+      "shortage": 1886.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    },
+    {
+      "makespan": 1915.0,
+      "shortage": 1886.0
+    },
+    {
+      "makespan": 1884.0,
+      "shortage": 1893.0
+    },
+    {
+      "makespan": 1915.0,
+      "shortage": 1886.0
+    },
+    {
+      "makespan": 1587.0,
+      "shortage": 3544.0
+    },
+    {
+      "makespan": 1784.0,
+      "shortage": 1917.0
+    }
+  ],
+  "final_archive_size": 29,
+  "best_makespan": 1587.0,
+  "best_shortage": 1886.0,
+  "diagnostics": {
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "BasicMutation",
+    "pm_archive_guidance_enabled": true,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1468,
+        "accepted": 58
+      },
+      "machine_reassign": {
+        "generated": 2985,
+        "accepted": 469
+      },
+      "basic_mutation": {
+        "generated": 497,
+        "accepted": 21
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "basic_mutation": {
+        "generated": 4950,
+        "accepted": 546
+      },
+      "hlns_joint": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 412,
+      "pm_usable": 412,
+      "pm_fallback_self": 0
+    },
+    "shortage_diagnosis": {
+      "calls": 0,
+      "complete_phi_calls": 0,
+      "incomplete_phi_calls": 0
+    },
+    "source_generated": {
+      "P_M_self": 4538,
+      "P_S_self": 4950,
+      "P_M_archive": 412
+    },
+    "hlns": {
+      "hlns_calls": 0,
+      "hlns_normal_children": 0,
+      "hlns_same_genotype_fallbacks": 0,
+      "hlns_global_fallbacks": 0,
+      "hlns_unchanged_children": 0,
+      "hlns_diagnosis_errors": 0,
+      "hlns_os_changed_children": 0,
+      "hlns_ms_changed_children": 0,
+      "hlns_both_changed_children": 0,
+      "hlns_parent_shortage_improvement_count": 0,
+      "hlns_population_replacement_count": 0,
+      "H_count": 0,
+      "H_size_total": 0,
+      "H_ratio_total": 0,
+      "normal_repair_both_changed_children": 0,
+      "fallback_reasons": {},
+      "diagnosis_error_reasons": {},
+      "normal_repair_ms_changes": [],
+      "normal_repair_os_pair_changes": [],
+      "mean_H_size": 0.0,
+      "mean_H_ratio": 0.0,
+      "same_genotype_fallback_ratio": 0.0
+    }
+  },
+  "timestamp_utc": "2026-10-19T11:36:04.208179+00:00",
+  "source": {
+    "schema": "hlns-pre-ablation-v1",
+    "instance": "WIPHFSP_S4_P4_B2",
+    "variant": "wo_hlns",
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "seed": 3,
+    "algorithm_parameters": {
+      "N": 50,
+      "N_A": 100,
+      "p_mut": 0.1,
+      "rho": 0.8,
+      "T_coop": 10,
+      "FE_max": 10000,
+      "seed": 3
+    },
+    "python_hash_seed": "0",
+    "sources": {
+      "src/algorithms/wip_graph_dual_population.py": "7608999874111e71885a6691a675a934880e5369fdad842b2bd9ba235d72e5b3",
+      "src/algorithms/wip_graph_dual_population_wo_mgs.py": "c845ea0e0947790eae1e5c5de74b890a2bbd858f279206e05790d3208179be10",
+      "src/algorithms/wip_graph_dual_population_wo_hlns.py": "eea41234ad6cb0782acf58f01a21ee652ce973bddb93ae24b97670db8e9d1497",
+      "src/algorithms/wip_graph_dual_population_wo_ac.py": "6fa2e81ceccd670ae75662a55ca09f574155cce25a22635ab03039e080c01194",
+      "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+      "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+    },
+    "instance_sha256": "edce7b31dc801129fc029f7072a7dce7bf338eccf50f12ebedbe8a01ad241893"
+  },
+  "fingerprint": "2ead53e38b6a15a9fe4f114d26873d8fb9d18e7b643233f6471f42d717f9ba47"
+}

@@ -1,0 +1,226 @@
+{
+  "instance": "WIPHFSP_S4_P3_B1",
+  "variant": "wo_hlns",
+  "seed": 1,
+  "algorithm_variant": "HLNS_WO_HLNS",
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "algorithm_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 1
+  },
+  "constructor_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 1
+  },
+  "population_sizes": {
+    "P_M": 50,
+    "P_S": 50
+  },
+  "runtime_seconds": 565.933501039166,
+  "final_archive": [
+    {
+      "makespan": 2122.0,
+      "shortage": 1339.0
+    },
+    {
+      "makespan": 2064.0,
+      "shortage": 1355.0
+    },
+    {
+      "makespan": 1786.0,
+      "shortage": 1753.0
+    },
+    {
+      "makespan": 1768.0,
+      "shortage": 1754.0
+    },
+    {
+      "makespan": 2050.0,
+      "shortage": 1366.0
+    },
+    {
+      "makespan": 2064.0,
+      "shortage": 1355.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1890.0,
+      "shortage": 1375.0
+    },
+    {
+      "makespan": 1768.0,
+      "shortage": 1754.0
+    },
+    {
+      "makespan": 1768.0,
+      "shortage": 1754.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1766.0,
+      "shortage": 1779.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1786.0,
+      "shortage": 1753.0
+    },
+    {
+      "makespan": 2064.0,
+      "shortage": 1355.0
+    },
+    {
+      "makespan": 1826.0,
+      "shortage": 1420.0
+    },
+    {
+      "makespan": 1791.0,
+      "shortage": 1428.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 1765.0,
+      "shortage": 1871.0
+    },
+    {
+      "makespan": 2141.0,
+      "shortage": 1302.0
+    }
+  ],
+  "final_archive_size": 22,
+  "best_makespan": 1765.0,
+  "best_shortage": 1302.0,
+  "diagnostics": {
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "BasicMutation",
+    "pm_archive_guidance_enabled": true,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1447,
+        "accepted": 82
+      },
+      "machine_reassign": {
+        "generated": 2998,
+        "accepted": 423
+      },
+      "basic_mutation": {
+        "generated": 505,
+        "accepted": 15
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "basic_mutation": {
+        "generated": 4950,
+        "accepted": 636
+      },
+      "hlns_joint": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 417,
+      "pm_usable": 417,
+      "pm_fallback_self": 0
+    },
+    "shortage_diagnosis": {
+      "calls": 0,
+      "complete_phi_calls": 0,
+      "incomplete_phi_calls": 0
+    },
+    "source_generated": {
+      "P_M_self": 4533,
+      "P_S_self": 4950,
+      "P_M_archive": 417
+    },
+    "hlns": {
+      "hlns_calls": 0,
+      "hlns_normal_children": 0,
+      "hlns_same_genotype_fallbacks": 0,
+      "hlns_global_fallbacks": 0,
+      "hlns_unchanged_children": 0,
+      "hlns_diagnosis_errors": 0,
+      "hlns_os_changed_children": 0,
+      "hlns_ms_changed_children": 0,
+      "hlns_both_changed_children": 0,
+      "hlns_parent_shortage_improvement_count": 0,
+      "hlns_population_replacement_count": 0,
+      "H_count": 0,
+      "H_size_total": 0,
+      "H_ratio_total": 0,
+      "normal_repair_both_changed_children": 0,
+      "fallback_reasons": {},
+      "diagnosis_error_reasons": {},
+      "normal_repair_ms_changes": [],
+      "normal_repair_os_pair_changes": [],
+      "mean_H_size": 0.0,
+      "mean_H_ratio": 0.0,
+      "same_genotype_fallback_ratio": 0.0
+    }
+  },
+  "timestamp_utc": "2026-10-19T11:28:32.056529+00:00",
+  "source": {
+    "schema": "hlns-pre-ablation-v1",
+    "instance": "WIPHFSP_S4_P3_B1",
+    "variant": "wo_hlns",
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "seed": 1,
+    "algorithm_parameters": {
+      "N": 50,
+      "N_A": 100,
+      "p_mut": 0.1,
+      "rho": 0.8,
+      "T_coop": 10,
+      "FE_max": 10000,
+      "seed": 1
+    },
+    "python_hash_seed": "0",
+    "sources": {
+      "src/algorithms/wip_graph_dual_population.py": "7608999874111e71885a6691a675a934880e5369fdad842b2bd9ba235d72e5b3",
+      "src/algorithms/wip_graph_dual_population_wo_mgs.py": "c845ea0e0947790eae1e5c5de74b890a2bbd858f279206e05790d3208179be10",
+      "src/algorithms/wip_graph_dual_population_wo_hlns.py": "eea41234ad6cb0782acf58f01a21ee652ce973bddb93ae24b97670db8e9d1497",
+      "src/algorithms/wip_graph_dual_population_wo_ac.py": "6fa2e81ceccd670ae75662a55ca09f574155cce25a22635ab03039e080c01194",
+      "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+      "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+    },
+    "instance_sha256": "1cb2f15bac8d4bca1cc575a55bf7c5bb2d17e6a458f3d58d8cfe303dc950843d"
+  },
+  "fingerprint": "90a479f7d8d356592d99d8d76f19670ca7854bfcd051d751922db0d38c477421"
+}

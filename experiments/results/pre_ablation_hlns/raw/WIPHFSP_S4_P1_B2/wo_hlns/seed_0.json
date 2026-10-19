@@ -1,0 +1,274 @@
+{
+  "instance": "WIPHFSP_S4_P1_B2",
+  "variant": "wo_hlns",
+  "seed": 0,
+  "algorithm_variant": "HLNS_WO_HLNS",
+  "FE_max": 10000,
+  "actual_FE": 10000,
+  "algorithm_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 0
+  },
+  "constructor_parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 10000,
+    "seed": 0
+  },
+  "population_sizes": {
+    "P_M": 50,
+    "P_S": 50
+  },
+  "runtime_seconds": 553.826797306072,
+  "final_archive": [
+    {
+      "makespan": 2137.0,
+      "shortage": 2533.0
+    },
+    {
+      "makespan": 2126.0,
+      "shortage": 2555.0
+    },
+    {
+      "makespan": 2134.0,
+      "shortage": 2539.0
+    },
+    {
+      "makespan": 1868.0,
+      "shortage": 2700.0
+    },
+    {
+      "makespan": 1788.0,
+      "shortage": 4319.0
+    },
+    {
+      "makespan": 2187.0,
+      "shortage": 2435.0
+    },
+    {
+      "makespan": 2137.0,
+      "shortage": 2533.0
+    },
+    {
+      "makespan": 1878.0,
+      "shortage": 2644.0
+    },
+    {
+      "makespan": 2126.0,
+      "shortage": 2555.0
+    },
+    {
+      "makespan": 2171.0,
+      "shortage": 2529.0
+    },
+    {
+      "makespan": 1823.0,
+      "shortage": 2712.0
+    },
+    {
+      "makespan": 1789.0,
+      "shortage": 4012.0
+    },
+    {
+      "makespan": 2103.0,
+      "shortage": 2566.0
+    },
+    {
+      "makespan": 1823.0,
+      "shortage": 2712.0
+    },
+    {
+      "makespan": 1860.0,
+      "shortage": 2706.0
+    },
+    {
+      "makespan": 1798.0,
+      "shortage": 3999.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1823.0,
+      "shortage": 2712.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1881.0,
+      "shortage": 2619.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1812.0,
+      "shortage": 2714.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    },
+    {
+      "makespan": 1782.0,
+      "shortage": 4387.0
+    },
+    {
+      "makespan": 1780.0,
+      "shortage": 4525.0
+    },
+    {
+      "makespan": 1812.0,
+      "shortage": 2714.0
+    },
+    {
+      "makespan": 1948.0,
+      "shortage": 2574.0
+    }
+  ],
+  "final_archive_size": 34,
+  "best_makespan": 1780.0,
+  "best_shortage": 2435.0,
+  "diagnostics": {
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "pm_specialized_kind": "MGS",
+    "ps_specialized_kind": "BasicMutation",
+    "pm_archive_guidance_enabled": true,
+    "ps_archive_guidance_enabled": false,
+    "pm_moves": {
+      "machine_priority": {
+        "generated": 1464,
+        "accepted": 37
+      },
+      "machine_reassign": {
+        "generated": 2978,
+        "accepted": 531
+      },
+      "basic_mutation": {
+        "generated": 508,
+        "accepted": 23
+      },
+      "fallback_basic_mutation": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "ps_moves": {
+      "basic_mutation": {
+        "generated": 4950,
+        "accepted": 637
+      },
+      "hlns_joint": {
+        "generated": 0,
+        "accepted": 0
+      }
+    },
+    "cooperation": {
+      "pm_attempts": 400,
+      "pm_usable": 400,
+      "pm_fallback_self": 0
+    },
+    "shortage_diagnosis": {
+      "calls": 0,
+      "complete_phi_calls": 0,
+      "incomplete_phi_calls": 0
+    },
+    "source_generated": {
+      "P_M_self": 4550,
+      "P_S_self": 4950,
+      "P_M_archive": 400
+    },
+    "hlns": {
+      "hlns_calls": 0,
+      "hlns_normal_children": 0,
+      "hlns_same_genotype_fallbacks": 0,
+      "hlns_global_fallbacks": 0,
+      "hlns_unchanged_children": 0,
+      "hlns_diagnosis_errors": 0,
+      "hlns_os_changed_children": 0,
+      "hlns_ms_changed_children": 0,
+      "hlns_both_changed_children": 0,
+      "hlns_parent_shortage_improvement_count": 0,
+      "hlns_population_replacement_count": 0,
+      "H_count": 0,
+      "H_size_total": 0,
+      "H_ratio_total": 0,
+      "normal_repair_both_changed_children": 0,
+      "fallback_reasons": {},
+      "diagnosis_error_reasons": {},
+      "normal_repair_ms_changes": [],
+      "normal_repair_os_pair_changes": [],
+      "mean_H_size": 0.0,
+      "mean_H_ratio": 0.0,
+      "same_genotype_fallback_ratio": 0.0
+    }
+  },
+  "timestamp_utc": "2026-10-19T11:25:54.934591+00:00",
+  "source": {
+    "schema": "hlns-pre-ablation-v1",
+    "instance": "WIPHFSP_S4_P1_B2",
+    "variant": "wo_hlns",
+    "algorithm_variant": "HLNS_WO_HLNS",
+    "seed": 0,
+    "algorithm_parameters": {
+      "N": 50,
+      "N_A": 100,
+      "p_mut": 0.1,
+      "rho": 0.8,
+      "T_coop": 10,
+      "FE_max": 10000,
+      "seed": 0
+    },
+    "python_hash_seed": "0",
+    "sources": {
+      "src/algorithms/wip_graph_dual_population.py": "7608999874111e71885a6691a675a934880e5369fdad842b2bd9ba235d72e5b3",
+      "src/algorithms/wip_graph_dual_population_wo_mgs.py": "c845ea0e0947790eae1e5c5de74b890a2bbd858f279206e05790d3208179be10",
+      "src/algorithms/wip_graph_dual_population_wo_hlns.py": "eea41234ad6cb0782acf58f01a21ee652ce973bddb93ae24b97670db8e9d1497",
+      "src/algorithms/wip_graph_dual_population_wo_ac.py": "6fa2e81ceccd670ae75662a55ca09f574155cce25a22635ab03039e080c01194",
+      "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+      "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+    },
+    "instance_sha256": "55d38d672e46ba9f363a5b89f237f3d815393677c28a2159e2d8bede68bc8d22"
+  },
+  "fingerprint": "a1fdf23539e691ee613f6d4963a0b01ea6aef1089076bde974a6a4110d33fffd"
+}
