@@ -1,0 +1,75 @@
+{
+  "candidate_id": "WIPHFSP_S4_P2_B2_C076",
+  "cell_id": "S4_P2_B2",
+  "phase": "fine",
+  "n_requested": 200,
+  "n_successful": 200,
+  "diagnostic_seed": 908014293,
+  "valid": true,
+  "errors": [],
+  "metrics": {
+    "makespan": {
+      "mean": 2260.865,
+      "median": 2239.5,
+      "std": 151.4824305818995,
+      "q05": 2057.8,
+      "q95": 2537.4,
+      "non_zero_ratio": 1.0
+    },
+    "shortage": {
+      "mean": 8944.795,
+      "median": 8882.0,
+      "std": 1619.4712356121056,
+      "q05": 6685.3,
+      "q95": 11733.099999999999,
+      "non_zero_ratio": 1.0
+    },
+    "blocking": {
+      "mean": 935.295,
+      "median": 847.0,
+      "std": 463.14379837691877,
+      "q05": 363.0,
+      "q95": 1841.4499999999998,
+      "non_zero_ratio": 1.0
+    },
+    "buffer_full_ratio": {
+      "mean": 0.10913420828745776,
+      "median": 0.10615867308378743,
+      "std": 0.03271816035438291,
+      "q05": 0.05842112637126981,
+      "q95": 0.16510274942146683,
+      "non_zero_ratio": 1.0
+    },
+    "buffer_empty_ratio": {
+      "mean": 0.44194589420359215,
+      "median": 0.44101273184057993,
+      "std": 0.04351010586908219,
+      "q05": 0.37194346643496656,
+      "q95": 0.5198268953367491,
+      "non_zero_ratio": 1.0
+    },
+    "below_low_ratio": {
+      "mean": 0.553776936097712,
+      "median": 0.5609390747682055,
+      "std": 0.06156566102616611,
+      "q05": 0.43795471072341347,
+      "q95": 0.6492962223078438,
+      "non_zero_ratio": 1.0
+    },
+    "D_C": 0.2141549453002902,
+    "D_S": 0.5683179464084662,
+    "D_B": 0.8028727361590047,
+    "P_block": 1.0,
+    "P_short": 1.0,
+    "spearman_correlation": 0.7586931845578118,
+    "pairwise_conflict_ratio": 0.21600523771152297
+  },
+  "finite_buffer_relevance": {
+    "status": "not_run",
+    "reason": "Optional diagnostic interface reserved. No infinite-buffer relaxation is executed in this version, so the formal decoder remains unchanged."
+  },
+  "empirical_hardness": {
+    "status": "not_run",
+    "reason": "Reserved for a later small-budget versus larger-budget NSGA-II comparison on the top candidates only."
+  }
+}
