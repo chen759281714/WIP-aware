@@ -20,6 +20,7 @@ import time
 import traceback
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures.process import BrokenProcessPool
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from multiprocessing import get_context
@@ -56,6 +57,9 @@ RESULTS_DIR = "experiments/results/taguchi_tuning"
 # ============================================================
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 FACTORS = ("N", "p_mut", "rho", "T_coop")
 LETTERS = ("A", "B", "C", "D")
 CONFIG_NAMES = {
@@ -318,8 +322,6 @@ def run_task(task, config, output):
     instance = ROOT/config["instance_dir"]/(task["instance"]+".json")
     if file_sha(instance) != config["instance_hashes"][task["instance"]]:
         raise ValueError("Instance changed")
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
     from src.algorithms.wip_graph_dual_population import WIPGraphDualPopulation
     data = json.loads(instance.read_text())
     params = {k: task[k] for k in ("N", "N_A", "p_mut", "rho", "T_coop", "FE_max", "seed")}
@@ -343,6 +345,16 @@ def run_task(task, config, output):
     validate_record(record, task, config)
     atomic_json(raw_path(Path(output), task), record)
     return {"run_id": task["run_id"], "instance": task["instance"], "seed": task["seed"], "status": "successful"}
+
+
+def safe_run_task(task, config, output):
+    """Serialize errors as plain text, never as project exception objects."""
+    try:
+        return run_task(task, config, output)
+    except Exception as exc:
+        return {"run_id": task["run_id"], "instance": task["instance"], "seed": task["seed"],
+                "status": "failed", "error_type": f"{type(exc).__module__}.{type(exc).__qualname__}",
+                "error": traceback.format_exc()}
 
 
 @contextmanager
@@ -388,22 +400,44 @@ def run_mode(root, tasks, config):
         print(f"Completed {len(statuses)}/{total} | Successful {counts['successful']} | Failed {counts['failed']} | "
               f"Skipped {counts['skipped']} | Elapsed {state['elapsed_seconds']:.1f}s", flush=True)
     progress()
+    pool_error = None
     if pending:
-        with ProcessPoolExecutor(max_workers=MAX_WORKERS, mp_context=get_context("spawn")) as pool:
-            futures = {pool.submit(run_task, task, config, str(root)): task for task in pending}
-            for future in as_completed(futures):
-                task = futures[future]
+        futures = {}
+        try:
+            with ProcessPoolExecutor(max_workers=MAX_WORKERS, mp_context=get_context("spawn")) as pool:
                 try:
-                    statuses.append(future.result())
-                except Exception:
-                    statuses.append({"run_id": task["run_id"], "instance": task["instance"], "seed": task["seed"],
-                                     "status": "failed", "error": traceback.format_exc()})
-                progress()
+                    for task in pending:
+                        futures[pool.submit(safe_run_task, task, config, str(root))] = task
+                    for future in as_completed(futures):
+                        task = futures[future]
+                        try:
+                            result = future.result()
+                        except BrokenProcessPool:
+                            raise
+                        except Exception:
+                            result = {"run_id": task["run_id"], "instance": task["instance"], "seed": task["seed"],
+                                      "status": "failed", "error": traceback.format_exc()}
+                        statuses.append(result)
+                        if result["status"] == "failed":
+                            print(f"Task failed: run={task['run_id']} instance={task['instance']} seed={task['seed']}\n"
+                                  f"{result['error']}", file=sys.stderr, flush=True)
+                        progress()
+                except BrokenProcessPool:
+                    for future in futures:
+                        future.cancel()
+                    raise
+        except BrokenProcessPool:
+            pool_error = traceback.format_exc()
+            print("Process pool broken; stopping collection. Unfinished tasks are not counted as individual algorithm failures.\n"
+                  + pool_error, file=sys.stderr, flush=True)
     valid, invalid = scan_records(root, tasks, config)
     manifest = json.loads((root/"manifest.json").read_text())
     manifest.update(valid_completed=len(valid), complete=not invalid, invalid_or_missing=invalid,
-                    actual_FE_completed=sum(r["actual_FE"] for r in valid.values()))
+                    actual_FE_completed=sum(r["actual_FE"] for r in valid.values()),
+                    pool_error=pool_error)
     atomic_json(root/"manifest.json", manifest)
+    if pool_error:
+        raise RuntimeError("Process pool broken. Original error saved in manifest.json; valid completed raw results are preserved.")
     if invalid:
         raise RuntimeError(f"{len(invalid)} tasks incomplete. See manifest.json and rerun run mode to resume.")
     print("All tasks valid. Run mode does not analyze or plot.", flush=True)
