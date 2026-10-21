@@ -1082,9 +1082,14 @@ class WIPGraphDualPopulation:
             return set(), "empty_H"
         ordered = sorted(diagnosis.phi, key=lambda op: (-diagnosis.phi[op], op))
         n = len(high)
+        # Match high_influence_set's accumulation, including threshold rounding.
+        prefix_mass, previous_mass = 0.0, 0.0
+        for op in ordered[:n]:
+            previous_mass = prefix_mass
+            prefix_mass += diagnosis.phi[op]
         if (set(ordered[:n]) != set(high) or
-                sum(diagnosis.phi[op] for op in ordered[:n])/parent.shortage < self.rho or
-                sum(diagnosis.phi[op] for op in ordered[:n-1])/parent.shortage >= self.rho):
+                prefix_mass/parent.shortage < self.rho or
+                previous_mass/parent.shortage >= self.rho):
             self._diagnosis_error("H_not_minimal_rho_prefix")
         return set(high), None
 
