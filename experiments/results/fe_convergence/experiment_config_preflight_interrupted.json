@@ -1,0 +1,68 @@
+{
+  "parameters": {
+    "N": 50,
+    "N_A": 100,
+    "p_mut": 0.1,
+    "rho": 0.8,
+    "T_coop": 10,
+    "FE_max": 60000
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "instances": [
+    "WIPHFSP_S1_P1_B1",
+    "WIPHFSP_S1_P2_B2",
+    "WIPHFSP_S1_P3_B3",
+    "WIPHFSP_S1_P4_B1",
+    "WIPHFSP_S4_P1_B2",
+    "WIPHFSP_S4_P2_B3",
+    "WIPHFSP_S4_P3_B1",
+    "WIPHFSP_S4_P4_B2",
+    "WIPHFSP_S8_P1_B3",
+    "WIPHFSP_S8_P2_B1",
+    "WIPHFSP_S8_P3_B2",
+    "WIPHFSP_S8_P4_B3"
+  ],
+  "workers": 5,
+  "checkpoint_interval": 1000,
+  "policy": {
+    "limits": {
+      "nhv": 0.01,
+      "igd": 0.05,
+      "makespan": 0.01,
+      "shortage": 0.03
+    },
+    "overall_min_rate": 0.85,
+    "size_min_rate": 0.8,
+    "window_width_FE": 5000,
+    "window_count": 2,
+    "windows": "Peak improvement over all 1000-FE samples, not just endpoints; same limits and coverage.",
+    "instance_guard": "Every instance mean residual NHV<=1% and IGD<=5%, including both windows.",
+    "instance_earliest": "At least 4/5 seeds pass and instance mean NHV/IGD guard, including both windows.",
+    "late_event": "A 5000-FE window passes all four limits, followed later by a window that fails at least one.",
+    "candidate_FE": [
+      10000,
+      15000,
+      20000,
+      25000,
+      30000,
+      35000,
+      40000,
+      45000,
+      50000
+    ],
+    "reference": "All snapshots including initialization, all five seeds; empirical only."
+  },
+  "sources": {
+    "src/algorithms/wip_graph_dual_population.py": "7608999874111e71885a6691a675a934880e5369fdad842b2bd9ba235d72e5b3",
+    "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+    "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7",
+    "experiments/run_pre_ablation.py": "5a3572b4d173c37a9a71006630157a492ac79279c0dee99ceba8293d61a99b38",
+    "experiments/run_fe_convergence.py": "caf95b28a9e1d6009f55a9d54f10fde44703b2db3afd75f6de3083d266c8ed6f"
+  }
+}

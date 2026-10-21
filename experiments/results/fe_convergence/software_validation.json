@@ -1,0 +1,29 @@
+{
+  "new_tests": {
+    "command": "python3 -m unittest tests.test_fe_convergence -q",
+    "tests": 13,
+    "passed": 13,
+    "errors": 0,
+    "scope": [
+      "exact observed/unobserved genotypes, objectives, populations, archive, schedule, provenance, diagnostics, FE, RNG",
+      "long-budget prefix vs short-budget complete-batch termination",
+      "spawn vs serial random semantics",
+      "independent snapshot objective lists and no snapshot decode/evaluation",
+      "Full identity and explicit population/archive parameters",
+      "nonmonotone future-best residual arithmetic and zero denominators",
+      "interior-window improvements, instance guard and metric parity",
+      "invalid and incomplete raw rejection",
+      "complete synthetic run-record to analysis/recommendation/report pipeline"
+    ]
+  },
+  "repository_discovery": {
+    "command": "python3 -m unittest discover -s tests -q",
+    "tests": 214,
+    "errors": 17,
+    "skipped": 58,
+    "status": "NOT_ALL_PASS",
+    "error_note": "Existing historical SIS tests import removed modules (including wo_sis, sis_active_lever, core_ps_variants) or removed RelinkUnit. These were not repaired within this FE-audit scope."
+  },
+  "production_source_changes": [],
+  "interrupted_preflight": "An initial incomplete launch was stopped after the added raw/analysis tests exposed a list-to-tuple validation error. No complete run was saved; its config is retained separately. Fixed code passed all 13 new tests before the restart."
+}
