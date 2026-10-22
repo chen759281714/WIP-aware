@@ -29,8 +29,8 @@ from pathlib import Path
 # ============================================================
 # USER CONFIGURATION
 # ============================================================
-MODE = "run"  # "run" or "plot"
-ROUND_NAME = "round1"
+MODE = "run"  # "run", "plot" or "compare"
+ROUND_NAME = "round2"
 FE_MAX = 40000
 SEEDS = [0, 1, 2, 3, 4]
 MAX_WORKERS = 60
@@ -40,10 +40,10 @@ INSTANCE_NAMES = [
     "WIPHFSP_S8_P1_B3", "WIPHFSP_S8_P2_B1", "WIPHFSP_S8_P3_B2", "WIPHFSP_S8_P4_B3",
 ]
 FACTOR_LEVELS = {
-    "N": [20, 40, 60, 80],
-    "p_mut": [0.05, 0.15, 0.25, 0.35],
-    "rho": [0.50, 0.65, 0.80, 0.95],
-    "T_coop": [5, 15, 25, 35],
+    "N": [10, 20, 30, 40],
+    "p_mut": [0.15, 0.25, 0.35, 0.45],
+    "rho": [0.89, 0.92, 0.95, 0.98],
+    "T_coop": [1, 3, 5, 7],
 }
 ARCHIVE_RATIO = 2
 HV_REFERENCE_POINT = (1.1, 1.1)
@@ -52,6 +52,11 @@ FAIR_ARCHIVE_LIMIT = 40
 SKIP_COMPLETED = True
 INSTANCE_DIR = "data/final_benchmark/instances"
 RESULTS_DIR = "experiments/results/taguchi_tuning"
+COMPARE_ROUNDS = ["round1", "round2"]
+COMPARE_OUTPUT_NAME = "round1_vs_round2"
+# Optional additional measured pairs: ((baseline_round, run_id), (candidate_round, run_id)).
+# Example: [(("round1", "04"), ("round2", "01"))]
+COMPARE_PAIRS = []
 # ============================================================
 # END USER CONFIGURATION
 # ============================================================
@@ -66,6 +71,7 @@ CONFIG_NAMES = {
     "MODE", "ROUND_NAME", "FE_MAX", "SEEDS", "MAX_WORKERS", "INSTANCE_NAMES",
     "FACTOR_LEVELS", "ARCHIVE_RATIO", "HV_REFERENCE_POINT", "HV_NORMALIZATION_FACTOR",
     "FAIR_ARCHIVE_LIMIT", "SKIP_COMPLETED", "INSTANCE_DIR", "RESULTS_DIR",
+    "COMPARE_ROUNDS", "COMPARE_OUTPUT_NAME", "COMPARE_PAIRS",
 }
 SOURCES = ("src/algorithms/wip_graph_dual_population.py",
            "src/solution/encoder.py", "src/solution/decoder.py")
@@ -177,8 +183,8 @@ def pre_ablation_instances():
 
 
 def validate_configuration():
-    if MODE not in ("run", "plot"):
-        raise ValueError("MODE must be run or plot")
+    if MODE not in ("run", "plot", "compare"):
+        raise ValueError("MODE must be run, plot or compare")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", ROUND_NAME):
         raise ValueError("ROUND_NAME must be a single safe directory name")
     if type(FE_MAX) is not int or FE_MAX < 1 or type(MAX_WORKERS) is not int or MAX_WORKERS < 1:
@@ -511,12 +517,13 @@ def ranks(rows, field):
     return {r["run_id"]: 1+sum(other[field] > r[field] for other in rows) for r in rows}
 
 
-def main_effects(combinations, array, grouped):
+def main_effects(combinations, array, grouped, levels=None):
+    levels = FACTOR_LEVELS if levels is None else levels
     lookup = {r["run_id"]: r for r in combinations}
     effects = []
     sizes = sorted({r["size"] for r in grouped["size"]})
     for factor, letter in zip(FACTORS, LETTERS):
-        for level, value in enumerate(FACTOR_LEVELS[factor], 1):
+        for level, value in enumerate(levels[factor], 1):
             ids = [r["run_id"] for r in array if r[letter+"_level"] == level]
             row = {"factor": factor, "level_index": level, "level_value": value, "n_combinations": len(ids)}
             for metric in METRICS:
@@ -585,7 +592,7 @@ def plot_mode(root, tasks, config):
             if sub["run_id"] == rid:
                 for metric in ("nhv", "nhv40", "gd", "igd"):
                     row["mean_"+metric+"_"+sub["size"]] = sub["mean_"+metric]
-    effects = main_effects(combinations, config["orthogonal_array"], grouped)
+    effects = main_effects(combinations, config["orthogonal_array"], grouped, config["factor_levels"])
     factor_ranking, recommended = [], {}
     for factor in FACTORS:
         group = [r for r in effects if r["factor"] == factor]
@@ -720,12 +727,21 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=("run", "plot"), default=MODE)
+    parser.add_argument("--mode", choices=("run", "plot", "compare"), default=MODE)
     args = parser.parse_args()
     # Pin hash randomization before spawning, independently of completion order.
     if os.environ.get("PYTHONHASHSEED") != "0":
         os.environ["PYTHONHASHSEED"] = "0"
         os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve())]+sys.argv[1:])
+    if args.mode in ("plot", "compare"):
+        from experiments.taguchi_cross_round import compare_mode, load_saved_round, results_base
+        if args.mode == "compare":
+            compare_mode(sys.modules[__name__])
+        else:
+            saved = load_saved_round(sys.modules[__name__], results_base(sys.modules[__name__]), ROUND_NAME)
+            with round_lock(saved["root"]):
+                plot_mode(saved["root"], saved["tasks"], saved["config"])
+        return
     array = validate_configuration()
     config = experiment_config(array)
     root = ROOT/RESULTS_DIR/ROUND_NAME
@@ -735,8 +751,6 @@ def main():
         stored = json.loads(config_path.read_text())
         if stored.get("experiment_fingerprint") != digest(config) or stored.get("experiment") != config:
             raise ValueError("Incompatible round configuration/source. Change ROUND_NAME or explicitly resolve old data; never mix rounds.")
-    elif args.mode == "plot":
-        raise FileNotFoundError(f"No completed experiment configuration: {config_path}")
     elif root.exists() and any(root.iterdir()):
         raise ValueError("Nonempty round lacks config.json; refusing to overwrite unknown data")
     root.mkdir(parents=True, exist_ok=True)
@@ -751,10 +765,7 @@ def main():
                 saved_array = list(csv.DictReader(handle))
             if saved_array != [{k: str(v) for k, v in r.items()} for r in array]:
                 raise ValueError("Saved orthogonal table is missing or inconsistent")
-        if args.mode == "run":
-            run_mode(root, tasks, config)
-        else:
-            plot_mode(root, tasks, config)
+        run_mode(root, tasks, config)
 
 
 if __name__ == "__main__":
