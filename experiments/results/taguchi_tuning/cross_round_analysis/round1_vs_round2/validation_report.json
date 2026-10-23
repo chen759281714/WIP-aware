@@ -1,0 +1,93 @@
+{
+  "valid": true,
+  "errors": [],
+  "rounds": [
+    "round1",
+    "round2"
+  ],
+  "inputs": [
+    {
+      "round": "round1",
+      "expected": 960,
+      "valid_completed": 960,
+      "instances": 12,
+      "seeds": 5,
+      "FE_max": 40000,
+      "input_sha256": "b98e7bb2070986853ea63a15cf97dfe5052ad0125f286b8aa991175b7fcda72f",
+      "config_sha256": "bf731167b95bd961e9015f6cfdc2c8b256cca17b88934986bb3d796572cba4cd",
+      "stored_source_identity": {
+        "sources": {
+          "src/algorithms/wip_graph_dual_population.py": "f9bd4b2df444ba1677523c3f5a3c0e9688673f6ac10daff4d9e71922124a542d",
+          "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+          "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+        },
+        "runner_logic_sha256": "7722024c0f60d7c0510cf3f6d01bebe3357f4f723c999d6546bfb03a3c5dc753",
+        "python": "3.12.8",
+        "python_hash_seed": "0"
+      }
+    },
+    {
+      "round": "round2",
+      "expected": 960,
+      "valid_completed": 960,
+      "instances": 12,
+      "seeds": 5,
+      "FE_max": 40000,
+      "input_sha256": "f1ccc77f20f241040fd2cb098e276875254fd088b94f2a0262c4710137793cae",
+      "config_sha256": "548fb3188b6a589f731f6ffad6a2d4463a525a09b22be7917b8198493d740fa8",
+      "stored_source_identity": {
+        "sources": {
+          "src/algorithms/wip_graph_dual_population.py": "f9bd4b2df444ba1677523c3f5a3c0e9688673f6ac10daff4d9e71922124a542d",
+          "src/solution/encoder.py": "d759879b9a6e285a5b7a2355e0306c517be7368538e5460436422a57c1015d40",
+          "src/solution/decoder.py": "a0c025e5128c6e73ece8a58e891dca8277ecc1b278a3834956552c3d68766fb7"
+        },
+        "runner_logic_sha256": "8e7adc40dc40b3e85df7d517c26783064a01249833ced52109adba08c7a73f2a",
+        "python": "3.12.8",
+        "python_hash_seed": "0"
+      }
+    }
+  ],
+  "common_conditions": {
+    "objectives": [
+      "makespan",
+      "shortage"
+    ],
+    "directions": [
+      "min",
+      "min"
+    ],
+    "normalization": "per-instance union of every raw archive across compared rounds",
+    "gd": "sqrt(sum(min_distance_squared))/archive_set_size",
+    "igd": "mean_reference_nearest_distance",
+    "hv_reference": [
+      1.1,
+      1.1
+    ],
+    "nhv_divisor": 1.21,
+    "fair_archive_limit": 40,
+    "identical_seed_sets": true,
+    "seed_sets": {
+      "round1": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "round2": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "python_versions": {
+      "round1": "3.12.8",
+      "round2": "3.12.8"
+    },
+    "runner_hash_policy": "Each raw record matches its own stored config; whole-runner hashes need not match across rounds.",
+    "metric_contract": "hlns-taguchi-l16-v1 documented formulas, recomputed by one shared metric implementation"
+  },
+  "checked_utc": "2026-10-23T02:10:08.181866+00:00"
+}

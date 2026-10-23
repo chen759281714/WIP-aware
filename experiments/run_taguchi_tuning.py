@@ -30,7 +30,7 @@ from pathlib import Path
 # USER CONFIGURATION
 # ============================================================
 MODE = "run"  # "run", "plot" or "compare"
-ROUND_NAME = "round2"
+ROUND_NAME = "round3"
 FE_MAX = 40000
 SEEDS = [0, 1, 2, 3, 4]
 MAX_WORKERS = 60
@@ -40,7 +40,7 @@ INSTANCE_NAMES = [
     "WIPHFSP_S8_P1_B3", "WIPHFSP_S8_P2_B1", "WIPHFSP_S8_P3_B2", "WIPHFSP_S8_P4_B3",
 ]
 FACTOR_LEVELS = {
-    "N": [10, 20, 30, 40],
+    "N": [5, 10, 15, 20],
     "p_mut": [0.15, 0.25, 0.35, 0.45],
     "rho": [0.89, 0.92, 0.95, 0.98],
     "T_coop": [1, 3, 5, 7],
@@ -52,8 +52,8 @@ FAIR_ARCHIVE_LIMIT = 40
 SKIP_COMPLETED = True
 INSTANCE_DIR = "data/final_benchmark/instances"
 RESULTS_DIR = "experiments/results/taguchi_tuning"
-COMPARE_ROUNDS = ["round1", "round2"]
-COMPARE_OUTPUT_NAME = "round1_vs_round2"
+COMPARE_ROUNDS = ["round1", "round2", "round3"]
+COMPARE_OUTPUT_NAME = "round1_vs_round2_vs_round3"
 # Optional additional measured pairs: ((baseline_round, run_id), (candidate_round, run_id)).
 # Example: [(("round1", "04"), ("round2", "01"))]
 COMPARE_PAIRS = []
@@ -569,6 +569,7 @@ def plot_mode(root, tasks, config):
                "best_makespan": min(p[0] for p in r["final_archive_objectives"]),
                "best_shortage": min(p[1] for p in r["final_archive_objectives"]),
                "archive_size": r["final_archive_size"], "unique_objective_count": len(front),
+               "archive_at_capacity": r["final_archive_size"] == task["N_A"],
                "fair_archive_size": len(fair), "runtime_seconds": r["runtime_seconds"], "actual_FE": r["actual_FE"]}
         run_rows.append(row)
     # Hierarchy: seeds -> instance -> equal-weight instance means. Never point-weighted.
@@ -660,7 +661,7 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
     lines = ["# Full 算法田口参数校正报告", "", "## 实验配置",
              f"轮次：{config['round']}；L16(4⁴)，四因素四水平，{len(config['orthogonal_array'])}组参数，"
              f"{len(config['instances'])}个实例，每例{len(config['seeds'])}个种子，共{count}次运行，每次{config['FE_max']} FE。",
-             "N表示每个种群规模；N_A=2N。因素N校正的是种群及关联档案容量，二者作用未独立分离。",
+             "N表示每个种群规模；N_A=2N。N同时改变种群、档案容量、固定FE内的轮数和按轮触发的协作机会，并非单独种群规模因果效应。",
              f"实例集合与当前预消融配置完全一致：{config['matches_pre_ablation_instances']}。",
              "采用固定FE比较，不宣称该预算已经通过充分收敛验证。",
              "", "## 参数组合结果", "|组合|N / N_A|p_mut|rho|T_coop|Mean NHV|NHV cap|GD|IGD|耗时秒|",
@@ -669,18 +670,26 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
         lines.append(f"|{r['run_id']}|{r['N']} / {r['N_A']}|{r['p_mut']}|{r['rho']}|{r['T_coop']}|"
                      f"{r['mean_nhv']:.6f}|{r['mean_nhv40']:.6f}|{r['mean_gd']:.6f}|{r['mean_igd']:.6f}|{r['mean_runtime']:.2f}|")
     lines += ["", "## 四因素主效应与后续范围建议"]
+    interior_factors = []
     for factor in FACTORS:
         group = [r for r in effects if r["factor"] == factor]
         best = max(group, key=lambda r: (r["mean_nhv"], -r["level_index"]))
         delta = max(r["mean_nhv"] for r in group)-min(r["mean_nhv"] for r in group)
         values = "、".join(f"{r['level_value']}→{r['mean_nhv']:.6f}" for r in group)
         tied = [r["level_value"] for r in group if r["mean_nhv"] == best["mean_nhv"]]
+        tied_indices = [r["level_index"] for r in group if r["mean_nhv"] == best["mean_nhv"]]
+        if all(i in (2, 3) for i in tied_indices):
+            interior_factors.append(factor)
+        runner_up = sorted(group, key=lambda r: (-r["mean_nhv"], r["level_index"]))[1]
         position = "下边界" if best["level_index"] == 1 else "上边界" if best["level_index"] == 4 else "内部"
         suggestion = ("可考虑向较小水平扩展，但需遵守参数合法域。" if position == "下边界" else
                       "可考虑向较大水平扩展，但需遵守参数合法域。" if position == "上边界" else "可考虑围绕内部较优区间缩小范围、提高分辨率。")
         if delta <= EPS:
             suggestion = "各水平主效应数值基本一致，当前响应下不能确定明确方向。"
-        lines.append(f"- {factor}：{values}；最大值对应{best['level_value']}（{position}），极差{delta:.6f}；并列最佳={tied}。{suggestion}")
+        lines.append(f"- {factor}：{values}；最大值对应{best['level_value']}（{position}），极差{delta:.6f}；并列最佳={tied}；"
+                     f"与次优水平{runner_up['level_value']}的NHV差={best['mean_nhv']-runner_up['mean_nhv']:.6f}。{suggestion}")
+    lines.append(f"内部最佳因素共{len(interior_factors)}/{len(FACTORS)}个：{interior_factors}。内部指最大值位于水平2或3；"
+                 "并列最大值包含边界时不计入该数，内部最佳不等于统计显著最优。小差距仍需结合实例差异及确认实验判断。")
     lines += ["主效应极差仅表示当前测试范围内响应幅度，不是统计显著性或独立因果贡献。",
               "", "## 分规模、瓶颈与缓冲配置"]
     for field, title in (("size", "规模"), ("profile", "负荷结构"), ("buffer", "缓冲等级")):

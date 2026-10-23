@@ -208,6 +208,23 @@ def choose_pairs(api, combinations, rounds):
     return best, checked
 
 
+def round_factor_effects(api, instances, rounds):
+    """Separate OA main effects per round, evaluated on the common scale."""
+    result = []
+    for item in rounds:
+        rows = [r for r in instances if r["round_name"] == item["name"]]
+        for factor, letter in zip(api.FACTORS, api.LETTERS):
+            for index, value in enumerate(item["config"]["factor_levels"][factor], 1):
+                ids = {r["run_id"] for r in item["config"]["orthogonal_array"] if r[letter+"_level"] == index}
+                selected = [r for r in rows if r["run_id"] in ids]
+                effect = {"round_name": item["name"], "factor": factor, "level_index": index,
+                          "level_value": value, "mean_nhv": st.mean(r["mean_nhv"] for r in selected)}
+                for size in sorted({r["size"] for r in rows}):
+                    effect["mean_nhv_"+size] = st.mean(r["mean_nhv"] for r in selected if r["size"] == size)
+                result.append(effect)
+    return result
+
+
 def paired_comparisons(api, runs, instances, pairs, rounds):
     lookup = {(r["round_name"], r["run_id"], r["instance"], r["seed"]): r for r in runs}
     ilookup = {(r["round_name"], r["run_id"], r["instance"]): r for r in instances}
@@ -331,6 +348,7 @@ def compare_mode(api):
                          "fair_archive_size": len(fair), "runtime_seconds": r["runtime_seconds"], "actual_FE": r["actual_FE"]})
     instances, combinations = measured_summary(api, runs, rounds)
     best, pairs = choose_pairs(api, combinations, rounds)
+    effects = round_factor_effects(api, instances, rounds)
     seeds, differences, summaries, grouped = paired_comparisons(api, runs, instances, pairs, rounds)
     if any(input_digest(api, r["root"], r["tasks"]) != r["input_sha256"] for r in rounds):
         validation.update(valid=False, errors=[{"error": "Input data changed during offline evaluation; retry after stopping writers"}])
@@ -346,7 +364,10 @@ def compare_mode(api):
     api.atomic_json(output/"reference_fronts.json", references)
     for name, rows in (("cross_round_run_metrics", runs), ("cross_round_instance_metrics", instances),
                        ("cross_round_combination_summary", combinations), ("best_combination_comparison", summaries),
-                       ("paired_seed_differences", seeds), ("instance_nhv_differences", differences)):
+                       ("paired_seed_differences", seeds), ("instance_nhv_differences", differences),
+                       ("round_best_combinations", [best[name] for name in names]),
+                       ("pairwise_round_comparisons", summaries), ("paired_instance_differences", differences),
+                       ("round_factor_effects_on_common_scale", effects)):
         if rows:
             api.save_csv(output/(name+".csv"), rows)
         else:
@@ -354,57 +375,83 @@ def compare_mode(api):
             (output/(name+".csv")).write_text("pair_id,instance,seed,delta_nhv\n", encoding="utf-8")
     for field, filename in (("size", "size_group_comparison"), ("profile", "profile_group_comparison"), ("buffer", "buffer_group_comparison")):
         api.save_csv(output/(filename+".csv"), grouped[field])
-    draw_comparison_figures(output/"figures", combinations, differences, grouped["size"], names)
-    write_cross_report(api, output/"cross_round_report.md", validation, combinations, best, summaries, grouped, runs)
+    draw_comparison_figures(output/"figures", combinations, differences, instances, best, names)
+    write_cross_report(api, output/"cross_round_report.md", validation, combinations, best, summaries, grouped, runs, effects, rounds, differences)
     print(f"Offline comparison complete: {output}")
 
 
-def draw_comparison_figures(directory, combinations, differences, sizes, names):
+def draw_comparison_figures(directory, combinations, differences, instances, best, names):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
     directory.mkdir(parents=True, exist_ok=True)
     palette = {name: plt.get_cmap("tab10")(i % 10) for i, name in enumerate(names)}
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(max(12, len(combinations)*.28), 7))
     labels = [r["round_name"]+":"+r["run_id"] for r in combinations]
     ax.bar(range(len(labels)), [r["mean_nhv"] for r in combinations], color=[palette[r["round_name"]] for r in combinations])
+    ax.annotate("Best measured: "+labels[0], (0, combinations[0]["mean_nhv"]),
+                xytext=(12, 8), textcoords="offset points", fontsize=9)
+    ax.legend(handles=[Patch(color=palette[name], label=name) for name in names], frameon=False)
     ax.set_xticks(range(len(labels)), labels, rotation=90); ax.set_ylabel("Mean NHV (common per-instance scale)")
     ax.grid(axis="y", alpha=.2); fig.tight_layout()
     for ext in ("png", "pdf"):
         fig.savefig(directory/f"cross_round_nhv_ranking.{ext}", dpi=300)
     plt.close(fig)
-    primary = sorted({r["pair_id"] for r in differences})[0]
-    group = [r for r in sizes if r["pair_id"] == primary]
+    sizes = sorted({r["size"] for r in instances})
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    xs = list(range(len(group)))
-    left = group[0]["baseline_round"]+":"+group[0]["baseline_run_id"]
-    right = group[0]["candidate_round"]+":"+group[0]["candidate_run_id"]
-    ax.bar([x-.18 for x in xs], [r["mean_baseline_nhv"] for r in group], .36, label=left)
-    ax.bar([x+.18 for x in xs], [r["mean_candidate_nhv"] for r in group], .36, label=right)
-    ax.set_xticks(xs, [r["size"] for r in group]); ax.set_ylabel("Mean NHV (common scale)"); ax.legend()
+    xs = list(range(len(sizes)))
+    width = .8/len(names)
+    for i, name in enumerate(names):
+        rid = best[name]["run_id"]
+        values = [st.mean(r["mean_nhv"] for r in instances if r["round_name"] == name
+                          and r["run_id"] == rid and r["size"] == size) for size in sizes]
+        ax.bar([x+(i-(len(names)-1)/2)*width for x in xs], values, width,
+               label=name+":"+rid, color=palette[name])
+    ax.set_xticks(xs, sizes); ax.set_ylabel("Mean NHV (common scale)"); ax.legend()
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(directory/f"best_by_size.{ext}", dpi=300)
+        fig.savefig(directory/f"round_best_by_size.{ext}", dpi=300)
     plt.close(fig)
-    group = [r for r in differences if r["pair_id"] == primary]
-    fig, ax = plt.subplots(figsize=(11, 5))
-    ax.bar(range(len(group)), [r["delta_nhv"] for r in group],
-           color=["#24736b" if r["delta_nhv"]>=0 else "#b34747" for r in group])
-    ax.axhline(0, color="black", linewidth=.8)
-    ax.set_xticks(range(len(group)), [r["instance"] for r in group], rotation=65, ha="right")
-    ax.set_ylabel("Delta NHV: candidate - baseline")
-    ax.set_title(right+" minus "+left+"; instance seed means")
+    used = set()
+    for pair_id in sorted({r["pair_id"] for r in differences}):
+        group = [r for r in differences if r["pair_id"] == pair_id]
+        first = group[0]
+        left = first["baseline_round"]+":"+first["baseline_run_id"]
+        right = first["candidate_round"]+":"+first["candidate_run_id"]
+        filename = first["candidate_round"]+"_vs_"+first["baseline_round"]+"_instance_differences"
+        if filename in used:
+            filename += "_"+pair_id
+        used.add(filename)
+        fig, ax = plt.subplots(figsize=(11, 5))
+        ax.bar(range(len(group)), [r["delta_nhv"] for r in group],
+               color=["#24736b" if r["delta_nhv"]>=0 else "#b34747" for r in group])
+        ax.axhline(0, color="black", linewidth=.8)
+        ax.set_xticks(range(len(group)), [r["instance"] for r in group], rotation=65, ha="right")
+        ax.set_ylabel("Delta NHV: candidate - baseline")
+        ax.set_title(right+" minus "+left+"; instance seed means")
+        fig.tight_layout()
+        for ext in ("png", "pdf"):
+            fig.savefig(directory/f"{filename}.{ext}", dpi=300)
+        plt.close(fig)
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.bar(range(len(names)), [best[name]["mean_nhv"] for name in names], color=[palette[name] for name in names])
+    ax.set_xticks(range(len(names)), [name+":"+best[name]["run_id"] for name in names])
+    ax.set_ylabel("Best measured Mean NHV (common scale)")
+    ax.set_title("Parameter-selection results, NOT independent confirmation", fontsize=10)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(directory/f"instance_nhv_differences.{ext}", dpi=300)
+        fig.savefig(directory/f"best_nhv_by_round.{ext}", dpi=300)
     plt.close(fig)
 
 
-def write_cross_report(api, path, validation, combinations, best, summaries, grouped, runs):
+def write_cross_report(api, path, validation, combinations, best, summaries, grouped, runs, effects, rounds, differences):
     lines = ["# 跨轮田口实测配置统一评价报告", "", "## 数据完整性"]
     for r in validation["inputs"]:
         lines.append(f"- {r['round']}：{r['expected']}条预期任务，{r['valid_completed']}条有效，"
                      f"{r['instances']}实例、{r['seeds']}种子，每次{r['FE_max']} FE；来源摘要{r['input_sha256']}。")
+    for item in rounds:
+        lines.append(f"- {item['name']}独立L16水平：{item['config']['factor_levels']}。")
     lines += ["原始结果逐轮按各自保存配置验证，不用当前轮的参数水平验证旧轮；核心算法/编码器/解码器及实例哈希跨轮一致。",
               "实验脚本自身版本允许不同；这不等于忽略原始任务各自的指纹校验。Python版本等来源元数据见validation_report.json。",
               "", "## 统一评价口径",
@@ -431,6 +478,9 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
                      f"实际共有{r['paired_seed_records']}条共同种子配对。")
         lines.append(f"  平均ΔNHV_40={r['mean_delta_nhv40']:.6f}、ΔGD={r['mean_delta_gd']:.6f}、ΔIGD={r['mean_delta_igd']:.6f}；"
                      f"平均耗时差={r['mean_delta_runtime_seconds']:.2f}秒。")
+        failures = [r2["instance"] for r2 in differences if r2["pair_id"] == r["pair_id"] and r2["delta_nhv"] < -api.EPS]
+        lines.append(f"  NHV退化实例：{failures}；总体NHV与IGD方向"
+                     + ("一致。" if r['mean_delta_nhv']*r['mean_delta_igd'] < 0 else "不构成严格同向改善，需分别解读。"))
     if not validation["common_conditions"]["identical_seed_sets"]:
         lines.append("警告：各轮种子集合不完全一致，实例差值基于各轮各自全部种子均值，不属于完整同种子配对；种子差值表只列实际交集。")
     lines += ["全部delta字段统一为候选减基线：NHV正值表示改善，GD/IGD正值表示退化。每个seed不是一个独立测试实例。",
@@ -440,6 +490,43 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
             lines.append(f"- {r['pair_id']} {r[field]}：ΔNHV={r['mean_delta_nhv']:.6f}，ΔNHV_40={r['mean_delta_nhv40']:.6f}，"
                          f"ΔGD={r['mean_delta_gd']:.6f}，ΔIGD={r['mean_delta_igd']:.6f}；胜/平/负={r['wins']}/{r['ties']}/{r['losses']}。")
     lines += ["任何分组负ΔNHV均应作为失败边界保留，尤其不能用总体正均值掩盖S8退化。指标方向不一致时不能声称一致改善。",
+              "", "## 各轮独立正交设计的N响应及其他因素稳定性",
+              "下述主效应在各轮自己的L16内部计算，但使用本次共同尺度；不是合并各轮正交表，也不覆盖各轮plot主效应。"]
+    previous = None
+    for item in rounds:
+        name = item["name"]
+        selected = {}
+        for factor in api.FACTORS:
+            group = [r for r in effects if r["round_name"] == name and r["factor"] == factor]
+            top = min(group, key=lambda r: (-r["mean_nhv"], r["level_index"]))
+            selected[factor] = top["level_value"]
+            lines.append(f"- {name} {factor}："+"；".join(f"{r['level_value']}→{r['mean_nhv']:.6f}" for r in group)
+                         +f"；所选最好水平={top['level_value']}（水平{top['level_index']}）。")
+        nrows = [r for r in effects if r["round_name"] == name and r["factor"] == "N"]
+        nbest = min(nrows, key=lambda r: (-r["mean_nhv"], r["level_index"]))
+        lines.append(f"  {name} N最佳所选水平是否内部（水平2/3）：{nbest['level_index'] in (2,3)}。并列及小差距不等于显著最优。")
+        if any(r["level_value"] == 10 for r in nrows):
+            anchor = next(r for r in nrows if r["level_value"] == 10)
+            for r in nrows:
+                if r["level_value"] == 10:
+                    continue
+                text = f"  {name} N={r['level_value']}减N=10：总体ΔNHV={r['mean_nhv']-anchor['mean_nhv']:.6f}"
+                for size in sorted({x["size"] for x in runs if x["round_name"] == name}):
+                    text += f"；{size}={r['mean_nhv_'+size]-anchor['mean_nhv_'+size]:.6f}"
+                lines.append(text+"。正值表示该N水平主效应更好，不是单独N的因果效应。")
+        tested = [r["run_id"] for r in item["config"]["orthogonal_array"] if all(r[k] == selected[k] for k in api.FACTORS)]
+        lines.append(f"  {name}本共同尺度下主效应候选：{selected}，N_A={2*selected['N']}；"
+                     f"是否已作为完整组合实测={bool(tested)}，对应行={tested}。未实测时没有真实响应，需确认。")
+        if previous is not None:
+            old_name, old_selected, old_config = previous
+            for factor in api.FACTORS[1:]:
+                same_levels = old_config["factor_levels"][factor] == item["config"]["factor_levels"][factor]
+                lines.append(f"  {old_name}→{name} {factor}：水平集合相同={same_levels}；最佳{old_selected[factor]}→{selected[factor]}。"
+                             "变化可能来自N范围、实例差异或交互，不能直接归结为机制失效。")
+        previous = name, selected, item["config"]
+    lines.append("各轮最佳实测配置的N依次为："+" → ".join(f"{name}:{best[name]['N']}" for name in best)
+                 +"。这只是不同候选集合的筛选轨迹，不证明小N独立有利。")
+    lines += ["N_A=2N；N=5对应档案上限10。N改变种群、档案容量、固定FE内轮数及按轮协作机会，不能视为其余条件完全固定的N因果效应。",
               "", "## 档案容量与公平性"]
     changed = [r['round_name']+":"+r['run_id'] for r in combinations if r['rank_global']!=r['rank_global_nhv40']]
     lines.append(f"统一40点截断后全局排名发生变化的配置：{changed}。完整排名及辅助排名均保留在汇总CSV。")
@@ -455,5 +542,6 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
               "各轮最佳组合均经事后参数筛选；这些是探索性比较，不证明全局最优参数，不是独立确认试验。",
               "同一实例多个种子不视作独立问题实例。本报告不输出未经多重选择校正的显著性宣称。",
               "重复使用调参实例和种子不能称为独立验证；跨服务器/并发环境的耗时也不等同于严格公平单线程速度。",
-              "同名完整参数组合若跨轮重复，保留两个来源分别评价，不静默去重。图中的最佳行对照为首个轮次对，其他指定配对详见CSV。"]
+              "同名完整参数组合若跨轮重复，保留各来源分别评价，不静默去重。所有轮次最佳行、全部两两差值均提供图表。",
+              "本报告不自动创建下一轮或执行主效应推荐组合确认；未实测推荐组合只能标为待确认。"]
     path.write_text("\n".join(lines)+"\n", encoding="utf-8")
