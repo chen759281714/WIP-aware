@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/home/ssczl/projects/WIP-aware/experiments/run_taguchi_tuning.py", line 370, in round_lock
+    with path.open("x") as handle:
+         ^^^^^^^^^^^^^^
+  File "/home/ssczl/miniconda3/envs/myproject/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/home/ssczl/projects/WIP-aware/experiments/results/taguchi_tuning/round3/.session.lock'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ssczl/projects/WIP-aware/experiments/run_taguchi_tuning.py", line 781, in <module>
+    main()
+  File "/home/ssczl/projects/WIP-aware/experiments/run_taguchi_tuning.py", line 766, in main
+    with round_lock(root):
+         ^^^^^^^^^^^^^^^^
+  File "/home/ssczl/miniconda3/envs/myproject/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/ssczl/projects/WIP-aware/experiments/run_taguchi_tuning.py", line 373, in round_lock
+    raise RuntimeError(f"Round is locked: {path}. After an interrupted run, verify the old process has exited before removing this lock.")
+RuntimeError: Round is locked: /home/ssczl/projects/WIP-aware/experiments/results/taguchi_tuning/round3/.session.lock. After an interrupted run, verify the old process has exited before removing this lock.
