@@ -30,9 +30,9 @@ from pathlib import Path
 # USER CONFIGURATION
 # ============================================================
 MODE = "run"  # "run", "plot" or "compare"
-ROUND_NAME = "round3"
+ROUND_NAME = "round4"
 FE_MAX = 40000
-SEEDS = [0, 1, 2, 3, 4]
+SEEDS = [5, 6, 7, 8, 9]
 MAX_WORKERS = 60
 INSTANCE_NAMES = [
     "WIPHFSP_S1_P1_B1", "WIPHFSP_S1_P2_B2", "WIPHFSP_S1_P3_B3", "WIPHFSP_S1_P4_B1",
@@ -40,7 +40,7 @@ INSTANCE_NAMES = [
     "WIPHFSP_S8_P1_B3", "WIPHFSP_S8_P2_B1", "WIPHFSP_S8_P3_B2", "WIPHFSP_S8_P4_B3",
 ]
 FACTOR_LEVELS = {
-    "N": [5, 10, 15, 20],
+    "N": [5, 10, 20, 30],
     "p_mut": [0.15, 0.25, 0.35, 0.45],
     "rho": [0.89, 0.92, 0.95, 0.98],
     "T_coop": [1, 3, 5, 7],
@@ -52,8 +52,8 @@ FAIR_ARCHIVE_LIMIT = 40
 SKIP_COMPLETED = True
 INSTANCE_DIR = "data/final_benchmark/instances"
 RESULTS_DIR = "experiments/results/taguchi_tuning"
-COMPARE_ROUNDS = ["round1", "round2", "round3"]
-COMPARE_OUTPUT_NAME = "round1_vs_round2_vs_round3"
+COMPARE_ROUNDS = ["round1", "round2", "round3", "round4"]
+COMPARE_OUTPUT_NAME = "round1_vs_round2_vs_round3_vs_round4"
 # Optional additional measured pairs: ((baseline_round, run_id), (candidate_round, run_id)).
 # Example: [(("round1", "04"), ("round2", "01"))]
 COMPARE_PAIRS = []
@@ -632,11 +632,12 @@ def draw_figures(directory, effects, sizes, fair_limit):
         fig, axes = plt.subplots(2, 2, figsize=(9, 6), sharey=True)
         for ax, factor in zip(axes.flat, FACTORS):
             group = [r for r in effects if r["factor"] == factor]
-            xs, ys = [r["level_value"] for r in group], [r["mean_"+metric] for r in group]
+            xs, ys = list(range(len(group))), [r["mean_"+metric] for r in group]
             best = (max if metric.startswith("nhv") else min)(range(len(ys)), key=lambda i: ys[i])
             ax.plot(xs, ys, marker="o", linewidth=1.3)
             ax.scatter([xs[best]], [ys[best]], facecolors="none", edgecolors="black", s=90, zorder=3)
-            ax.set_xticks(xs, [str(x) for x in xs]); ax.set_xlabel(factor); ax.set_ylabel(label)
+            ax.set_xticks(xs, [str(r["level_value"]) for r in group])
+            ax.set_xlabel(factor+" (categorical levels)"); ax.set_ylabel(label)
             ax.grid(alpha=.2)
         fig.tight_layout()
         for extension in ("png", "pdf"):
@@ -645,10 +646,11 @@ def draw_figures(directory, effects, sizes, fair_limit):
     fig, axes = plt.subplots(2, 2, figsize=(9, 6), sharey=True)
     for ax, factor in zip(axes.flat, FACTORS):
         group = [r for r in effects if r["factor"] == factor]
-        xs = [r["level_value"] for r in group]
+        xs = list(range(len(group)))
         for size in sizes:
             ax.plot(xs, [r["mean_nhv_"+size] for r in group], marker="o", linewidth=1.3, label=size)
-        ax.set_xticks(xs, [str(x) for x in xs]); ax.set_xlabel(factor); ax.set_ylabel("Mean NHV")
+        ax.set_xticks(xs, [str(r["level_value"]) for r in group])
+        ax.set_xlabel(factor+" (categorical levels)"); ax.set_ylabel("Mean NHV")
         ax.grid(alpha=.2); ax.legend(frameon=False)
     fig.tight_layout()
     for extension in ("png", "pdf"):
@@ -664,7 +666,16 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
              "N表示每个种群规模；N_A=2N。N同时改变种群、档案容量、固定FE内的轮数和按轮触发的协作机会，并非单独种群规模因果效应。",
              f"实例集合与当前预消融配置完全一致：{config['matches_pre_ablation_instances']}。",
              "采用固定FE比较，不宣称该预算已经通过充分收敛验证。",
-             "", "## 参数组合结果", "|组合|N / N_A|p_mut|rho|T_coop|Mean NHV|NHV cap|GD|IGD|耗时秒|",
+             f"本轮随机种子：{config['seeds']}。",
+             "主效应图横轴为等间距分类位置，标签显示实际参数值；连线不代表连续函数或等距离数值变化。",
+             "", "## 正交设计", "|因素|水平1|水平2|水平3|水平4|", "|---|---|---|---|---|"]
+    for factor in FACTORS:
+        lines.append("|"+factor+"|"+"|".join(str(v) for v in config["factor_levels"][factor])+"|")
+    lines += ["", "|组合|A|B|C|D|N|N_A|p_mut|rho|T_coop|", "|---|---|---|---|---|---|---|---|---|---|"]
+    for row in config["orthogonal_array"]:
+        lines.append("|"+"|".join(str(row[k]) for k in
+                                  ("run_id", "A_level", "B_level", "C_level", "D_level", "N", "N_A", "p_mut", "rho", "T_coop"))+"|")
+    lines += ["", "## 参数组合结果", "|组合|N / N_A|p_mut|rho|T_coop|Mean NHV|NHV cap|GD|IGD|耗时秒|",
              "|---|---|---|---|---|---|---|---|---|---|"]
     for r in sorted(combinations, key=lambda r: (r["rank_by_mean_nhv"], r["run_id"])):
         lines.append(f"|{r['run_id']}|{r['N']} / {r['N_A']}|{r['p_mut']}|{r['rho']}|{r['T_coop']}|"
@@ -684,6 +695,8 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
         position = "下边界" if best["level_index"] == 1 else "上边界" if best["level_index"] == 4 else "内部"
         suggestion = ("可考虑向较小水平扩展，但需遵守参数合法域。" if position == "下边界" else
                       "可考虑向较大水平扩展，但需遵守参数合法域。" if position == "上边界" else "可考虑围绕内部较优区间缩小范围、提高分辨率。")
+        if config["round"] == "round4":
+            suggestion = "本轮为最终正式L16，不自动扩展水平或开展下一轮；完整候选组合仍需确认。"
         if delta <= EPS:
             suggestion = "各水平主效应数值基本一致，当前响应下不能确定明确方向。"
         lines.append(f"- {factor}：{values}；最大值对应{best['level_value']}（{position}），极差{delta:.6f}；并列最佳={tied}；"
@@ -691,7 +704,14 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
     lines.append(f"内部最佳因素共{len(interior_factors)}/{len(FACTORS)}个：{interior_factors}。内部指最大值位于水平2或3；"
                  "并列最大值包含边界时不计入该数，内部最佳不等于统计显著最优。小差距仍需结合实例差异及确认实验判断。")
     lines += ["主效应极差仅表示当前测试范围内响应幅度，不是统计显著性或独立因果贡献。",
-              "", "## 分规模、瓶颈与缓冲配置"]
+              "描述性极差排序："+" > ".join(r["factor"] for r in sorted(ranking, key=lambda r: -r["delta_nhv"]))+"。",
+              "", "## N规模响应对照"]
+    n_effects = sorted((r for r in effects if r["factor"] == "N"), key=lambda r: r["level_index"])
+    anchor = n_effects[0]
+    for row in n_effects:
+        lines.append(f"- N={row['level_value']}、N_A={2*row['level_value']}：Mean NHV={row['mean_nhv']:.6f}，"
+                     f"相对最小测试规模N={anchor['level_value']}的差={row['mean_nhv']-anchor['mean_nhv']:.6f}。")
+    lines += ["", "## 分规模、瓶颈与缓冲配置"]
     for field, title in (("size", "规模"), ("profile", "负荷结构"), ("buffer", "缓冲等级")):
         for value in sorted({r[field] for r in grouped[field]}):
             subset = {r["run_id"]: r for r in grouped[field] if r[field] == value}
@@ -705,6 +725,9 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
             lines.append(f"- {title}{value}：描述性最佳水平{choices}；与总体建议不同的因素：{mismatches}。")
     lines.append("各分组完整指标保留在分组CSV。分组响应差异不自动转化为自适应参数；正式选择仍以总体实例等权Mean NHV为准。")
     best_row = max(combinations, key=lambda r: (r["mean_nhv"], -int(r["run_id"])))
+    lines.append(f"总体L16实测最佳组合：行{best_row['run_id']}，N={best_row['N']}、N_A={best_row['N_A']}、"
+                 f"p_mut={best_row['p_mut']}、rho={best_row['rho']}、T_coop={best_row['T_coop']}；"
+                 f"Mean NHV={best_row['mean_nhv']:.6f}。这与主效应推荐组合是两个不同概念。")
     for field in ("size", "profile", "buffer"):
         for group in sorted({r[field] for r in grouped[field]}):
             sub = [r for r in grouped[field] if r[field] == group]
@@ -721,7 +744,7 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
               "该辅助检查不消除档案容量对AC及整个搜索轨迹的影响；主响应仍是完整档案NHV。",
               "", "## 推荐参数", "```json", json.dumps(recommended, ensure_ascii=False, indent=2), "```",
               "推荐组合的四个水平来自主效应最大值，未必是16行之一。若不是实测行，需要独立确认，不能编造实测响应。",
-              "若恰为实测行，其测量也仅代表当前实例/种子；不构成独立确认试验。本脚本不自动开展确认或第二轮实验。",
+              "若恰为实测行，其测量也仅代表当前实例/种子；不构成独立确认试验。本脚本不自动开展确认或额外轮次实验。",
               "", "## 统计与解释边界",
               "实例内种子等权，然后实例等权；组合std为实例均值之间的样本标准差，实例std为种子之间的样本标准差；",
               "主效应std_combination_mean为四个组合均值的样本标准差。图中不添加未经解释的误差棒。",
@@ -731,6 +754,9 @@ def write_report(path, config, combinations, effects, ranking, grouped, recommen
               "最佳makespan与最佳shortage可能来自不同解；不能解释为同一解同时达到两个极端。",
               "L16主要估计主效应，不能充分辨识全部交互作用。候选间细小差异不等于显著差异，没有统计证据时不作强敏感性结论。",
               "不同轮次参考尺度独立，不能直接拼接不同轮次曲线或以其NHV绝对数值判断哪一轮更优。"]
+    if config["round"] == "round4":
+        lines.append("Round 4是最终正式L16；Round 1～3为水平范围探索依据。本轮水平经过前期筛选，并非独立于前三轮的设计；"
+                     "新种子不等于未参与调参实例上的泛化验证，不要求本轮刷新历史最佳。")
     path.write_text("\n".join(lines)+"\n", encoding="utf-8")
 
 

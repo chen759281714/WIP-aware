@@ -235,7 +235,10 @@ def paired_comparisons(api, runs, instances, pairs, rounds):
         common = sorted(set(configs[left[0]]["seeds"]) & set(configs[right[0]]["seeds"]))
         fully_paired = set(configs[left[0]]["seeds"]) == set(configs[right[0]]["seeds"])
         header = {"pair_id": label, "baseline_round": left[0], "baseline_run_id": left[1],
-                  "candidate_round": right[0], "candidate_run_id": right[1], "full_seed_pairing": fully_paired}
+                  "candidate_round": right[0], "candidate_run_id": right[1],
+                  "seed_pairing_available": bool(common), "common_seed_count": len(common),
+                  "full_seed_pairing": fully_paired,
+                  "comparison_unit": "instance_mean_using_each_round_own_seeds"}
         for name in configs[left[0]]["instances"]:
             a, b = ilookup[left+(name,)], ilookup[right+(name,)]
             row = {**header, "instance": name, **api.dimensions(name),
@@ -269,7 +272,8 @@ def paired_comparisons(api, runs, instances, pairs, rounds):
             groups[row["pair_id"], row[dimension]].append(row)
         values = []
         for (pair_id, group_name), group in sorted(groups.items()):
-            r = {k: group[0][k] for k in ("pair_id", "baseline_round", "baseline_run_id", "candidate_round", "candidate_run_id", "full_seed_pairing")}
+            r = {k: group[0][k] for k in ("pair_id", "baseline_round", "baseline_run_id", "candidate_round", "candidate_run_id",
+                                         "seed_pairing_available", "common_seed_count", "full_seed_pairing", "comparison_unit")}
             r.update({dimension: group_name, "n_instances": len(group),
                       "wins": sum(g["delta_nhv"]>api.EPS for g in group),
                       "ties": sum(abs(g["delta_nhv"])<=api.EPS for g in group),
@@ -367,12 +371,16 @@ def compare_mode(api):
                        ("paired_seed_differences", seeds), ("instance_nhv_differences", differences),
                        ("round_best_combinations", [best[name] for name in names]),
                        ("pairwise_round_comparisons", summaries), ("paired_instance_differences", differences),
+                       ("seed_pairing_summary", [{k: r[k] for k in
+                            ("pair_id", "baseline_round", "baseline_run_id", "candidate_round", "candidate_run_id",
+                             "seed_pairing_available", "common_seed_count", "full_seed_pairing", "paired_seed_records", "comparison_unit")}
+                            for r in summaries]),
                        ("round_factor_effects_on_common_scale", effects)):
         if rows:
             api.save_csv(output/(name+".csv"), rows)
         else:
             # No overlapping seeds: record an empty table, never invent pairings.
-            (output/(name+".csv")).write_text("pair_id,instance,seed,delta_nhv\n", encoding="utf-8")
+            (output/(name+".csv")).write_text("pair_id,instance,seed,seed_pairing_available,common_seed_count,delta_nhv\n", encoding="utf-8")
     for field, filename in (("size", "size_group_comparison"), ("profile", "profile_group_comparison"), ("buffer", "buffer_group_comparison")):
         api.save_csv(output/(filename+".csv"), grouped[field])
     draw_comparison_figures(output/"figures", combinations, differences, instances, best, names)
@@ -451,7 +459,10 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
         lines.append(f"- {r['round']}：{r['expected']}条预期任务，{r['valid_completed']}条有效，"
                      f"{r['instances']}实例、{r['seeds']}种子，每次{r['FE_max']} FE；来源摘要{r['input_sha256']}。")
     for item in rounds:
-        lines.append(f"- {item['name']}独立L16水平：{item['config']['factor_levels']}。")
+        lines.append(f"- {item['name']}独立L16水平：{item['config']['factor_levels']}；种子：{item['config']['seeds']}。")
+    total_runs = sum(r["valid_completed"] for r in validation["inputs"])
+    total_fe = sum(r["valid_completed"]*r["FE_max"] for r in validation["inputs"])
+    lines.append(f"共{len(rounds)}轮、{total_runs}次有效运行、{len(combinations)}个实测配置记录、{total_fe} FE。")
     lines += ["原始结果逐轮按各自保存配置验证，不用当前轮的参数水平验证旧轮；核心算法/编码器/解码器及实例哈希跨轮一致。",
               "实验脚本自身版本允许不同；这不等于忽略原始任务各自的指纹校验。Python版本等来源元数据见validation_report.json。",
               "", "## 统一评价口径",
@@ -475,12 +486,26 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
         lines.append(f"- {r['pair_id']}：{r['candidate_round']}/{r['candidate_run_id']}减{r['baseline_round']}/{r['baseline_run_id']}，"
                      f"实例平均ΔNHV={r['mean_delta_nhv']:.6f}，中位数={r['median_delta_nhv']:.6f}，胜/平/负={r['wins']}/{r['ties']}/{r['losses']}，"
                      f"留一实例平均差范围=[{r['loo_min_mean_delta_nhv']},{r['loo_max_mean_delta_nhv']}]；完整种子配对={r['full_seed_pairing']}，"
+                     f"seed_pairing_available={r['seed_pairing_available']}，公共种子数={r['common_seed_count']}，"
                      f"实际共有{r['paired_seed_records']}条共同种子配对。")
+        if not r["seed_pairing_available"]:
+            lines.append("  本比较无公共种子：只进行同实例各自种子均值的配对，不按种子编号或列表下标伪造运行级配对。")
         lines.append(f"  平均ΔNHV_40={r['mean_delta_nhv40']:.6f}、ΔGD={r['mean_delta_gd']:.6f}、ΔIGD={r['mean_delta_igd']:.6f}；"
                      f"平均耗时差={r['mean_delta_runtime_seconds']:.2f}秒。")
         failures = [r2["instance"] for r2 in differences if r2["pair_id"] == r["pair_id"] and r2["delta_nhv"] < -api.EPS]
         lines.append(f"  NHV退化实例：{failures}；总体NHV与IGD方向"
                      + ("一致。" if r['mean_delta_nhv']*r['mean_delta_igd'] < 0 else "不构成严格同向改善，需分别解读。"))
+        subset = [row for row in differences if row["pair_id"] == r["pair_id"]]
+        for label, selected in (("P2", [row for row in subset if row["profile"] == "P2"]),
+                                ("非P2", [row for row in subset if row["profile"] != "P2"]),
+                                ("S8", [row for row in subset if row["size"] == "S8"])):
+            if selected:
+                delta = st.mean(row["delta_nhv"] for row in selected)
+                wins = sum(row["delta_nhv"] > api.EPS for row in selected)
+                losses = sum(row["delta_nhv"] < -api.EPS for row in selected)
+                lines.append(f"  {label}边界检查：{len(selected)}实例，平均ΔNHV={delta:.6f}，"
+                             f"胜/平/负={wins}/{len(selected)-wins-losses}/{losses}；"
+                             "总体正均值不能代替非P2或S8改善的证据。")
     if not validation["common_conditions"]["identical_seed_sets"]:
         lines.append("警告：各轮种子集合不完全一致，实例差值基于各轮各自全部种子均值，不属于完整同种子配对；种子差值表只列实际交集。")
     lines += ["全部delta字段统一为候选减基线：NHV正值表示改善，GD/IGD正值表示退化。每个seed不是一个独立测试实例。",
@@ -542,6 +567,10 @@ def write_cross_report(api, path, validation, combinations, best, summaries, gro
               "各轮最佳组合均经事后参数筛选；这些是探索性比较，不证明全局最优参数，不是独立确认试验。",
               "同一实例多个种子不视作独立问题实例。本报告不输出未经多重选择校正的显著性宣称。",
               "重复使用调参实例和种子不能称为独立验证；跨服务器/并发环境的耗时也不等同于严格公平单线程速度。",
+              "不同种子集合的实例均值比较同时包含配置差异与随机抽样差异，不能当作同随机序列条件下的配置因果比较。",
               "同名完整参数组合若跨轮重复，保留各来源分别评价，不静默去重。所有轮次最佳行、全部两两差值均提供图表。",
               "本报告不自动创建下一轮或执行主效应推荐组合确认；未实测推荐组合只能标为待确认。"]
+    if "round4" in best:
+        lines.append("Round 4定位为最终正式L16，Round 1～3是水平探索依据；即使Round 4未超过历史候选也如实保留，"
+                     "不自动生成Round 5。新种子不能替代未参与调参实例上的泛化验证。")
     path.write_text("\n".join(lines)+"\n", encoding="utf-8")

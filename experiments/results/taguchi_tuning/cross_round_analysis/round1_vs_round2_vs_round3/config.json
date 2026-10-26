@@ -1,0 +1,197 @@
+{
+  "rounds": [
+    "round1",
+    "round2",
+    "round3"
+  ],
+  "comparison_pairs": [
+    [
+      [
+        "round1",
+        "04"
+      ],
+      [
+        "round2",
+        "02"
+      ]
+    ],
+    [
+      [
+        "round1",
+        "04"
+      ],
+      [
+        "round3",
+        "08"
+      ]
+    ],
+    [
+      [
+        "round2",
+        "02"
+      ],
+      [
+        "round3",
+        "08"
+      ]
+    ]
+  ],
+  "best_measured_rows": {
+    "round1": {
+      "round_name": "round1",
+      "run_id": "04",
+      "n_observations": 12,
+      "mean_raw_hv": 0.9531982990619902,
+      "std_raw_hv": 0.09596384427128955,
+      "mean_nhv": 0.7877671893074298,
+      "std_nhv": 0.07930896220767732,
+      "mean_nhv40": 0.7877671893074298,
+      "std_nhv40": 0.07930896220767732,
+      "mean_gd": 0.03241139368652696,
+      "std_gd": 0.0160649638093711,
+      "mean_igd": 0.14718267682196742,
+      "std_igd": 0.05994386768953161,
+      "mean_best_makespan": 1886.65,
+      "std_best_makespan": 884.405719832661,
+      "mean_best_shortage": 2933.5166666666664,
+      "std_best_shortage": 2837.1269750267156,
+      "mean_archive_size": 37.13333333333333,
+      "std_archive_size": 3.4222091040021425,
+      "mean_runtime_seconds": 2497.4329293197798,
+      "std_runtime_seconds": 2272.5794660137994,
+      "N": 20,
+      "p_mut": 0.35,
+      "rho": 0.95,
+      "T_coop": 15,
+      "N_A": 40,
+      "mean_runtime": 2497.4329293197798,
+      "rank_global": 26,
+      "rank_within_round": 1,
+      "rank_global_nhv40": 26
+    },
+    "round2": {
+      "round_name": "round2",
+      "run_id": "02",
+      "n_observations": 12,
+      "mean_raw_hv": 0.9781803268538556,
+      "std_raw_hv": 0.06777215810451669,
+      "mean_nhv": 0.8084134932676492,
+      "std_nhv": 0.056010048020261716,
+      "mean_nhv40": 0.8084134932676492,
+      "std_nhv40": 0.056010048020261716,
+      "mean_gd": 0.02963847817688102,
+      "std_gd": 0.008873482102014076,
+      "mean_igd": 0.12504161156975674,
+      "std_igd": 0.03505639441197905,
+      "mean_best_makespan": 1882.5333333333333,
+      "std_best_makespan": 876.8761800570906,
+      "mean_best_shortage": 2819.7,
+      "std_best_shortage": 2705.8396223387263,
+      "mean_archive_size": 19.916666666666668,
+      "std_archive_size": 0.15859229221975124,
+      "mean_runtime_seconds": 2705.624719623418,
+      "std_runtime_seconds": 2666.4316242262307,
+      "N": 10,
+      "p_mut": 0.25,
+      "rho": 0.92,
+      "T_coop": 5,
+      "N_A": 20,
+      "mean_runtime": 2705.624719623418,
+      "rank_global": 5,
+      "rank_within_round": 1,
+      "rank_global_nhv40": 5
+    },
+    "round3": {
+      "round_name": "round3",
+      "run_id": "08",
+      "n_observations": 12,
+      "mean_raw_hv": 0.9876554996974976,
+      "std_raw_hv": 0.06251508129776313,
+      "mean_nhv": 0.816244214626031,
+      "std_nhv": 0.05166535644443235,
+      "mean_nhv40": 0.816244214626031,
+      "std_nhv40": 0.05166535644443235,
+      "mean_gd": 0.024470074017456326,
+      "std_gd": 0.007233328985451175,
+      "mean_igd": 0.11390230123295778,
+      "std_igd": 0.03461838920992538,
+      "mean_best_makespan": 1895.9833333333333,
+      "std_best_makespan": 881.5107918004214,
+      "mean_best_shortage": 2745.4,
+      "std_best_shortage": 2675.4145153771797,
+      "mean_archive_size": 19.96666666666667,
+      "std_archive_size": 0.07784989441615202,
+      "mean_runtime_seconds": 2300.411860386758,
+      "std_runtime_seconds": 2241.39347647498,
+      "N": 10,
+      "p_mut": 0.45,
+      "rho": 0.95,
+      "T_coop": 1,
+      "N_A": 20,
+      "mean_runtime": 2300.411860386758,
+      "rank_global": 1,
+      "rank_within_round": 1,
+      "rank_global_nhv40": 1
+    }
+  },
+  "metric_contract": {
+    "objectives": [
+      "makespan",
+      "shortage"
+    ],
+    "directions": [
+      "min",
+      "min"
+    ],
+    "normalization": "per-instance union of every raw archive across compared rounds",
+    "gd": "sqrt(sum(min_distance_squared))/archive_set_size",
+    "igd": "mean_reference_nearest_distance",
+    "hv_reference": [
+      1.1,
+      1.1
+    ],
+    "nhv_divisor": 1.21,
+    "fair_archive_limit": 40,
+    "identical_seed_sets": true,
+    "seed_sets": {
+      "round1": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "round2": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "round3": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "python_versions": {
+      "round1": "3.12.8",
+      "round2": "3.12.8",
+      "round3": "3.12.8"
+    },
+    "runner_hash_policy": "Each raw record matches its own stored config; whole-runner hashes need not match across rounds.",
+    "metric_contract": "hlns-taguchi-l16-v1 documented formulas, recomputed by one shared metric implementation"
+  },
+  "analysis_python": "3.9.6",
+  "analysis_runner_sha256": "58a96ed6d209702bbd4a4ba1ca8e093b38f3f7bebb7ba1ca2431960bfdb72e0d",
+  "analysis_helper_sha256": "6a88adb8ec781760bbad85b77ea2dbbbf3cbeaa021b85348482e023dc5196558",
+  "input_fingerprints": {
+    "round1": "f6d32de3d79cabd1847709ec2dec5c11be007a5fa30dad7270047b36682b502c",
+    "round2": "89ff11e5845a95e45cb8e349743e82fec8dfd2cc141165be85dd06c6469fe7b9",
+    "round3": "75eedbc0cb496644d6fd4960bdd6fb4da40865012d24d8a52d8971a39662f8cf"
+  },
+  "total_valid_runs": 2880,
+  "created_utc": "2026-10-26T12:55:50.804449+00:00"
+}
