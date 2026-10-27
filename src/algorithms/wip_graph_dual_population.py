@@ -12,10 +12,32 @@ import warnings
 from bisect import bisect_left, bisect_right, insort
 from collections import Counter, deque
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
 from src.solution.decoder import DecodeProvenance, OpKey, StageBufferWIPScheduler
 from src.solution.encoder import Encoder
+
+
+# Frozen in October 2026 for subsequent formal experiments. N_A defaults to 2N.
+# Historical tuning runs retain their explicit parameters and saved source identity.
+DEFAULT_FULL_PARAMETERS = MappingProxyType({
+    "N": 10,
+    "p_mut": 0.35,
+    "rho": 0.95,
+    "T_coop": 3,
+})
+
+
+def get_default_full_parameters(**overrides) -> Dict[str, Any]:
+    """Return independent parameter values, resolving an omitted N_A after N."""
+    unknown = set(overrides) - set(DEFAULT_FULL_PARAMETERS) - {"N_A"}
+    if unknown:
+        raise TypeError(f"Unknown Full parameter overrides: {sorted(unknown)}")
+    parameters = {**DEFAULT_FULL_PARAMETERS, **overrides}
+    if parameters.get("N_A") is None:
+        parameters["N_A"] = 2 * parameters["N"]
+    return parameters
 
 
 @dataclass
@@ -246,8 +268,10 @@ class WIPGraphDualPopulation:
     """H-LNS P_S and MGS P_M with the original shared Pareto archive."""
 
     def __init__(self, operations, buffers, *, variant=None, collect_hlns_stats=True,
-                 N: int = 100, N_A: int = 200, rho: float = 0.8,
-                 p_mut: float = 0.1, T_coop: int = 10,
+                 N: int = DEFAULT_FULL_PARAMETERS["N"], N_A: Optional[int] = None,
+                 rho: float = DEFAULT_FULL_PARAMETERS["rho"],
+                 p_mut: float = DEFAULT_FULL_PARAMETERS["p_mut"],
+                 T_coop: int = DEFAULT_FULL_PARAMETERS["T_coop"],
                  FE_max: int = 10000, seed: Optional[int] = None):
         if variant is None:
             raise ValueError("The previous Full implementation is no longer provided by "
@@ -257,6 +281,8 @@ class WIPGraphDualPopulation:
         if not isinstance(variant, str) or variant != self.algorithm_variant:
             raise ValueError(f"{type(self).__name__} requires variant={self.algorithm_variant!r}; "
                              "instantiate the corresponding independent subclass for an ablation")
+        if N_A is None:
+            N_A = 2 * N
         if N < 1 or N_A < 2 or FE_max < 2 * N or T_coop < 1:
             raise ValueError("Require N>=1, N_A>=2, FE_max>=2N, T_coop>=1")
         if not (0 < rho <= 1 and 0 <= p_mut <= 1):

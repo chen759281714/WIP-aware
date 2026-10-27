@@ -1,5 +1,37 @@
 # H-LNS 实现与正确性报告
 
+## Full算法正式固定参数（2026年10月）
+
+当前正式入口是 `src.algorithms.wip_graph_dual_population.WIPGraphDualPopulation`，
+Full 仍需显式指定 `variant="HLNS_FULL"`。以下旧章节保留为实现过程记录，不代表当前默认配置或文件结构。
+
+正式固定参数为 `N=10、N_A=20、p_mut=0.35、rho=0.95、T_coop=3`。
+选择依据为 Round 2 田口 L16 的 Mean NHV 主效应推荐，并结合 Round 3、Round 4 的范围探索，最终由用户确定采用；
+这是研究选定的配置，不是经过全局最优性证明的组合。
+
+只读的 `DEFAULT_FULL_PARAMETERS` 统一定义四个基础默认值，档案容量由 `N_A=2N` 派生。
+`get_default_full_parameters()` 返回含已解析 N_A 的独立字典；需改变 N 时应在函数调用中覆盖，
+例如 `get_default_full_parameters(N=20)` 返回 N_A=40；显式 N_A 则原样保留。
+不要在取得已解析的字典后仅修改 N 而忘记同步 N_A。
+
+```python
+from src.algorithms.wip_graph_dual_population import (
+    WIPGraphDualPopulation, get_default_full_parameters,
+)
+
+params = get_default_full_parameters()
+algorithm = WIPGraphDualPopulation(
+    operations, buffers, variant="HLNS_FULL",
+    **params, FE_max=40000, seed=seed,
+)
+actual_parameters = {key: getattr(algorithm, key) for key in params}
+```
+
+直接构造且省略这五个参数也使用同一默认配置；FE_max 默认值不在本次冻结范围，实验应显式指定预算。
+三个独立消融子类继承共同默认值，不重新启用被消融的模块。
+历史预消融、FE 审计、四轮田口脚本的显式参数与结果保持不变；复现以保存配置和对应源码版本为准。
+本次修改会改变算法文件哈希，不改写历史来源元数据，也不绕过现有来源校验。
+
 ## A. 实现概述
 
 本轮新增独立 `HLNSDualPopulation`，不覆盖历史 Full。复用原双稳态种群的初始化、锦标赛、全局不可比工序对结构距离、最近邻严格相似替换、FE 终止与档案批量更新。只替换 P_S 的 specialized 分支；没有内层评价、搜索预算 B、贪心接受或候选束。
