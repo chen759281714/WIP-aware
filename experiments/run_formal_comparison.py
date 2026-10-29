@@ -38,7 +38,7 @@ FE_MAX = 40000
 # 从算法模块已冻结的默认配置中解析参数，不重复定义参数值。
 PROPOSED_PARAMS = None  # None 表示沿用 get_default_full_parameters() 对应的默认配置；也可显式指定覆盖参数字典
 USE_MULTIPROCESSING = True
-MAX_WORKERS = 16
+MAX_WORKERS = 60
 RESULTS_DIR = "experiments/results/formal_comparison"
 SKIP_COMPLETED = True
 HV_REFERENCE_POINT = (1.1, 1.1)
