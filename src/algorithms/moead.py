@@ -1,4 +1,8 @@
-"""双目标离散 MOEA/D；只使用当前运行已评价数据更新理想点与跨度。"""
+"""双目标离散 MOEA/D。
+核心分解框架来自 Zhang & Li (2007)；局部/全局模式和限次替换借鉴
+后续 MOEA/D-DE (2009)。本项目使用离散 POX/MS，而非实数 DE。
+δ=.9、nr=2 为当前工程约定，不是2007论文统一规定的参数。
+"""
 import math
 from .comparison_common import ComparisonBase
 
@@ -17,6 +21,7 @@ class MOEAD(ComparisonBase):
         self.neighborhoods=[sorted(range(n),key=lambda j:(math.dist(w,self.weights[j]),j))[:self.neighborhood_size] for w in self.weights]
         self.ideal=[math.inf]*2; self.upper=[-math.inf]*2
         self.diagnostics['replacements']=0; self.diagnostics['replacement_counts']=[]
+        self.diagnostics.update(candidates=0,local_updates=0,global_updates=0)
 
     def update_bounds(self,a):
         for j,v in enumerate(a.objectives):
@@ -30,17 +35,19 @@ class MOEAD(ComparisonBase):
         self.start(diagnostic_callback)
         self.population=self.initial()
         for a in self.population: self.update_bounds(a)
-        if len(self.population)!=self.population_size: return self.finish(self.population)
         while self.n_evaluations<self.FE_max:
             for i in range(self.population_size):
-                scope=self.neighborhoods[i] if self.rng.random()<self.neighborhood_mating_probability else list(range(self.population_size))
+                local=self.rng.random()<self.neighborhood_mating_probability
+                scope=self.neighborhoods[i] if local else list(range(self.population_size))
+                self.diagnostics['local_updates' if local else 'global_updates']+=1
                 parents=self.rng.sample(scope,2)
                 # POX 只取第一个子代进行一次实际评价。
-                c=self.evaluate(self.children(*(self.population[k] for k in parents))[0])
+                c=self.evaluate(self.generate_single_offspring(*(self.population[k] for k in parents)))
+                self.diagnostics['candidates']+=1
                 count=0
                 if c is not None:
                     self.update_bounds(c)
-                    order=list(self.neighborhoods[i]); self.rng.shuffle(order)
+                    order=list(scope); self.rng.shuffle(order)
                     for j in order:
                         if self.scalarize(c,self.weights[j])<=self.scalarize(self.population[j],self.weights[j]):
                             self.population[j]=c.copy(); count+=1

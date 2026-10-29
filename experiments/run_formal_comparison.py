@@ -28,8 +28,8 @@ if str(ROOT) not in sys.path:
 
 # ==================== 用户配置区 ====================
 MODE = "run"  # 可选模式：run（运行）、analyze（分析）、all（先运行再分析）
-SELECTED_ALGORITHMS = ["full", "wo_mgs", "wo_hlns", "wo_ac"]
-ANALYSIS_ALGORITHMS = None  # None 表示使用 SELECTED_ALGORITHMS；也可纳入此前批次已完成的算法
+SELECTED_ALGORITHMS = ["nsga2", "moead", "spea2", "mpmoga"]
+ANALYSIS_ALGORITHMS = ["full", "nsga2", "moead", "spea2", "mpmoga"]  # 主对比；None 表示沿用运行集合
 INSTANCE_DIR = "data/final_benchmark/instances"
 SELECTED_INSTANCES = None  # 可指定不含扩展名的实例名称，或以 .json 结尾的文件名；None 表示全部实例
 EXPECTED_INSTANCE_COUNT = 96
@@ -46,6 +46,17 @@ SAVE_CONVERGENCE = True
 CONVERGENCE_INTERVAL_FE = 2000
 PLOT_INSTANCES = ["WIPHFSP_S1_P1_B1"]
 MAKE_FIGURES = True
+# 新增算法运行时可选 SELECTED_ALGORITHMS=["nsga2","moead","spea2","mpmoga"]。
+# 八算法联合分析配置（不会自动运行优化）：
+# ANALYSIS_ALGORITHMS=["full","wo_mgs","wo_hlns","wo_ac","nsga2","moead","spea2","mpmoga"]
+EXTERNAL_PARAMETERS = {
+    "nsga2": dict(population_size=100,crossover_probability=.9,mutation_probability=.1),
+    "moead": dict(population_size=100,crossover_probability=.9,mutation_probability=.1,
+                  neighborhood_size=20,neighborhood_mating_probability=.9,max_replacements=2),
+    "spea2": dict(population_size=100,archive_size=100,crossover_probability=.9,mutation_probability=.1),
+    "mpmoga": dict(makespan_population_size=105,shortage_population_size=105,archive_size=210,
+                   crossover_probability=.9,mutation_probability=.1),
+}
 # ================== 用户配置区结束 ==================
 
 SCHEMA = "wip-formal-v1"
@@ -61,6 +72,15 @@ REGISTRY = {
     "wo_hlns": ("wip_graph_dual_population_wo_hlns", "WIPGraphDualPopulationWithoutHLNS", "HLNS_WO_HLNS", ("MGS", "BasicMutation", True, False)),
     "wo_ac": ("wip_graph_dual_population_wo_ac", "WIPGraphDualPopulationWithoutAC", "HLNS_WO_AC", ("MGS", "HLNS", False, False)),
 }
+
+
+LEGACY_ALGORITHMS = frozenset(REGISTRY)
+REGISTRY.update({
+    "nsga2": ("nsga2","NSGAII","NSGA_II",()),
+    "moead": ("moead","MOEAD","MOEAD",()),
+    "spea2": ("spea2","SPEA2","SPEA2",()),
+    "mpmoga": ("mpmoga","MPMOGA","MPMOGA",()),
+})
 
 
 # 启动时只读保存源码哈希，防止长期运行的工作进程将磁盘上的新哈希
@@ -258,14 +278,15 @@ def setup():
         raise ValueError("Unexpected proposed parameters")
     if any(type(v) is not int for v in (params["N"],params["N_A"],params["T_coop"],FE_MAX,CONVERGENCE_INTERVAL_FE)):
         raise ValueError("Integer population/FE/interval required")
-    if params["N"] < 1 or params["N_A"] < 2 or params["T_coop"] < 1 or FE_MAX < 2*params["N"]:
+    if params["N"] < 1 or params["N_A"] < 2 or params["T_coop"] < 1 or (set(run_algs+analysis_algs) & LEGACY_ALGORITHMS and FE_MAX < 2*params["N"]):
         raise ValueError("Invalid population/FE/cooperation parameters")
     if not 0 <= params["p_mut"] <= 1 or not 0 < params["rho"] <= 1 or CONVERGENCE_INTERVAL_FE < 1:
         raise ValueError("Invalid probability or interval")
     checks = checkpoints(FE_MAX, CONVERGENCE_INTERVAL_FE) if SAVE_CONVERGENCE else []
-    if any(k < 2*params["N"] or (k != FE_MAX and k % (2*params["N"])) for k in checks):
+    if set(run_algs+analysis_algs) & LEGACY_ALGORITHMS and any(k < 2*params["N"] or (k != FE_MAX and k % (2*params["N"])) for k in checks):
         raise ValueError("Checkpoint must coincide with a real archive update (multiple of 2*N, or final FE)")
-    return {"instance_dir": str(directory), "output": str(output), "instances": names,
+    validate_external_parameters(run_algs+analysis_algs, FE_MAX)
+    return {"external_parameters": EXTERNAL_PARAMETERS, "external_snapshot_interval_fe": CONVERGENCE_INTERVAL_FE, "instance_dir": str(directory), "output": str(output), "instances": names,
             "subset": SELECTED_INSTANCES is not None, "seeds": list(SEEDS), "parameters": params,
             "fe_max": FE_MAX, "checkpoints": checks, "run_algorithms": run_algs,
             "analysis_algorithms": analysis_algs, "hash_seed": HASH_SEED,
@@ -279,6 +300,8 @@ def tasks(config, algorithms):
 
 
 def source_identity(task, config):
+    if task["algorithm"] not in LEGACY_ALGORITHMS:
+        return external_identity(task, config)
     module, cls, variant, mechanisms = config["registry"][task["algorithm"]]
     sources = {"src/algorithms/wip_graph_dual_population.py", f"src/algorithms/{module}.py"}
     sources.update(str(p.relative_to(ROOT)) for p in (ROOT/"src/solution").glob("*.py"))
@@ -298,6 +321,8 @@ def raw_path(task, config):
 
 
 def validate_record(record, identity):
+    if identity["algorithm"] not in LEGACY_ALGORITHMS:
+        return validate_external_record(record, identity)
     payload = {k:v for k,v in record.items() if k != "payload_sha256"}
     if record.get("payload_sha256") != digest(payload):
         raise ValueError("Result payload checksum mismatch")
@@ -353,6 +378,8 @@ def load_record(task, config):
 
 def run_task(task, config):
     """工作进程将错误转为可序列化的普通数据返回，不向主进程传播自定义异常。"""
+    if task["algorithm"] not in LEGACY_ALGORITHMS:
+        return run_external_task(task, config)
     try:
         if os.environ.get("PYTHONHASHSEED") != config["hash_seed"]:
             raise RuntimeError("Restart interpreter with PYTHONHASHSEED=0")
@@ -614,6 +641,115 @@ def main():
     if args.mode in ("analyze","all"):
         analyze_mode(config)
     return 0
+
+
+def validate_external_parameters(algorithms, fe):
+    """不导入优化器的配置检查；只接受已确认构造参数。"""
+    for a in set(algorithms)-LEGACY_ALGORITHMS:
+        p=EXTERNAL_PARAMETERS[a]
+        standard={'population_size','crossover_probability','mutation_probability'}
+        allowed=(standard|{'neighborhood_size','neighborhood_mating_probability','max_replacements'} if a=='moead'
+                 else standard|{'archive_size'} if a=='spea2' else
+                 {'makespan_population_size','shortage_population_size','archive_size','crossover_probability','mutation_probability'} if a=='mpmoga' else standard)
+        if set(p)!=allowed: raise ValueError(f'{a}: 构造参数缺失或未知')
+        for k,v in p.items():
+            if 'probability' in k:
+                if type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=1: raise ValueError(k)
+            elif type(v) is not int or v<1: raise ValueError(k)
+        n=p.get('population_size',p.get('makespan_population_size',0)+p.get('shortage_population_size',0))
+        if type(fe) is not int or fe<n: raise ValueError(f'{a}: FE不足初始化')
+        if a=='moead' and (n<2 or not 2<=p['neighborhood_size']<=n): raise ValueError('MOEA/D邻域配置错误')
+
+
+def external_identity(task,config):
+    a=task['algorithm'];module,cls,variant,_=config['registry'][a]
+    files=['src/algorithms/comparison_common.py','src/algorithms/comparison_operators.py',
+           f'src/algorithms/{module}.py','src/solution/encoder.py','src/solution/decoder.py']
+    hashes={p:file_hash(ROOT/p) for p in files}
+    if any(STARTUP_SOURCE_HASHES.get(p)!=h for p,h in hashes.items()): raise ValueError('源码在启动后变化')
+    return {'schema':'wip-formal-external-v1',**task,'class':f'src.algorithms.{module}.{cls}',
+            'variant':variant,'parameters':{**config['external_parameters'][a],
+                'FE_max':config['fe_max'],'seed':task['seed'],
+                'snapshot_interval_fe':config['external_snapshot_interval_fe'] if config['checkpoints'] else config['fe_max']+1},
+            'checkpoints':config['checkpoints'],'hash_seed':config['hash_seed'],'sources':hashes,
+            'instance_sha256':file_hash(Path(config['instance_dir'])/f"{task['instance']}.json")}
+
+
+def validate_external_record(r,identity):
+    if r.get('payload_sha256')!=digest({k:v for k,v in r.items() if k!='payload_sha256'}): raise ValueError('载荷校验和错误')
+    if r['identity']!=identity or r['fingerprint']!=digest(identity): raise ValueError('外部算法身份冲突')
+    p=identity['parameters'];a=identity['algorithm']
+    if r['actual_parameters']!=p or r['algorithm_variant']!=identity['variant']: raise ValueError('实际参数或身份不一致')
+    if type(r['actual_fe']) is not int or r['actual_fe']!=p['FE_max']: raise ValueError('实际FE不一致')
+    if type(r['runtime_seconds']) not in (int,float) or not math.isfinite(r['runtime_seconds']) or r['runtime_seconds']<0: raise ValueError('耗时非法')
+    datetime.fromisoformat(r['completed_utc'])
+    d=r['diagnostics']
+    for k in ('evaluations','infeasible','crossovers','mutations'):
+        if type(d[k]) is not int or d[k]<0: raise ValueError('诊断计数非法')
+    if d['evaluations']!=r['actual_fe'] or d['infeasible']>d['evaluations']: raise ValueError('评价诊断不一致')
+    if sum(d['infeasible_reasons'].values())!=d['infeasible']: raise ValueError('不可行诊断不一致')
+    state=r['native_state'];pop=points(state['objectives'],True)
+    capacity=p.get('archive_size',p.get('population_size'))
+    if len(pop)>capacity: raise ValueError('原生状态容量超限')
+    expected_size=p.get('population_size',p.get('makespan_population_size',0)+p.get('shortage_population_size',0))
+    if a in ('nsga2','moead') and len(pop)!=expected_size: raise ValueError('最终种群规模错误')
+    if a=='mpmoga':
+        if state['population_sizes']!=[p['makespan_population_size'],p['shortage_population_size']]: raise ValueError('双种群规模错误')
+        for k in ('ast_crossovers','ast_no_crossovers','aus_attempts','mutation_accepted'):
+            if type(d[k]) is not int or d[k]<0: raise ValueError('AST/AUS诊断错误')
+    if a=='moead':
+        weights=[(i/(expected_size-1),1-i/(expected_size-1)) for i in range(expected_size)]
+        if state['weights']!=[list(w) for w in weights]: raise ValueError('权重错误')
+        neighborhoods=[sorted(range(expected_size),key=lambda j:(math.dist(w,weights[j]),j))[:p['neighborhood_size']] for w in weights]
+        if state['neighborhoods']!=neighborhoods: raise ValueError('邻域错误')
+        counts=d['replacement_counts']
+        if len(counts)!=d['candidates'] or any(type(v) is not int or not 0<=v<=p['max_replacements'] for v in counts): raise ValueError('替换次数错误')
+        if sum(counts)!=d['replacements'] or d['local_updates']+d['global_updates']!=d['candidates']: raise ValueError('分解更新诊断不一致')
+    def valid_archive(values,size):
+        ps=points(values,True)
+        if len(ps)!=size or len(ps)!=len(set(ps)) or set(nondominated(ps))!=set(ps) or size>capacity: raise ValueError('原生档案非法')
+    valid_archive(r['final_archive'],r['archive_size'])
+    if set(nondominated(pop))!=set(map(tuple,r['final_archive'])): raise ValueError('最终输出不是原生状态非支配层')
+    if [s['fe'] for s in r['convergence']]!=identity['checkpoints']: raise ValueError('快照FE缺失或重复')
+    for s in r['convergence']:
+        if type(s['fe']) is not int: raise ValueError('快照FE类型错误')
+        valid_archive(s['archive'],s['archive_size'])
+    if r['convergence'] and r['convergence'][-1]['archive']!=r['final_archive']: raise ValueError('最终快照不一致')
+
+
+def run_external_task(task,config):
+    """外部算法仅适配运行/记录接口，不调用Full专用诊断。"""
+    try:
+        if os.environ.get('PYTHONHASHSEED')!=config['hash_seed']: raise RuntimeError('需要PYTHONHASHSEED=0')
+        path=raw_path(task,config)
+        if path.exists(): raise FileExistsError(f'拒绝覆盖 {path}')
+        identity=source_identity(task,config)
+        module,clsname,variant,_=config['registry'][task['algorithm']]
+        cls=getattr(importlib.import_module('src.algorithms.'+module),clsname)
+        data=validate_instance(Path(config['instance_dir'])/f"{task['instance']}.json")
+        started=time.perf_counter();engine=cls(data['operations'],data['buffers'],**identity['parameters'])
+        if type(engine) is not cls or engine.algorithm_variant!=variant: raise ValueError('真实算法身份错误')
+        actual={k:getattr(engine,k) for k in identity['parameters'] if k!='seed'};actual['seed']=task['seed']
+        snapshots=[]
+        def observe(state):
+            if config['checkpoints']:
+                snapshots.append({'fe':state.n_evaluations,'archive_size':len(state.A),
+                                  'archive':[[x.makespan,x.shortage] for x in state.A]})
+        archive=engine.run(diagnostic_callback=observe if config['checkpoints'] else None)
+        if identity!=source_identity(task,config): raise ValueError('运行期间源码变化')
+        native_pop=engine.population if task['algorithm'] in ('nsga2','moead') else engine.archive
+        state={'objectives':[[x.makespan,x.shortage] for x in native_pop]}
+        if task['algorithm']=='moead':state.update(weights=[list(w) for w in engine.weights],neighborhoods=engine.neighborhoods)
+        if task['algorithm']=='mpmoga':state['population_sizes']=[len(engine.makespan_population),len(engine.shortage_population)]
+        r={'identity':identity,'fingerprint':digest(identity),'actual_parameters':actual,
+           'actual_fe':engine.n_evaluations,'algorithm_variant':variant,'runtime_seconds':time.perf_counter()-started,
+           'completed_utc':utc(),'final_archive':[[x.makespan,x.shortage] for x in archive],
+           'archive_size':len(archive),'convergence':snapshots,'diagnostics':engine.diagnostics,'native_state':state,
+           'runtime_environment':{'python':sys.version,'platform':sys.platform},'runner_source_sha256':file_hash(__file__)}
+        r['payload_sha256']=digest(r);validate_record(r,identity);atomic_json(path,r)
+        return {**task,'status':'completed'}
+    except Exception:
+        return {**task,'status':'failed','error':traceback.format_exc()}
 
 
 if __name__ == "__main__":

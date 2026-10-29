@@ -63,6 +63,7 @@ class SmokeTests(unittest.TestCase):
         cls.temp=tempfile.TemporaryDirectory(prefix='formal-comparison-test-')
         cls.root=Path(cls.temp.name)
         cls.overrides={
+            'SELECTED_ALGORITHMS':['full','wo_mgs','wo_hlns','wo_ac'], 'ANALYSIS_ALGORITHMS':None,
             'SELECTED_INSTANCES':['WIPHFSP_S1_P1_B1'], 'SEEDS':[10], 'FE_MAX':43,
             'PROPOSED_PARAMS':dict(N=2,N_A=4), 'CONVERGENCE_INTERVAL_FE':12,
             'RESULTS_DIR':str(cls.root/'single'), 'MAKE_FIGURES':False,

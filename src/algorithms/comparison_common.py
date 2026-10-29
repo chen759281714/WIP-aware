@@ -47,9 +47,15 @@ def fronts(pop):
 
 
 def crowding(pop, indices):
+    # 按完整目标向量分组：每组仅稳定选择第一个个体代表几何位置。
+    # 非代表副本距离为零；不删除基因型，不改变种群规模。
+    representatives = {}
+    for i in indices:
+        representatives.setdefault(pop[i].objectives, i)
+    unique = list(representatives.values())
     distances = {i: 0. for i in indices}
     for k in range(2):
-        order = sorted(indices, key=lambda i: (pop[i].objectives[k], i))
+        order = sorted(unique, key=lambda i: (pop[i].objectives[k], i))
         if not order: continue
         span = pop[order[-1]].objectives[k]-pop[order[0]].objectives[k]
         if span == 0: continue
@@ -71,12 +77,16 @@ def environmental(pop, capacity):
 
 
 def native(pop):
-    if not pop: return []
-    result, seen = [], set()
-    for i in fronts(pop)[0]:
-        if pop[i].objectives not in seen:
-            result.append(pop[i].copy()); seen.add(pop[i].objectives)
-    return result
+    # 双目标最小化的排序扫描；只提取当前原生状态，不累计历史候选。
+    first = {}
+    for a in pop:
+        first.setdefault(a.objectives, a)
+    front = set()
+    best = math.inf
+    for x,y in sorted(first):
+        if y < best:
+            front.add((x,y)); best=y
+    return [a.copy() for key,a in first.items() if key in front]
 
 
 def genotype(a):
@@ -109,13 +119,14 @@ class ComparisonBase:
         self.n_evaluations=0
         self.A=[]; self.snapshots=[]
         self.diagnostics={'evaluations':0,'infeasible':0,'infeasible_reasons':{},'crossovers':0,'mutations':0}
-        self._callback=None; self._last_snapshot=-1
+        self._callback=None; self._last_snapshot=-1; self._pending_snapshot=None
 
     def evaluate(self,a):
         if self.n_evaluations >= self.FE_max: raise RuntimeError('FE 预算耗尽')
         self.encoder.validate_os(a.os_seq)
         if set(a.ms_map) != set(self.encoder.ms_index_order): raise ValueError('MS 工序键错误')
         self.encoder.build_ms_map([a.ms_map[k] for k in self.encoder.ms_index_order])
+        self._flush_snapshot()  # 下一次真实评价前，提交上一 FE 的最终状态
         self.n_evaluations += 1
         self.diagnostics['evaluations'] += 1
         # 仅识别解码器明确的无事件可推进死锁；迭代上限等程序异常原样传播。
@@ -137,7 +148,9 @@ class ComparisonBase:
             a=self.evaluate(Solution(self.encoder.generate_random_os(),self.encoder.build_ms_map(self.encoder.generate_random_ms())))
             if a is not None: pop.append(a)
             self.observe(pop)
-        if not pop: raise RuntimeError('初始化未找到可行解')
+        if len(pop) != self.population_size:
+            self._pending_snapshot=None
+            raise RuntimeError(f'初始化失败：预算 {self.FE_max} 已耗尽，仅取得 {len(pop)}/{self.population_size} 个可行个体')
         return pop
 
     def children(self,a,b):
@@ -154,16 +167,37 @@ class ComparisonBase:
             output.append(c)
         return output
 
+    def generate_single_offspring(self,a,b):
+        """单候选更新：POX 取第一个子代，未交叉复制第一父代，仅一次变异判断。"""
+        from .comparison_operators import pox,mutate
+        if self.rng.random()<self.crossover_probability:
+            self.diagnostics['crossovers']+=1
+            child=pox(a,b,self.operations,self.rng)[0]
+        else:
+            child=a.copy()
+        if self.rng.random()<self.mutation_probability:
+            self.diagnostics['mutations']+=1
+            child=mutate(child,self.operations,self.rng)
+        return child
+
+    def _flush_snapshot(self):
+        if self._pending_snapshot is None: return
+        snap=self._pending_snapshot
+        assert snap['fe']==self.n_evaluations
+        self._pending_snapshot=None
+        self.snapshots.append(snap)
+        self._last_snapshot=snap['fe']
+        if self._callback is not None: self._callback(self)
+
     def observe(self,state,final=False):
-        fe=self.n_evaluations
-        if not final and (not fe or fe % self.snapshot_interval_fe):
-            return
+        # 同一 FE 的环境选择/档案更新可多次提交，但外部通知延迟至下一次
+        # 实际评价前；最终 FE 仅由 finish 在合法收尾后通知。没有未来评价回填。
         self.A=native(state)
-        if (fe and fe % self.snapshot_interval_fe == 0) or final:
-            if self._last_snapshot == fe: self.snapshots.pop()
-            snap={'fe':fe,'archive': [list(x.objectives) for x in self.A], 'archive_size':len(self.A)}
-            self.snapshots.append(snap); self._last_snapshot=fe
-            if self._callback is not None: self._callback(self)
+        fe=self.n_evaluations
+        if final or (fe and fe % self.snapshot_interval_fe == 0):
+            self._pending_snapshot={'fe':fe,'archive':[list(x.objectives) for x in self.A],
+                                    'archive_size':len(self.A)}
+        if final: self._flush_snapshot()
 
     def start(self,callback):
         if self.n_evaluations: raise RuntimeError('同一优化器仅允许运行一次')
