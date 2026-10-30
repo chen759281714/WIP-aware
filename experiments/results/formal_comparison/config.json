@@ -1,4 +1,33 @@
 {
+  "external_parameters": {
+    "nsga2": {
+      "population_size": 100,
+      "crossover_probability": 0.9,
+      "mutation_probability": 0.1
+    },
+    "moead": {
+      "population_size": 100,
+      "crossover_probability": 0.9,
+      "mutation_probability": 0.1,
+      "neighborhood_size": 20,
+      "neighborhood_mating_probability": 0.9,
+      "max_replacements": 2
+    },
+    "spea2": {
+      "population_size": 100,
+      "archive_size": 100,
+      "crossover_probability": 0.9,
+      "mutation_probability": 0.1
+    },
+    "mpmoga": {
+      "makespan_population_size": 105,
+      "shortage_population_size": 105,
+      "archive_size": 210,
+      "crossover_probability": 0.9,
+      "mutation_probability": 0.1
+    }
+  },
+  "external_snapshot_interval_fe": 2000,
   "instance_dir": "/home/ssczl/projects/WIP-aware/data/final_benchmark/instances",
   "output": "/home/ssczl/projects/WIP-aware/experiments/results/formal_comparison",
   "instances": [
@@ -143,16 +172,17 @@
     40000
   ],
   "run_algorithms": [
-    "full",
-    "wo_mgs",
-    "wo_hlns",
-    "wo_ac"
+    "nsga2",
+    "moead",
+    "spea2",
+    "mpmoga"
   ],
   "analysis_algorithms": [
     "full",
-    "wo_mgs",
-    "wo_hlns",
-    "wo_ac"
+    "nsga2",
+    "moead",
+    "spea2",
+    "mpmoga"
   ],
   "hash_seed": "0",
   "execution": {
@@ -160,27 +190,17 @@
     "max_workers": 60
   },
   "registry": {
-    "wo_ac": [
-      "wip_graph_dual_population_wo_ac",
-      "WIPGraphDualPopulationWithoutAC",
-      "HLNS_WO_AC",
-      [
-        "MGS",
-        "HLNS",
-        false,
-        false
-      ]
+    "nsga2": [
+      "nsga2",
+      "NSGAII",
+      "NSGA_II",
+      []
     ],
-    "wo_hlns": [
-      "wip_graph_dual_population_wo_hlns",
-      "WIPGraphDualPopulationWithoutHLNS",
-      "HLNS_WO_HLNS",
-      [
-        "MGS",
-        "BasicMutation",
-        true,
-        false
-      ]
+    "spea2": [
+      "spea2",
+      "SPEA2",
+      "SPEA2",
+      []
     ],
     "full": [
       "wip_graph_dual_population",
@@ -193,16 +213,17 @@
         false
       ]
     ],
-    "wo_mgs": [
-      "wip_graph_dual_population_wo_mgs",
-      "WIPGraphDualPopulationWithoutMGS",
-      "HLNS_WO_MGS",
-      [
-        "BasicMutation",
-        "HLNS",
-        true,
-        false
-      ]
+    "moead": [
+      "moead",
+      "MOEAD",
+      "MOEAD",
+      []
+    ],
+    "mpmoga": [
+      "mpmoga",
+      "MPMOGA",
+      "MPMOGA",
+      []
     ]
   }
 }
